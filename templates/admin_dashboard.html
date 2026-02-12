@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BizFlow Admin Panel</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+:root{
+    --primary:#2563eb;
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --warning:#f59e0b;
+}
+
+/* RESET */
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family: "Segoe UI", Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* HEADER */
+header{
+    background:var(--primary);
+    color:white;
+    padding:22px 30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h2{
+    font-weight:600;
+}
+
+header span{
+    opacity:.9;
+}
+
+/* LAYOUT */
+.container{
+    padding:30px;
+    max-width:1300px;
+    margin:auto;
+}
+
+/* STATS */
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:var(--card);
+    padding:22px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+    transition:.2s;
+}
+
+.card:hover{
+    transform:translateY(-2px);
+}
+
+.card h3{
+    font-size:14px;
+    color:var(--muted);
+}
+
+.card h1{
+    margin-top:6px;
+    font-size:32px;
+}
+
+/* TOOLBAR */
+.toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.search{
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    min-width:250px;
+    font-size:14px;
+}
+
+/* TABLE */
+.table-box{
+    background:var(--card);
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:14px 12px;
+    text-align:left;
+    font-size:14px;
+}
+
+th{
+    background:#f1f5f9;
+    color:#334155;
+    font-weight:600;
+}
+
+tr:hover{
+    background:#f9fbff;
+}
+
+/* BADGES */
+.badge{
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    color:white;
+}
+
+.active{ background:var(--success);}
+.inactive{ background:var(--danger);}
+.admin{ background:var(--warning); }
+
+/* BUTTONS */
+.btn{
+    border:none;
+    padding:7px 12px;
+    border-radius:6px;
+    font-size:12px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.btn:hover{opacity:.85;}
+
+.btn-danger{ background:var(--danger); color:white;}
+.btn-success{ background:var(--success); color:white;}
+.btn-warning{ background:var(--warning); color:white;}
+
+@media(max-width:700px){
+    table{font-size:12px;}
+    th,td{padding:10px;}
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>🚀 BizFlow Admin</h2>
+    <span>Super Admin Panel</span>
+</header>
+
+
+<div class="container">
+
+<!-- STATS -->
+<div class="stats">
+
+    <div class="card">
+        <h3>Total Businesses</h3>
+        <h1>{{ total_users }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Active Businesses</h3>
+        <h1>{{ active_users }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Inactive</h3>
+        <h1>{{ total_users - active_users }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Admins</h3>
+        <h1>
+            {{ users|selectattr("is_admin")|list|length }}
+        </h1>
+    </div>
+
+</div>
+
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+
+    <h3>All Businesses</h3>
+
+    <input
+        type="text"
+        id="search"
+        class="search"
+        placeholder="Search by name / email..."
+        onkeyup="filterTable()"
+    >
+
+</div>
+
+
+<!-- TABLE -->
+<div class="table-box">
+
+<table id="userTable">
+
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Plan</th>
+    <th>Status</th>
+    <th>Admin</th>
+    <th>Actions</th>
+</tr>
+
+{% for u in users %}
+<tr>
+
+<td>{{ u.id }}</td>
+<td>{{ u.name }}</td>
+<td>{{ u.admin_email }}</td>
+<td>{{ u.plan }}</td>
+
+<td>
+{% if u.is_active %}
+    <span class="badge active">Active</span>
+{% else %}
+    <span class="badge inactive">Suspended</span>
+{% endif %}
+</td>
+
+<td>
+{% if u.is_admin %}
+    <span class="badge admin">Admin</span>
+{% else %}
+    —
+{% endif %}
+</td>
+
+<td>
+
+{% if u.is_active %}
+<button
+    class="btn btn-danger"
+    onclick="toggleUser({{ u.id }})"
+>
+Suspend
+</button>
+{% else %}
+<button
+    class="btn btn-success"
+    onclick="toggleUser({{ u.id }})"
+>
+Activate
+</button>
+{% endif %}
+
+{% if not u.is_admin %}
+<button
+    class="btn btn-warning"
+    onclick="makeAdmin({{ u.id }})"
+>
+Make Admin
+</button>
+{% endif %}
+
+</td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- SCRIPTS -->
+<script>
+
+function filterTable(){
+
+    let input = document.getElementById("search");
+    let filter = input.value.toLowerCase();
+    let rows = document.querySelectorAll("#userTable tr");
+
+    rows.forEach((row, i)=>{
+
+        if(i===0) return;
+
+        let text = row.innerText.toLowerCase();
+
+        row.style.display =
+            text.includes(filter) ? "" : "none";
+    });
+}
+
+
+function toggleUser(id){
+
+    if(!confirm("Change account status?")) return;
+
+    fetch(`/admin/toggle-user/${id}`, {
+        method:"POST"
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        if(d.status==="success"){
+            location.reload();
+        }else{
+            alert("Error");
+        }
+    });
+}
+
+
+function makeAdmin(id){
+
+    if(!confirm("Make this user admin?")) return;
+
+    fetch(`/admin/make-admin/${id}`,{
+        method:"POST"
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        if(d.status==="success"){
+            location.reload();
+        }else{
+            alert("Error");
+        }
+    });
+}
+
+</script>
+
+</body>
+</html>

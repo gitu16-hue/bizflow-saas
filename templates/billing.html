@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<title>Upgrade Plan — SmartGym AI</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+
+/* RESET */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px;
+color:#222;
+}
+
+
+/* CONTAINER */
+
+.wrapper{
+background:white;
+max-width:900px;
+width:100%;
+padding:50px 40px;
+border-radius:20px;
+box-shadow:0 25px 60px rgba(0,0,0,.2);
+text-align:center;
+}
+
+
+/* HEADER */
+
+h1{
+font-size:34px;
+margin-bottom:10px;
+font-weight:800;
+}
+
+.subtitle{
+color:#555;
+margin-bottom:35px;
+font-size:16px;
+}
+
+
+/* TRUST */
+
+.trust{
+display:flex;
+justify-content:center;
+gap:25px;
+margin-bottom:35px;
+font-size:14px;
+color:#666;
+flex-wrap:wrap;
+}
+
+.trust span{
+display:flex;
+align-items:center;
+gap:6px;
+}
+
+
+/* PLANS */
+
+.plans{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:35px;
+margin-bottom:40px;
+}
+
+
+/* CARD */
+
+.card{
+border:2px solid #eee;
+border-radius:16px;
+padding:35px 25px;
+transition:.3s;
+position:relative;
+background:white;
+}
+
+.card:hover{
+transform:translateY(-6px);
+box-shadow:0 15px 35px rgba(0,0,0,.1);
+}
+
+
+/* POPULAR */
+
+.card.popular{
+border:3px solid #4facfe;
+}
+
+.card.popular::before{
+content:"BEST VALUE";
+position:absolute;
+top:-14px;
+left:50%;
+transform:translateX(-50%);
+background:#4facfe;
+color:white;
+padding:5px 14px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+
+/* PLAN INFO */
+
+.card h2{
+font-size:22px;
+margin-bottom:10px;
+}
+
+.price{
+font-size:36px;
+font-weight:800;
+margin:15px 0;
+color:#4facfe;
+}
+
+.card.popular .price{
+color:#ff7a18;
+}
+
+
+.features{
+list-style:none;
+margin:25px 0;
+text-align:left;
+padding-left:0;
+}
+
+.features li{
+margin:10px 0;
+font-size:15px;
+}
+
+
+/* BUTTON */
+
+.btn{
+display:inline-block;
+width:100%;
+padding:14px;
+background:linear-gradient(135deg,#4facfe,#00c6ff);
+color:white;
+border:none;
+border-radius:8px;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+transition:.3s;
+}
+
+.card.popular .btn{
+background:linear-gradient(135deg,#ff7a18,#ffb347);
+}
+
+.btn:hover{
+opacity:.9;
+transform:translateY(-2px);
+}
+
+.btn:disabled{
+opacity:.6;
+cursor:not-allowed;
+transform:none;
+}
+
+
+/* FOOTER */
+
+.footer{
+margin-top:30px;
+font-size:14px;
+color:#666;
+}
+
+.footer span{
+margin:0 10px;
+}
+
+
+/* LOADER */
+
+#loader{
+display:none;
+margin-top:20px;
+font-size:15px;
+color:#4facfe;
+font-weight:600;
+}
+
+
+@media(max-width:768px){
+
+.wrapper{
+padding:35px 25px;
+}
+
+h1{
+font-size:28px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+
+<!-- HEADER -->
+
+<h1>Upgrade Your Plan 🚀</h1>
+
+<p class="subtitle">
+Unlock automation, more leads & faster growth
+</p>
+
+
+<!-- TRUST -->
+
+<div class="trust">
+
+<span>🔒 Secure Payments</span>
+<span>🇮🇳 Razorpay Verified</span>
+<span>⭐ 4.9/5 Rating</span>
+<span>📞 Support Included</span>
+
+</div>
+
+
+<!-- PLANS -->
+
+<div class="plans">
+
+
+<!-- STARTER -->
+
+<div class="card">
+
+<h2>Starter</h2>
+
+<div class="price">₹999</div>
+
+<p>/ month</p>
+
+<ul class="features">
+
+<li>✅ WhatsApp Bot</li>
+<li>✅ 300 Chats / Month</li>
+<li>✅ Booking System</li>
+<li>✅ Dashboard Access</li>
+<li>✅ Email Support</li>
+
+</ul>
+
+<button class="btn" id="starterBtn" onclick="pay('starter')">
+Choose Starter
+</button>
+
+</div>
+
+
+<!-- PRO -->
+
+<div class="card popular">
+
+<h2>Pro</h2>
+
+<div class="price">₹2499</div>
+
+<p>/ month</p>
+
+<ul class="features">
+
+<li>✅ Unlimited Chats</li>
+<li>✅ Auto Reminders</li>
+<li>✅ Owner Alerts</li>
+<li>✅ Calendar Sync</li>
+<li>✅ Priority Support</li>
+<li>🔥 Lead Optimization</li>
+
+</ul>
+
+<button class="btn" id="proBtn" onclick="pay('pro')">
+Go Pro 🚀
+</button>
+
+</div>
+
+
+</div>
+
+
+<!-- LOADER -->
+
+<div id="loader">
+⏳ Processing Payment...
+</div>
+
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+<span>Cancel Anytime</span> •
+<span>No Hidden Charges</span> •
+<span>GST Invoice</span>
+
+</div>
+
+</div>
+
+
+<!-- PAYMENT SCRIPT -->
+
+<script>
+
+let loading = false;
+
+function toggleLoading(state){
+
+loading = state;
+
+document.getElementById("loader").style.display =
+ state ? "block" : "none";
+
+document.getElementById("starterBtn").disabled = state;
+document.getElementById("proBtn").disabled = state;
+}
+
+
+async function pay(plan){
+
+if(loading) return;
+
+toggleLoading(true);
+
+try{
+
+const res = await fetch('/api/create-order',{
+ method:'POST',
+ headers:{
+  'Content-Type':'application/json'
+ },
+ body:JSON.stringify({plan})
+});
+
+
+const data = await res.json();
+
+
+/* AUTH CHECK */
+
+if(data.error === "Auth"){
+
+ alert("Session expired. Please login again.");
+ window.location.href="/login";
+ return;
+}
+
+
+/* VALIDATION */
+
+if(!data.order_id || !data.key){
+
+ throw "Invalid payment data";
+}
+
+
+/* RAZORPAY */
+
+const options = {
+
+ key: data.key,
+
+ amount: data.amount,
+
+ currency: "INR",
+
+ order_id: data.order_id,
+
+ name: "BizFlow AI",
+
+ description: "Monthly Subscription",
+
+ theme:{
+  color:"#4facfe"
+ },
+
+ handler: async function (response){
+
+  await fetch('/api/payment-success',{
+   method:'POST',
+   headers:{
+    'Content-Type':'application/json'
+   },
+   body:JSON.stringify(response)
+  });
+
+  alert("🎉 Payment Successful!");
+
+  window.location.href="/dashboard";
+ }
+
+};
+
+
+const rzp = new Razorpay(options);
+
+rzp.on('payment.failed', function(){
+
+ alert("❌ Payment Failed. Try again.");
+
+ toggleLoading(false);
+});
+
+rzp.open();
+
+}
+catch(err){
+
+ console.error(err);
+
+ alert("⚠️ Something went wrong. Please try again.");
+
+ toggleLoading(false);
+}
+
+}
+
+</script>
+
+
+</body>
+</html>

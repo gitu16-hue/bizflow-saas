@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Create Account — BizFlow AI</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+/* ================= RESET ================= */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#2563eb,#06b6d4);
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px;
+color:#111;
+}
+
+
+/* ================= CARD ================= */
+
+.container{
+width:100%;
+max-width:480px;
+background:white;
+border-radius:20px;
+padding:42px 36px;
+box-shadow:0 25px 60px rgba(0,0,0,.25);
+animation:fadeUp .6s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(25px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+
+/* ================= LOGO ================= */
+
+.logo{
+text-align:center;
+margin-bottom:25px;
+}
+
+.logo h1{
+font-size:30px;
+font-weight:800;
+color:#2563eb;
+}
+
+.logo span{
+color:#06b6d4;
+}
+
+.logo p{
+color:#555;
+font-size:14px;
+margin-top:5px;
+}
+
+
+/* ================= PLAN ================= */
+
+.plan-badge{
+background:#eff6ff;
+color:#2563eb;
+text-align:center;
+padding:8px 14px;
+border-radius:25px;
+font-size:14px;
+font-weight:600;
+margin-bottom:18px;
+}
+
+
+/* ================= FORM ================= */
+
+form{
+display:flex;
+flex-direction:column;
+gap:16px;
+}
+
+.field{
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+label{
+font-size:14px;
+font-weight:600;
+color:#444;
+}
+
+input, select{
+padding:12px 14px;
+border-radius:9px;
+border:1px solid #ddd;
+font-size:15px;
+transition:.3s;
+}
+
+input:focus, select:focus{
+border-color:#2563eb;
+outline:none;
+box-shadow:0 0 0 2px rgba(37,99,235,.15);
+}
+
+.hint{
+font-size:12px;
+color:#777;
+}
+
+
+/* ================= BUTTON ================= */
+
+button{
+margin-top:12px;
+background:linear-gradient(135deg,#2563eb,#06b6d4);
+color:white;
+border:none;
+padding:14px;
+border-radius:11px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+transition:.3s;
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 25px rgba(37,99,235,.35);
+}
+
+
+/* ================= FOOTER ================= */
+
+.footer{
+text-align:center;
+margin-top:24px;
+font-size:14px;
+color:#555;
+}
+
+.footer a{
+color:#2563eb;
+text-decoration:none;
+font-weight:600;
+}
+
+.footer a:hover{
+text-decoration:underline;
+}
+
+
+/* ================= ERROR / SUCCESS ================= */
+
+.error{
+background:#fee2e2;
+color:#b91c1c;
+padding:10px 14px;
+border-radius:8px;
+font-size:14px;
+text-align:center;
+}
+
+.success{
+background:#dcfce7;
+color:#166534;
+padding:10px 14px;
+border-radius:8px;
+font-size:14px;
+text-align:center;
+}
+
+
+/* ================= MOBILE ================= */
+
+@media(max-width:520px){
+
+.container{
+padding:30px 22px;
+}
+
+.logo h1{
+font-size:24px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+
+<div class="container">
+
+    <!-- LOGO -->
+    <div class="logo">
+        <h1>🚀 BizFlow <span>AI</span></h1>
+        <p>Start automating your business today</p>
+    </div>
+
+
+    <!-- PLAN -->
+    {% if plan %}
+    <div class="plan-badge">
+        Selected Plan: {{ plan|title }}
+    </div>
+    {% endif %}
+
+
+    <!-- ERROR -->
+    {% if error %}
+    <div class="error">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="success">
+        {{ success }}
+    </div>
+    {% endif %}
+
+
+    <!-- FORM -->
+    <form method="post" action="/signup">
+
+
+        <!-- BUSINESS NAME -->
+        <div class="field">
+            <label>Business Name</label>
+            <input
+                type="text"
+                name="name"
+                placeholder="Your Business Name"
+                required
+            >
+        </div>
+
+
+        <!-- PHONE (IMPORTANT FIX) -->
+        <div class="field">
+            <label>WhatsApp Number</label>
+
+            <input
+                type="text"
+                name="phone"
+                placeholder="+919876543210"
+                pattern="^\+?[0-9]{10,14}$"
+                required
+            >
+
+            <div class="hint">
+                Include country code (Example: +91XXXXXXXXXX)
+            </div>
+        </div>
+
+
+        <!-- EMAIL -->
+        <div class="field">
+            <label>Email Address</label>
+
+            <input
+                type="email"
+                name="email"
+                placeholder="admin@business.com"
+                required
+            >
+        </div>
+
+
+        <!-- PASSWORD -->
+        <div class="field">
+            <label>Password</label>
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Min 8 chars, 1 uppercase, 1 number"
+                minlength="8"
+                required
+            >
+
+            <div class="hint">
+                Strong password recommended
+            </div>
+        </div>
+
+
+        <!-- BUSINESS TYPE -->
+        <div class="field">
+            <label>Business Type</label>
+
+            <select name="business_type" required>
+
+                <option value="">Select Industry</option>
+
+                <option value="gym">🏋️ Gym / Fitness</option>
+                <option value="salon">💇 Salon / Spa</option>
+                <option value="clinic">🏥 Clinic / Doctor</option>
+                <option value="restaurant">🍽 Restaurant</option>
+                <option value="realestate">🏠 Real Estate</option>
+                <option value="auto">🚗 Auto Service</option>
+                <option value="education">🎓 Coaching / School</option>
+                <option value="shop">🛍 Retail Shop</option>
+                <option value="other">📌 Other</option>
+
+            </select>
+        </div>
+
+
+        <!-- SUBMIT -->
+        <button type="submit">
+            Create Account 🚀
+        </button>
+
+    </form>
+
+
+    <!-- FOOTER -->
+    <div class="footer">
+
+        <p>
+            Already have an account?
+            <a href="/login">Login</a>
+        </p>
+
+        <p style="margin-top:8px;">
+            <a href="/">← Back to Home</a>
+        </p>
+
+    </div>
+
+
+</div>
+
+
+</body>
+</html>

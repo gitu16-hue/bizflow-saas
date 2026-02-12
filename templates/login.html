@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login — BizFlow AI</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+/* ================= RESET ================= */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#2563eb,#06b6d4);
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px;
+}
+
+
+/* ================= CARD ================= */
+
+.container{
+width:100%;
+max-width:440px;
+background:white;
+border-radius:18px;
+padding:40px 35px;
+box-shadow:0 25px 60px rgba(0,0,0,.25);
+animation:fadeUp .6s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(25px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+
+/* ================= LOGO ================= */
+
+.logo{
+text-align:center;
+margin-bottom:22px;
+}
+
+.logo h1{
+font-size:28px;
+font-weight:800;
+color:#2563eb;
+}
+
+.logo span{
+color:#06b6d4;
+}
+
+.logo p{
+color:#555;
+font-size:14px;
+margin-top:4px;
+}
+
+
+/* ================= FORM ================= */
+
+form{
+display:flex;
+flex-direction:column;
+gap:16px;
+}
+
+label{
+font-size:14px;
+font-weight:600;
+color:#444;
+}
+
+input{
+padding:12px 14px;
+border-radius:8px;
+border:1px solid #ddd;
+font-size:15px;
+transition:.3s;
+}
+
+input:focus{
+border-color:#2563eb;
+outline:none;
+box-shadow:0 0 0 2px rgba(37,99,235,.15);
+}
+
+
+/* ================= BUTTON ================= */
+
+button{
+margin-top:10px;
+background:linear-gradient(135deg,#2563eb,#06b6d4);
+color:white;
+border:none;
+padding:14px;
+border-radius:10px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+transition:.3s;
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 25px rgba(37,99,235,.35);
+}
+
+
+/* ================= LINKS ================= */
+
+.links{
+display:flex;
+justify-content:space-between;
+font-size:14px;
+margin-top:8px;
+}
+
+.links a{
+color:#2563eb;
+text-decoration:none;
+font-weight:600;
+}
+
+.links a:hover{
+text-decoration:underline;
+}
+
+
+/* ================= FOOTER ================= */
+
+.footer{
+text-align:center;
+margin-top:22px;
+font-size:14px;
+color:#555;
+}
+
+.footer a{
+color:#2563eb;
+font-weight:600;
+text-decoration:none;
+}
+
+.footer a:hover{
+text-decoration:underline;
+}
+
+
+/* ================= ERROR ================= */
+
+.error{
+background:#fee2e2;
+color:#b91c1c;
+padding:10px 14px;
+border-radius:8px;
+font-size:14px;
+text-align:center;
+}
+
+
+/* ================= MOBILE ================= */
+
+@media(max-width:500px){
+
+.container{
+padding:30px 22px;
+}
+
+.logo h1{
+font-size:24px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+
+<div class="container">
+
+    <!-- LOGO -->
+    <div class="logo">
+        <h1>🚀 BizFlow <span>AI</span></h1>
+        <p>Login to manage your automation</p>
+    </div>
+
+
+    <!-- ERROR -->
+    {% if error %}
+    <div class="error">
+        {{ error }}
+    </div>
+    {% endif %}
+
+
+    <!-- FORM -->
+    <form method="post" action="/login">
+
+        <div>
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="admin@business.com" required>
+        </div>
+
+        <div>
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit">
+            Login to Dashboard →
+        </button>
+
+    </form>
+
+
+    <!-- LINKS -->
+    <div class="links">
+        <a href="/forgot-password">Forgot Password?</a>
+        <a href="/signup">Create Account</a>
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="footer">
+
+        <p>
+            <a href="/">← Back to Home</a>
+        </p>
+
+    </div>
+
+
+</div>
+
+
+</body>
+</html>

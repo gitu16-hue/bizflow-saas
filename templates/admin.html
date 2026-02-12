@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel — BizFlow AI</title>
+
+<style>
+
+body{
+font-family:Inter,Arial;
+background:#f5f7fb;
+padding:30px;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:10px;
+overflow:hidden;
+box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+th,td{
+padding:14px;
+text-align:left;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
+
+th{
+background:#111;
+color:white;
+}
+
+tr:hover{
+background:#f2f5ff;
+}
+
+.badge{
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+.active{background:#d4fbe3;color:#0a7b3f;}
+.suspended{background:#ffe0e0;color:#b10000;}
+
+.btn{
+padding:6px 12px;
+border-radius:6px;
+border:none;
+cursor:pointer;
+font-size:12px;
+font-weight:600;
+}
+
+.block{background:#ff4d4d;color:white;}
+.unblock{background:#4caf50;color:white;}
+
+.top{
+display:flex;
+justify-content:space-between;
+margin-bottom:25px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="top">
+<h1>🛡 BizFlow Admin Panel</h1>
+<a href="/dashboard">← Back</a>
+</div>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Plan</th>
+<th>Status</th>
+<th>Chats</th>
+<th>Joined</th>
+</tr>
+
+{% for u in users %}
+
+<tr>
+
+<td>{{u.id}}</td>
+<td>{{u.name}}</td>
+<td>{{u.admin_email}}</td>
+<td>{{u.plan}}</td>
+
+<td>
+{% if u.is_active %}
+<span class="badge active">Active</span>
+{% else %}
+<span class="badge suspended">Suspended</span>
+{% endif %}
+</td>
+
+<td>{{u.chat_used}} / {{u.chat_limit}}</td>
+
+<td>{{u.created_at.strftime("%d %b %Y")}}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>{{ business.name }} — Dashboard | BizFlow AI</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+
+/* ================= RESET ================= */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',system-ui,sans-serif;
+}
+
+body{
+background:#f1f5f9;
+color:#020617;
+}
+
+
+/* ================= HEADER ================= */
+
+header{
+background:linear-gradient(135deg,#2563eb,#3b82f6);
+color:white;
+padding:22px 6%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:15px;
+}
+
+.brand{
+font-size:22px;
+font-weight:900;
+display:flex;
+gap:8px;
+align-items:center;
+}
+
+.nav{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.nav a{
+text-decoration:none;
+color:white;
+font-weight:600;
+font-size:14px;
+padding:7px 14px;
+border-radius:8px;
+transition:.25s;
+}
+
+.nav a:hover{
+background:rgba(255,255,255,.15);
+}
+
+.btn-upgrade{background:#f97316;}
+.btn-logout{background:#ef4444;}
+.btn-admin{background:#16a34a;}
+
+
+/* ================= CONTAINER ================= */
+
+.container{
+max-width:1400px;
+margin:auto;
+padding:35px 22px;
+}
+
+
+/* ================= ALERT ================= */
+
+.alert{
+background:#fff7ed;
+border-left:6px solid #fb923c;
+padding:14px 18px;
+border-radius:10px;
+font-size:14px;
+margin-bottom:25px;
+font-weight:600;
+}
+
+
+/* ================= TOP CARD ================= */
+
+.top-card{
+background:white;
+border-radius:18px;
+padding:26px;
+box-shadow:0 14px 35px rgba(0,0,0,.06);
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:20px;
+}
+
+.top-left h1{
+font-size:26px;
+font-weight:800;
+}
+
+.top-left p{
+color:#64748b;
+margin-top:4px;
+}
+
+
+.badges{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.badge{
+padding:6px 14px;
+border-radius:20px;
+font-size:12px;
+font-weight:800;
+}
+
+.green{background:#dcfce7;color:#166534;}
+.blue{background:#dbeafe;color:#1e40af;}
+.orange{background:#ffedd5;color:#9a3412;}
+.red{background:#fee2e2;color:#991b1b;}
+.gold{background:#fef3c7;color:#92400e;}
+
+
+/* ================= USAGE ================= */
+
+.usage{
+background:white;
+border-radius:16px;
+padding:22px;
+margin-top:25px;
+box-shadow:0 10px 25px rgba(0,0,0,.05);
+}
+
+.bar{
+height:12px;
+background:#e5e7eb;
+border-radius:20px;
+margin-top:10px;
+overflow:hidden;
+}
+
+.fill{
+height:100%;
+background:linear-gradient(135deg,#2563eb,#3b82f6);
+width:{{ (business.chat_used / business.chat_limit * 100) if business.chat_limit else 0 }}%;
+}
+
+
+/* ================= STATS ================= */
+
+.stats{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:18px;
+margin-top:25px;
+}
+
+.stat{
+background:white;
+padding:22px;
+border-radius:16px;
+box-shadow:0 10px 26px rgba(0,0,0,.05);
+transition:.25s;
+}
+
+.stat:hover{
+transform:translateY(-4px);
+box-shadow:0 20px 45px rgba(0,0,0,.08);
+}
+
+.stat h3{
+font-size:13px;
+color:#64748b;
+margin-bottom:6px;
+}
+
+.stat p{
+font-size:28px;
+font-weight:900;
+}
+
+
+/* ================= TABLE ================= */
+
+.table-box{
+background:white;
+border-radius:18px;
+margin-top:30px;
+padding:24px;
+box-shadow:0 14px 30px rgba(0,0,0,.06);
+}
+
+.table-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:10px;
+margin-bottom:15px;
+}
+
+.export{
+background:#2563eb;
+color:white;
+padding:7px 14px;
+border-radius:8px;
+text-decoration:none;
+font-size:13px;
+font-weight:700;
+}
+
+.export:hover{background:#1e40af;}
+
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+}
+
+th{
+background:#020617;
+color:white;
+padding:10px;
+}
+
+td{
+padding:11px 10px;
+border-bottom:1px solid #e5e7eb;
+}
+
+tr:hover{background:#f8fafc;}
+
+.empty{
+text-align:center;
+padding:20px;
+color:#64748b;
+}
+
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+header{
+flex-direction:column;
+text-align:center;
+}
+
+.nav{justify-content:center;}
+
+.top-left h1{font-size:22px;}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+
+<header>
+
+<div class="brand">🚀 {{ business.name }}</div>
+
+<div class="nav">
+
+<a href="/">Home</a>
+<a href="/dashboard">Dashboard</a>
+
+{% if business.is_admin %}
+<a href="/admin" class="btn-admin">Admin</a>
+{% endif %}
+
+<a href="/billing" class="btn-upgrade">Upgrade</a>
+<a href="/logout" class="btn-logout">Logout</a>
+
+</div>
+
+</header>
+
+
+
+<div class="container">
+
+<!-- ================= ALERT ================= -->
+
+{% if business.paid_until and business.paid_until < now %}
+<div class="alert">
+⚠️ Your subscription expired. Please renew to continue service.
+</div>
+{% endif %}
+
+
+
+<!-- ================= TOP ================= -->
+
+<div class="top-card">
+
+<div class="top-left">
+
+<h1>{{ business.name }} ({{ business.business_type }})</h1>
+
+<p>Goal: {{ business.goal or "Automate & grow your business" }}</p>
+
+</div>
+
+
+<div class="badges">
+
+<div class="badge gold">
+{{ business.plan|upper }} PLAN
+</div>
+
+<div class="badge blue">
+WhatsApp Active
+</div>
+
+{% if business.paid_until %}
+<div class="badge green">
+Valid till {{ business.paid_until.strftime('%d %b %Y') }}
+</div>
+{% endif %}
+
+</div>
+
+</div>
+
+
+
+<!-- ================= USAGE ================= -->
+
+<div class="usage">
+
+<h3>💬 Chat Usage</h3>
+
+<p>{{ business.chat_used }} / {{ business.chat_limit }} Messages</p>
+
+<div class="bar">
+<div class="fill"></div>
+</div>
+
+</div>
+
+
+
+<!-- ================= STATS ================= -->
+
+<div class="stats">
+
+<div class="stat">
+<h3>Conversations</h3>
+<p>{{ analytics.conversations }}</p>
+</div>
+
+<div class="stat">
+<h3>Interested Leads</h3>
+<p>{{ analytics.interested }}</p>
+</div>
+
+<div class="stat">
+<h3>Bookings</h3>
+<p>{{ analytics.bookings }}</p>
+</div>
+
+<div class="stat">
+<h3>Cancelled</h3>
+<p>{{ analytics.cancelled }}</p>
+</div>
+
+<div class="stat">
+<h3>Conversion</h3>
+<p>{{ analytics.conversion }}%</p>
+</div>
+
+<div class="stat">
+<h3>Revenue (₹)</h3>
+<p>
+{% if business.plan == "pro" %}
+2499
+{% else %}
+999
+{% endif %}
+</p>
+</div>
+
+</div>
+
+
+
+<!-- ================= TABLE ================= -->
+
+<div class="table-box">
+
+<div class="table-head">
+
+<h2>📅 Recent Bookings</h2>
+
+<a href="/export/bookings" class="export">
+Export CSV
+</a>
+
+</div>
+
+
+<table>
+
+<tr>
+<th>Name</th>
+<th>Phone</th>
+<th>Date</th>
+<th>Time</th>
+<th>Status</th>
+<th>Created</th>
+</tr>
+
+
+{% if bookings %}
+
+{% for b in bookings %}
+
+<tr>
+
+<td>{{ b.name }}</td>
+<td>{{ b.phone }}</td>
+<td>{{ b.booking_date }}</td>
+<td>{{ b.booking_time }}</td>
+<td>{{ b.status }}</td>
+<td>{{ b.created_at.strftime('%d %b %Y') }}</td>
+
+</tr>
+
+{% endfor %}
+
+{% else %}
+
+<tr>
+<td colspan="6" class="empty">
+No bookings yet 🚀
+</td>
+</tr>
+
+{% endif %}
+
+</table>
+
+</div>
+
+
+</div>
+
+</body>
+</html>
