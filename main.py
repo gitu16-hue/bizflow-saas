@@ -1340,6 +1340,20 @@ def forgot_password_post(req: Request, email: str = Form(...), db=Depends(get_db
         }
     )
 
+@app.get("/debug-razorpay")
+def debug_razorpay():
+    """Debug endpoint to check Razorpay configuration"""
+    return {
+        "key_id_present": bool(RAZORPAY_KEY),
+        "key_id_value": RAZORPAY_KEY if RAZORPAY_KEY else "MISSING",
+        "key_id_prefix": RAZORPAY_KEY[:15] + "..." if RAZORPAY_KEY and len(RAZORPAY_KEY) > 15 else RAZORPAY_KEY,
+        "key_id_length": len(RAZORPAY_KEY) if RAZORPAY_KEY else 0,
+        "secret_present": bool(RAZORPAY_SECRET),
+        "secret_length": len(RAZORPAY_SECRET) if RAZORPAY_SECRET else 0,
+        "client_initialized": razorpay_client is not None,
+        "key_type": "test" if RAZORPAY_KEY and RAZORPAY_KEY.startswith("rzp_test") else 
+                   "live" if RAZORPAY_KEY and RAZORPAY_KEY.startswith("rzp_live") else "unknown"
+    }
 # =====================================================
 # RESET PASSWORD PAGE
 # =====================================================
