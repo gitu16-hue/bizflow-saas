@@ -3,7 +3,61 @@
 # PART 1/2 — CORE + BOT ENGINE
 # Version 9.0
 # =====================================================
+# main.py - THESE MUST BE THE FIRST LINES
+try:
+    import patch_pydantic
+    print("✅ Pydantic patch loaded successfully")
+except ImportError:
+    print("⚠️  Pydantic patch not found, continuing without it")
+except Exception as e:
+    print(f"⚠️  Error loading patch: {e}")
 
+# =====================================================
+# BizFlow AI - ENTERPRISE SAAS PLATFORM
+# PART 1/2 — CORE + BOT ENGINE
+# Version 9.0
+# =====================================================
+
+import os
+import re
+import logging
+from datetime import datetime
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# ================= FASTAPI =================
+
+from fastapi import FastAPI, Request, Form, Depends, Response
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
+from starlette.middleware.sessions import SessionMiddleware
+
+# ================= SECURITY =================
+
+from passlib.hash import bcrypt
+
+# ================= TWILIO =================
+
+from twilio.twiml.messaging_response import MessagingResponse
+
+# ================= DATABASE =================
+
+from database import SessionLocal, engine
+from models import Base, Business, Booking
+
+# ... rest of your main.py code continues ...
+import os
+import re
+import logging
+from datetime import datetime
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# ... rest of your main.py code ...
 import os
 import re
 import logging

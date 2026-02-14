@@ -1,28 +1,34 @@
-# Secrets
-.env
-*.json
-google_calendar.json
-
-# Python cache
+# Python
+venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
 
 # Database
 *.db
-database.db
+*.sqlite
+*.sqlite3
 
-# Executables
-*.exe
+# Environment
+.env
+.env.local
+.env.*.local
 
 # Logs
 *.log
+bizflow.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Virtual env
-venv/
-
-# Cloudflare
-cloudflared.exe
+# Railway
+.railway/
