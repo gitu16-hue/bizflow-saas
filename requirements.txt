@@ -7,7 +7,7 @@ python-multipart==0.0.6
 twilio==8.10.0 
 passlib==1.7.4 
 bcrypt==4.0.1 
-razorpay==1.4.0 
+razorpay==1.4.2   # Changed from 1.4.0 to 1.4.2
 sqlalchemy==2.0.44 
 itsdangerous==2.1.2 
 starlette==0.27.0 
