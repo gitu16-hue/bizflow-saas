@@ -31,4 +31,4 @@ bizflow.log
 Thumbs.db
 
 # Railway
-.railway/
+.railway/"google_calendar.json" 
