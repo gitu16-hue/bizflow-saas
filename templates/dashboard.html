@@ -522,29 +522,262 @@
             opacity: 0.5;
         }
 
-        /* ================= RESPONSIVE ================= */
-        @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-            }
-            .main {
-                margin-left: 0;
-            }
-        }
+                /* ================= MOBILE RESPONSIVE ================= */
+                /* Tablet and smaller */
+                @media (max-width: 1024px) {
+                    .sidebar {
+                        transform: translateX(-100%);
+                        position: fixed;
+                        z-index: 100;
+                    }
+            
+                    .sidebar.active {
+                        transform: translateX(0);
+                    }
+            
+                    .main {
+                        margin-left: 0;
+                    }
+            
+                    /* Mobile menu toggle button - you can add this later if needed */
+                    .menu-toggle {
+                        display: block;
+                        position: fixed;
+                        bottom: 2rem;
+                        right: 2rem;
+                        background: var(--primary);
+                        color: white;
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-shadow: var(--shadow-lg);
+                        cursor: pointer;
+                        z-index: 101;
+                        border: none;
+                    }
+                }
 
-        @media (max-width: 768px) {
-            .main {
-                padding: 1rem;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .info-card {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
+                /* Mobile phones */
+                @media (max-width: 768px) {
+                    .main {
+                        padding: 1rem;
+                    }
+            
+                    /* Top bar adjustments */
+                    .top-bar {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 1rem;
+                        padding: 1rem;
+                    }
+            
+                    .page-title h1 {
+                        font-size: 1.25rem;
+                    }
+            
+                    .user-menu {
+                        width: 100%;
+                        justify-content: flex-end;
+                    }
+            
+                    /* Stats grid - single column */
+                    .stats-grid {
+                        grid-template-columns: 1fr;
+                        gap: 1rem;
+                    }
+            
+                    /* Stat cards */
+                    .stat-card {
+                        padding: 1.25rem;
+                    }
+            
+                    .stat-value {
+                        font-size: 2rem;
+                    }
+            
+                    .stat-title {
+                        font-size: 0.75rem;
+                    }
+            
+                    .stat-icon {
+                        width: 40px;
+                        height: 40px;
+                        font-size: 1.25rem;
+                    }
+            
+                    /* Info card */
+                    .info-card {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 1rem;
+                        padding: 1.25rem;
+                    }
+            
+                    .business-name {
+                        font-size: 1.25rem;
+                        word-break: break-word;
+                     }
+            
+                    .badge-group {
+                        width: 100%;
+                        justify-content: flex-start;
+                     } 
+            
+                    .badge {
+                        font-size: 0.7rem;
+                        padding: 0.25rem 0.6rem;
+                    }
+            
+                    /* Progress card */
+                   .progress-card {
+                        padding: 1.25rem;
+                    }
+            
+                    .progress-stats {
+                        flex-direction: column;
+                        gap: 0.25rem;
+                        align-items: flex-start;
+                    }
+            
+                    /* Table section */
+                    .table-section {
+                        overflow-x: auto;
+                    }
+            
+                    .table-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 1rem;
+                        padding: 1.25rem;
+                     }
+            
+                    .table-header h2 {
+                        font-size: 1rem;
+                    }
+            
+                    .btn-export {
+                        width: 100%;
+                        justify-content: center;
+                    }
+            
+                    table {
+                        font-size: 0.875rem;
+                        min-width: 500px;
+                    }
+            
+                    th, td {
+                        padding: 0.75rem 0.5rem;
+                        white-space: nowrap;
+                    }
+             
+                    th {
+                        font-size: 0.7rem;
+                    } 
+            
+                    td {
+                        font-size: 0.8rem;
+                    }
+            
+                    .status-badge {
+                        padding: 0.2rem 0.5rem;
+                        font-size: 0.7rem;
+                    }
+            
+                    /* Empty state */
+                    .empty-state {
+                        padding: 2rem !important;
+                    }
+            
+                    .empty-state i {
+                        font-size: 2.5rem;
+                    }
+            
+                    .empty-state p {
+                        font-size: 0.875rem;
+                    }
+                }
+
+                /* Small phones */
+                @media (max-width: 480px) {
+                    .main {
+                        padding: 0.75rem;
+                    }
+            
+                    .stats-grid {
+                        gap: 0.75rem;
+                    }
+            
+                    .stat-card {
+                        padding: 1rem;
+                    }
+            
+                    .stat-value {
+                        font-size: 1.75rem;
+                    }
+            
+                    .stat-trend {
+                        font-size: 0.75rem;
+                    }
+            
+                    .business-name {
+                        font-size: 1.1rem;
+                    }
+            
+                    .business-type {
+                        font-size: 0.8rem;
+                    }
+            
+                    /* Hide less important columns on very small screens */
+                    th:nth-child(2), td:nth-child(2), /* Phone column */
+                    th:nth-child(5), td:nth-child(5) { /* Status column (optional) */
+                        display: none;
+                    }
+            
+                    table {
+                        min-width: 350px;
+                    }
+            
+                    th, td {
+                        padding: 0.5rem 0.4rem;
+                    }
+            
+                    .progress-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.25rem;
+                    }
+                }
+
+                /* Very tiny phones */
+                @media (max-width: 360px) {
+                    .business-name {
+                        font-size: 1rem;
+                    }
+            
+                    .stat-value {
+                        font-size: 1.5rem;
+                    }
+            
+                    .stat-icon {
+                        width: 35px;
+                        height: 35px;
+                        font-size: 1rem;
+                    }
+            
+                    th, td {
+                        padding: 0.4rem 0.3rem;
+                        font-size: 0.7rem;
+                    }
+            
+                    /* Hide more columns if needed */
+                    th:nth-child(3), td:nth-child(3), /* Date column */
+                    th:nth-child(4), td:nth-child(4) { /* Time column */
+                        display: none;
+                    }
+                }
     </style>
 </head>
 <body>
