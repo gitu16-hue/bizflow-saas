@@ -1,465 +1,945 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade Plan — BizFlow AI | Billing & Subscription</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <!-- Razorpay Checkout -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <style>
+        /* ================= RESET & VARIABLES ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<meta charset="UTF-8">
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+        }
 
-<title>Upgrade Plan — SmartGym AI</title>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            animation: float 20s infinite ease-in-out;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+            z-index: 0;
+            animation: floatReverse 25s infinite ease-in-out;
+        }
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-2%, -2%) rotate(1deg); }
+            66% { transform: translate(2%, 2%) rotate(-1deg); }
+        }
 
-<style>
+        @keyframes floatReverse {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(-1deg); }
+            66% { transform: translate(-2%, -2%) rotate(1deg); }
+        }
 
-/* RESET */
+        /* ================= MAIN CONTAINER ================= */
+        .billing-container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Inter',sans-serif;
-}
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-body{
-background:linear-gradient(135deg,#4facfe,#00f2fe);
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:40px;
-color:#222;
-}
+        /* Header */
+        .billing-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
+        .billing-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
 
-/* CONTAINER */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-.wrapper{
-background:white;
-max-width:900px;
-width:100%;
-padding:50px 40px;
-border-radius:20px;
-box-shadow:0 25px 60px rgba(0,0,0,.2);
-text-align:center;
-}
+        .billing-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
 
+        .billing-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
 
-/* HEADER */
+        /* Trust Badges */
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 1.5rem 2rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
 
-h1{
-font-size:34px;
-margin-bottom:10px;
-font-weight:800;
-}
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: 100px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
 
-.subtitle{
-color:#555;
-margin-bottom:35px;
-font-size:16px;
-}
+        .trust-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
 
+        .trust-badge i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
 
-/* TRUST */
+        .trust-badge span {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
 
-.trust{
-display:flex;
-justify-content:center;
-gap:25px;
-margin-bottom:35px;
-font-size:14px;
-color:#666;
-flex-wrap:wrap;
-}
+        /* Current Plan Card (if user has active plan) */
+        .current-plan {
+            margin: 2rem 2rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(96, 165, 250, 0.05));
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
 
-.trust span{
-display:flex;
-align-items:center;
-gap:6px;
-}
+        .plan-info h3 {
+            font-size: 1rem;
+            color: var(--gray-500);
+            margin-bottom: 0.25rem;
+        }
 
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
 
-/* PLANS */
+        .plan-usage {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-.plans{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:35px;
-margin-bottom:40px;
-}
+        .usage-badge {
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: 100px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+            border: 1px solid var(--gray-200);
+        }
 
+        /* ================= PLANS GRID ================= */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
 
-/* CARD */
+        .plan-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--gray-200);
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
 
-.card{
-border:2px solid #eee;
-border-radius:16px;
-padding:35px 25px;
-transition:.3s;
-position:relative;
-background:white;
-}
+        .plan-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-xl);
+        }
 
-.card:hover{
-transform:translateY(-6px);
-box-shadow:0 15px 35px rgba(0,0,0,.1);
-}
+        .plan-card.popular {
+            border: 2px solid var(--primary);
+            transform: scale(1.02);
+        }
 
+        .popular-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: var(--shadow-md);
+        }
 
-/* POPULAR */
+        .plan-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
 
-.card.popular{
-border:3px solid #4facfe;
-}
+        .plan-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
 
-.card.popular::before{
-content:"BEST VALUE";
-position:absolute;
-top:-14px;
-left:50%;
-transform:translateX(-50%);
-background:#4facfe;
-color:white;
-padding:5px 14px;
-border-radius:20px;
-font-size:12px;
-font-weight:600;
-}
+        .plan-card.popular .plan-icon {
+            background: linear-gradient(135deg, var(--secondary), #fbbf24);
+        }
 
+        .plan-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
 
-/* PLAN INFO */
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
 
-.card h2{
-font-size:22px;
-margin-bottom:10px;
-}
+        .plan-card.popular .plan-price {
+            color: var(--secondary);
+        }
 
-.price{
-font-size:36px;
-font-weight:800;
-margin:15px 0;
-color:#4facfe;
-}
+        .plan-price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--gray-500);
+        }
 
-.card.popular .price{
-color:#ff7a18;
-}
+        .plan-period {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
 
+        .plan-features {
+            list-style: none;
+            margin: 2rem 0;
+        }
 
-.features{
-list-style:none;
-margin:25px 0;
-text-align:left;
-padding-left:0;
-}
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: var(--gray-700);
+            font-size: 0.95rem;
+        }
 
-.features li{
-margin:10px 0;
-font-size:15px;
-}
+        .plan-features i.fa-check-circle {
+            color: var(--success);
+            font-size: 1.1rem;
+        }
 
+        .plan-features i.fa-circle {
+            color: var(--gray-300);
+            font-size: 0.6rem;
+        }
 
-/* BUTTON */
+        .plan-features .feature-highlight {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #92400e;
+            margin-left: 0.5rem;
+        }
 
-.btn{
-display:inline-block;
-width:100%;
-padding:14px;
-background:linear-gradient(135deg,#4facfe,#00c6ff);
-color:white;
-border:none;
-border-radius:8px;
-font-size:16px;
-font-weight:600;
-cursor:pointer;
-transition:.3s;
-}
+        .btn-select {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gray-900);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-.card.popular .btn{
-background:linear-gradient(135deg,#ff7a18,#ffb347);
-}
+        .btn-select::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
 
-.btn:hover{
-opacity:.9;
-transform:translateY(-2px);
-}
+        .btn-select:hover::before {
+            width: 300px;
+            height: 300px;
+        }
 
-.btn:disabled{
-opacity:.6;
-cursor:not-allowed;
-transform:none;
-}
+        .btn-select:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
 
+        .btn-select.popular {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        }
 
-/* FOOTER */
+        .btn-select i {
+            transition: transform 0.3s;
+        }
 
-.footer{
-margin-top:30px;
-font-size:14px;
-color:#666;
-}
+        .btn-select:hover i {
+            transform: translateX(5px);
+        }
 
-.footer span{
-margin:0 10px;
-}
+        .btn-select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
+        /* ================= FEATURES COMPARISON ================= */
+        .comparison-section {
+            padding: 2rem;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+        }
 
-/* LOADER */
+        .comparison-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
 
-#loader{
-display:none;
-margin-top:20px;
-font-size:15px;
-color:#4facfe;
-font-weight:600;
-}
+        .comparison-title h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
 
+        .comparison-title p {
+            color: var(--gray-500);
+        }
 
-@media(max-width:768px){
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-.wrapper{
-padding:35px 25px;
-}
+        .comparison-item {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-200);
+        }
 
-h1{
-font-size:28px;
-}
+        .comparison-item .feature {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
 
-}
+        .comparison-item .value {
+            color: var(--primary);
+            font-weight: 700;
+        }
 
-</style>
+        /* ================= LOADER ================= */
+        .loader-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loader-overlay.active {
+            display: flex;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ================= FOOTER ================= */
+        .billing-footer {
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--gray-200);
+            background: var(--gray-50);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .footer-links i {
+            color: var(--primary);
+        }
+
+        .footer-note {
+            color: var(--gray-500);
+            font-size: 0.8rem;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .billing-header h1 {
+                font-size: 2rem;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .plan-card.popular {
+                transform: scale(1);
+            }
+
+            .current-plan {
+                flex-direction: column;
+                align-items: flex-start;
+                margin: 1rem 1rem 0;
+            }
+
+            .trust-badges {
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .trust-badge {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .billing-header {
+                padding: 2rem 1rem;
+            }
+
+            .plan-price {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-
-<div class="wrapper">
-
-<!-- HEADER -->
-
-<h1>Upgrade Your Plan 🚀</h1>
-
-<p class="subtitle">
-Unlock automation, more leads & faster growth
-</p>
-
-
-<!-- TRUST -->
-
-<div class="trust">
-
-<span>🔒 Secure Payments</span>
-<span>🇮🇳 Razorpay Verified</span>
-<span>⭐ 4.9/5 Rating</span>
-<span>📞 Support Included</span>
-
-</div>
-
-
-<!-- PLANS -->
-
-<div class="plans">
-
-
-<!-- STARTER -->
-
-<div class="card">
-
-<h2>Starter</h2>
-
-<div class="price">₹999</div>
-
-<p>/ month</p>
-
-<ul class="features">
-
-<li>✅ WhatsApp Bot</li>
-<li>✅ 300 Chats / Month</li>
-<li>✅ Booking System</li>
-<li>✅ Dashboard Access</li>
-<li>✅ Email Support</li>
-
-</ul>
-
-<button class="btn" id="starterBtn" onclick="pay('starter')">
-Choose Starter
-</button>
-
-</div>
-
-
-<!-- PRO -->
-
-<div class="card popular">
-
-<h2>Pro</h2>
-
-<div class="price">₹2499</div>
-
-<p>/ month</p>
-
-<ul class="features">
-
-<li>✅ Unlimited Chats</li>
-<li>✅ Auto Reminders</li>
-<li>✅ Owner Alerts</li>
-<li>✅ Calendar Sync</li>
-<li>✅ Priority Support</li>
-<li>🔥 Lead Optimization</li>
-
-</ul>
-
-<button class="btn" id="proBtn" onclick="pay('pro')">
-Go Pro 🚀
-</button>
-
-</div>
-
-
-</div>
-
-
-<!-- LOADER -->
-
-<div id="loader">
-⏳ Processing Payment...
-</div>
-
-
-<!-- FOOTER -->
-
-<div class="footer">
-
-<span>Cancel Anytime</span> •
-<span>No Hidden Charges</span> •
-<span>GST Invoice</span>
-
-</div>
-
-</div>
-
-
-<!-- PAYMENT SCRIPT -->
-
-<script>
-
-let loading = false;
-
-function toggleLoading(state){
-
-loading = state;
-
-document.getElementById("loader").style.display =
- state ? "block" : "none";
-
-document.getElementById("starterBtn").disabled = state;
-document.getElementById("proBtn").disabled = state;
-}
-
-
-async function pay(plan){
-
-if(loading) return;
-
-toggleLoading(true);
-
-try{
-
-const res = await fetch('/api/create-order',{
- method:'POST',
- headers:{
-  'Content-Type':'application/json'
- },
- body:JSON.stringify({plan})
-});
-
-
-const data = await res.json();
-
-
-/* AUTH CHECK */
-
-if(data.error === "Auth"){
-
- alert("Session expired. Please login again.");
- window.location.href="/login";
- return;
-}
-
-
-/* VALIDATION */
-
-if(!data.order_id || !data.key){
-
- throw "Invalid payment data";
-}
-
-
-/* RAZORPAY */
-
-const options = {
-
- key: data.key,
-
- amount: data.amount,
-
- currency: "INR",
-
- order_id: data.order_id,
-
- name: "BizFlow AI",
-
- description: "Monthly Subscription",
-
- theme:{
-  color:"#4facfe"
- },
-
- handler: async function (response){
-
-  await fetch('/api/payment-success',{
-   method:'POST',
-   headers:{
-    'Content-Type':'application/json'
-   },
-   body:JSON.stringify(response)
-  });
-
-  alert("🎉 Payment Successful!");
-
-  window.location.href="/dashboard";
- }
-
-};
-
-
-const rzp = new Razorpay(options);
-
-rzp.on('payment.failed', function(){
-
- alert("❌ Payment Failed. Try again.");
-
- toggleLoading(false);
-});
-
-rzp.open();
-
-}
-catch(err){
-
- console.error(err);
-
- alert("⚠️ Something went wrong. Please try again.");
-
- toggleLoading(false);
-}
-
-}
-
-</script>
-
-
+    <!-- Loader Overlay -->
+    <div class="loader-overlay" id="loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Processing your payment...</div>
+    </div>
+
+    <div class="billing-container">
+        <!-- Header -->
+        <div class="billing-header">
+            <h1>
+                <i class="fas fa-crown"></i> Upgrade Your Plan
+            </h1>
+            <p>Unlock automation, more leads & faster growth with BizFlow AI</p>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges">
+            <div class="trust-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secure Payments</span>
+            </div>
+            <div class="trust-badge">
+                <i class="fas fa-indian-rupee-sign"></i>
+                <span>Razorpay Verified</span>
+            </div>
+            <div class="trust-badge">
+                <i class="fas fa-star"></i>
+                <span>4.9/5 Rating</span>
+            </div>
+            <div class="trust-badge">
+                <i class="fas fa-headset"></i>
+                <span>24/7 Support</span>
+            </div>
+        </div>
+
+        <!-- Current Plan (if exists) -->
+        {% if business.plan %}
+        <div class="current-plan">
+            <div class="plan-info">
+                <h3>Current Plan</h3>
+                <div class="plan-name">{{ business.plan|title }}</div>
+            </div>
+            <div class="plan-usage">
+                <div class="usage-badge">
+                    <i class="fas fa-message"></i> {{ business.chat_used }}/{{ business.chat_limit }} chats used
+                </div>
+                {% if business.paid_until %}
+                <div class="usage-badge">
+                    <i class="far fa-calendar"></i> Valid till {{ business.paid_until.strftime('%d %b %Y') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Plans Grid -->
+        <div class="plans-grid">
+            <!-- Starter Plan -->
+            <div class="plan-card" id="starterCard">
+                <div class="plan-header">
+                    <div class="plan-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">
+                        ₹999 <span>/mo</span>
+                    </div>
+                    <div class="plan-period">Billed monthly</div>
+                </div>
+                <ul class="plan-features">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        WhatsApp Bot Integration
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <strong>300</strong> Chats / Month
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Smart Booking System
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Analytics Dashboard
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Email Support
+                    </li>
+                    <li>
+                        <i class="fas fa-circle"></i>
+                        Auto Reminders
+                    </li>
+                    <li>
+                        <i class="fas fa-circle"></i>
+                        Calendar Sync
+                    </li>
+                </ul>
+                <button class="btn-select" id="starterBtn" onclick="pay('starter')">
+                    <span>Choose Starter</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Pro Plan (Popular) -->
+            <div class="plan-card popular" id="proCard">
+                <div class="popular-badge">Best Value</div>
+                <div class="plan-header">
+                    <div class="plan-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="plan-name">Pro</div>
+                    <div class="plan-price">
+                        ₹2499 <span>/mo</span>
+                    </div>
+                    <div class="plan-period">Billed monthly</div>
+                </div>
+                <ul class="plan-features">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        WhatsApp Bot Integration
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Unlimited</strong> Chats
+                        <span class="feature-highlight">Unlimited</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Smart Booking System
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Advanced Analytics
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Auto Reminders & Alerts
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Calendar Sync
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Priority Support
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Lead Optimization</strong> AI
+                    </li>
+                </ul>
+                <button class="btn-select popular" id="proBtn" onclick="pay('pro')">
+                    <span>Go Pro</span>
+                    <i class="fas fa-crown"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Feature Comparison -->
+        <div class="comparison-section">
+            <div class="comparison-title">
+                <h3>Compare Features</h3>
+                <p>Choose the plan that fits your business needs</p>
+            </div>
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <div class="feature">Monthly Chats</div>
+                    <div class="value">300 vs Unlimited</div>
+                </div>
+                <div class="comparison-item">
+                    <div class="feature">Auto Reminders</div>
+                    <div class="value">❌ vs ✅</div>
+                </div>
+                <div class="comparison-item">
+                    <div class="feature">Priority Support</div>
+                    <div class="value">❌ vs ✅</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="billing-footer">
+            <div class="footer-links">
+                <span><i class="fas fa-times-circle"></i> Cancel Anytime</span>
+                <span><i class="fas fa-shield-alt"></i> No Hidden Charges</span>
+                <span><i class="fas fa-file-invoice"></i> GST Invoice</span>
+                <span><i class="fas fa-clock"></i> 7-Day Free Trial</span>
+            </div>
+            <div class="footer-note">
+                <i class="fas fa-lock"></i> Payments secured by Razorpay. All major cards & UPI accepted.
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Script -->
+    <script>
+        let loading = false;
+
+        function toggleLoading(state) {
+            loading = state;
+            const loader = document.getElementById('loader');
+            const starterBtn = document.getElementById('starterBtn');
+            const proBtn = document.getElementById('proBtn');
+            
+            if (state) {
+                loader.classList.add('active');
+                starterBtn.disabled = true;
+                proBtn.disabled = true;
+            } else {
+                loader.classList.remove('active');
+                starterBtn.disabled = false;
+                proBtn.disabled = false;
+            }
+        }
+
+        async function pay(plan) {
+            if (loading) return;
+
+            toggleLoading(true);
+
+            try {
+                const res = await fetch('/api/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ plan })
+                });
+
+                const data = await res.json();
+
+                // Auth Check
+                if (data.error === "Auth") {
+                    alert("Session expired. Please login again.");
+                    window.location.href = "/login";
+                    return;
+                }
+
+                // Validation
+                if (!data.order_id || !data.key) {
+                    throw new Error("Invalid payment data");
+                }
+
+                // Razorpay Options
+                const options = {
+                    key: data.key,
+                    amount: data.amount,
+                    currency: "INR",
+                    order_id: data.order_id,
+                    name: "BizFlow AI",
+                    description: plan === 'pro' ? 'Pro Monthly Subscription' : 'Starter Monthly Subscription',
+                    image: 'https://bizflowai.online/logo.png',
+                    theme: {
+                        color: plan === 'pro' ? '#f97316' : '#2563eb'
+                    },
+                    handler: async function(response) {
+                        try {
+                            const verifyRes = await fetch('/api/payment-success', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(response)
+                            });
+
+                            const result = await verifyRes.json();
+
+                            if (result.status === 'success') {
+                                alert('🎉 Payment Successful! Your plan has been upgraded.');
+                                window.location.href = '/dashboard';
+                            } else {
+                                throw new Error('Payment verification failed');
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            alert('Payment successful but verification failed. Please contact support.');
+                            window.location.href = '/dashboard';
+                        }
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            toggleLoading(false);
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+
+                rzp.on('payment.failed', function(response) {
+                    console.error(response.error);
+                    alert('❌ Payment Failed. Please try again.');
+                    toggleLoading(false);
+                });
+
+                rzp.open();
+
+            } catch (error) {
+                console.error(error);
+                alert('⚠️ Something went wrong. Please try again.');
+                toggleLoading(false);
+            }
+        }
+
+        // Add hover animation for cards
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('popular')) {
+                    this.style.transform = 'translateY(-8px)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('popular')) {
+                    this.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // Prevent double clicks
+        document.querySelectorAll('.btn-select').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (this.disabled) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
