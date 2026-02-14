@@ -36,6 +36,10 @@ class Business(Base):
 
     address = Column(String(255), nullable=True)
 
+    # Add these new fields
+    reset_token = Column(String, nullable=True)
+    reset_token_expiry = Column(DateTime, nullable=True)
+
 
     whatsapp_number = Column(String, unique=True, nullable=False)
 

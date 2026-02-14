@@ -1208,6 +1208,137 @@ async def payment_success(req: Request, db=Depends(get_db)):
 
         return {"status": "failed"}
 
+# =====================================================
+# FORGOT PASSWORD PAGE
+# =====================================================
+@app.get("/forgot-password", response_class=HTMLResponse)
+def forgot_password(req: Request):
+    return templates.TemplateResponse(
+        "forgot_password.html",
+        {"request": req}
+    )
+
+@app.post("/forgot-password")
+def forgot_password_post(req: Request, email: str = Form(...), db=Depends(get_db)):
+    # Check if email exists
+    user = db.query(Business).filter(Business.admin_email == email).first()
+    
+    if not user:
+        # Still show success to prevent email enumeration
+        return templates.TemplateResponse(
+            "forgot_password.html",
+            {
+                "request": req,
+                "success": "If an account exists with this email, you will receive password reset instructions."
+            }
+        )
+    
+    # Generate reset token (you'll need to add this to your Business model)
+    import secrets
+    reset_token = secrets.token_urlsafe(32)
+    user.reset_token = reset_token
+    user.reset_token_expiry = datetime.utcnow() + timedelta(hours=24)
+    db.commit()
+    
+    # Send email with reset link (implement your email sending logic)
+    # send_reset_email(user.admin_email, f"{BASE_URL}/reset-password/{reset_token}")
+    
+    return templates.TemplateResponse(
+        "forgot_password.html",
+        {
+            "request": req,
+            "success": "If an account exists with this email, you will receive password reset instructions."
+        }
+    )
+
+# =====================================================
+# RESET PASSWORD PAGE
+# =====================================================
+@app.get("/reset-password/{token}", response_class=HTMLResponse)
+def reset_password(req: Request, token: str, db=Depends(get_db)):
+    # Verify token
+    user = db.query(Business).filter(
+        Business.reset_token == token,
+        Business.reset_token_expiry > datetime.utcnow()
+    ).first()
+    
+    if not user:
+        return templates.TemplateResponse(
+            "reset_password.html",
+            {
+                "request": req,
+                "error": "Invalid or expired reset link. Please request a new one."
+            }
+        )
+    
+    return templates.TemplateResponse(
+        "reset_password.html",
+        {
+            "request": req,
+            "token": token,
+            "valid_token": True
+        }
+    )
+
+@app.post("/reset-password/{token}")
+def reset_password_post(
+    req: Request,
+    token: str,
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+    db=Depends(get_db)
+):
+    # Verify token
+    user = db.query(Business).filter(
+        Business.reset_token == token,
+        Business.reset_token_expiry > datetime.utcnow()
+    ).first()
+    
+    if not user:
+        return templates.TemplateResponse(
+            "reset_password.html",
+            {
+                "request": req,
+                "error": "Invalid or expired reset link. Please request a new one."
+            }
+        )
+    
+    # Validate passwords
+    if password != confirm_password:
+        return templates.TemplateResponse(
+            "reset_password.html",
+            {
+                "request": req,
+                "token": token,
+                "error": "Passwords do not match."
+            }
+        )
+    
+    # Validate password strength
+    if not validate_password(password):
+        return templates.TemplateResponse(
+            "reset_password.html",
+            {
+                "request": req,
+                "token": token,
+                "error": "Password must be 8+ characters with at least 1 uppercase letter and 1 number."
+            }
+        )
+    
+    # Update password
+    user.admin_password = bcrypt.hash(password)
+    user.reset_token = None
+    user.reset_token_expiry = None
+    db.commit()
+    
+    return templates.TemplateResponse(
+        "reset_password.html",
+        {
+            "request": req,
+            "success": "Password reset successful! You can now login with your new password."
+        }
+    )
+
 
 # =====================================================
 # HEALTH
