@@ -1010,6 +1010,75 @@ def billing(req: Request, db=Depends(get_db)):
         }
     )
 
+# =====================================================
+# CONVERSATIONS PAGE
+# =====================================================
+@app.get("/conversations", response_class=HTMLResponse)
+def conversations(req: Request, db=Depends(get_db)):
+    if not is_logged(req):
+        return RedirectResponse("/login", 302)
+    
+    user = get_user(req, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    
+    # You can fetch conversation history here
+    # For now, return a simple template or redirect to dashboard
+    return templates.TemplateResponse(
+        "conversations.html",  # You'll need to create this template
+        {
+            "request": req,
+            "business": user
+        }
+    )
+
+# =====================================================
+# BOOKINGS PAGE
+# =====================================================
+@app.get("/bookings", response_class=HTMLResponse)
+def bookings_page(req: Request, db=Depends(get_db)):
+    if not is_logged(req):
+        return RedirectResponse("/login", 302)
+    
+    user = get_user(req, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    
+    # Fetch all bookings for this business
+    bookings = db.query(Booking)\
+        .filter(Booking.business_id == user.id)\
+        .order_by(Booking.created_at.desc())\
+        .all()
+    
+    return templates.TemplateResponse(
+        "bookings.html",  # You'll need to create this template
+        {
+            "request": req,
+            "business": user,
+            "bookings": bookings
+        }
+    )
+
+# =====================================================
+# SETTINGS PAGE
+# =====================================================
+@app.get("/settings", response_class=HTMLResponse)
+def settings_page(req: Request, db=Depends(get_db)):
+    if not is_logged(req):
+        return RedirectResponse("/login", 302)
+    
+    user = get_user(req, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    
+    return templates.TemplateResponse(
+        "settings.html",  # You'll need to create this template
+        {
+            "request": req,
+            "business": user
+        }
+    )
+
 
 # =====================================================
 # CREATE PAYMENT ORDER
