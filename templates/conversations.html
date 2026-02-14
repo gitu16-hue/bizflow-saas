@@ -1,7 +1,31 @@
-{% extends "dashboard.html" %}
-{% block content %}
-<div class="container">
-    <h1>Conversations</h1>
-    <p>Conversation history will appear here.</p>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversations - {{ business.name }} | BizFlow AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        /* Copy the dashboard styles here or link to a shared CSS file */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .back-link { color: #2563eb; text-decoration: none; }
+        .conversations-list { background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Conversations</h1>
+            <a href="/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+        <div class="conversations-list">
+            <p>Conversation history will appear here.</p>
+            <p style="color: #64748b; margin-top: 1rem;">Total conversations: {{ analytics.conversations }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,8 +1,37 @@
-{% extends "dashboard.html" %}
-{% block content %}
-<div class="container">
-    <h1>All Bookings</h1>
-    <div class="table-responsive">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookings - {{ business.name }} | BizFlow AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .back-link { color: #2563eb; text-decoration: none; }
+        table { width: 100%; background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        th { background: #f1f5f9; padding: 1rem; text-align: left; }
+        td { padding: 1rem; border-bottom: 1px solid #e2e8f0; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
+        .status-confirmed { background: #d1fae5; color: #065f46; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>All Bookings</h1>
+            <a href="/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+        
+        <div style="margin-bottom: 1rem; color: #64748b;">
+            Total Bookings: {{ bookings|length }}
+        </div>
+        
         <table>
             <thead>
                 <tr>
@@ -11,20 +40,37 @@
                     <th>Date</th>
                     <th>Time</th>
                     <th>Status</th>
+                    <th>Created</th>
                 </tr>
             </thead>
             <tbody>
-                {% for booking in bookings %}
-                <tr>
-                    <td>{{ booking.name }}</td>
-                    <td>{{ booking.phone }}</td>
-                    <td>{{ booking.booking_date }}</td>
-                    <td>{{ booking.booking_time }}</td>
-                    <td>{{ booking.status }}</td>
-                </tr>
-                {% endfor %}
+                {% if bookings %}
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.name }}</td>
+                        <td>{{ booking.phone }}</td>
+                        <td>{{ booking.booking_date }}</td>
+                        <td>{{ booking.booking_time }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if booking.status == 'confirmed' %}status-confirmed
+                                {% elif booking.status == 'cancelled' %}status-cancelled
+                                {% else %}status-pending{% endif %}">
+                                {{ booking.status|title }}
+                            </span>
+                        </td>
+                        <td>{{ booking.created_at.strftime('%d %b %Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #64748b;">
+                            No bookings found
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>
