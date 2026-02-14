@@ -1,356 +1,746 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Create Account — BizFlow AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — BizFlow AI | Intelligent WhatsApp Automation</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        /* ================= RESET & VARIABLES ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-<style>
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+            z-index: 0;
+            animation: float 20s infinite ease-in-out;
+        }
 
-/* ================= RESET ================= */
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-2%, -2%) rotate(1deg); }
+            66% { transform: translate(2%, 2%) rotate(-1deg); }
+        }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Inter',sans-serif;
-}
+        /* ================= MAIN CARD ================= */
+        .signup-container {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
 
-body{
-min-height:100vh;
-background:linear-gradient(135deg,#2563eb,#06b6d4);
-display:flex;
-align-items:center;
-justify-content:center;
-padding:40px;
-color:#111;
-}
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
+        /* Header Gradient */
+        .signup-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 2rem 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-/* ================= CARD ================= */
+        .signup-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
 
-.container{
-width:100%;
-max-width:480px;
-background:white;
-border-radius:20px;
-padding:42px 36px;
-box-shadow:0 25px 60px rgba(0,0,0,.25);
-animation:fadeUp .6s ease;
-}
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-@keyframes fadeUp{
-from{opacity:0;transform:translateY(25px);}
-to{opacity:1;transform:translateY(0);}
-}
+        .signup-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
 
+        .signup-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
 
-/* ================= LOGO ================= */
+        .signup-header i {
+            margin-right: 0.5rem;
+        }
 
-.logo{
-text-align:center;
-margin-bottom:25px;
-}
+        /* ================= PLAN BADGE ================= */
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
 
-.logo h1{
-font-size:30px;
-font-weight:800;
-color:#2563eb;
-}
+        .plan-badge i {
+            color: var(--warning);
+        }
 
-.logo span{
-color:#06b6d4;
-}
+        /* ================= FORM SECTION ================= */
+        .signup-form {
+            padding: 2.5rem;
+        }
 
-.logo p{
-color:#555;
-font-size:14px;
-margin-top:5px;
-}
+        /* Alert Messages */
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            animation: shake 0.5s ease-in-out;
+        }
 
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
 
-/* ================= PLAN ================= */
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #991b1b;
+        }
 
-.plan-badge{
-background:#eff6ff;
-color:#2563eb;
-text-align:center;
-padding:8px 14px;
-border-radius:25px;
-font-size:14px;
-font-weight:600;
-margin-bottom:18px;
-}
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            color: #166534;
+        }
 
+        .alert i {
+            font-size: 1.25rem;
+        }
 
-/* ================= FORM ================= */
+        /* Form Fields */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-form{
-display:flex;
-flex-direction:column;
-gap:16px;
-}
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
 
-.field{
-display:flex;
-flex-direction:column;
-gap:6px;
-}
+        .form-label i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
 
-label{
-font-size:14px;
-font-weight:600;
-color:#444;
-}
+        .input-wrapper {
+            position: relative;
+        }
 
-input, select{
-padding:12px 14px;
-border-radius:9px;
-border:1px solid #ddd;
-font-size:15px;
-transition:.3s;
-}
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
 
-input:focus, select:focus{
-border-color:#2563eb;
-outline:none;
-box-shadow:0 0 0 2px rgba(37,99,235,.15);
-}
+        input, select {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            background: white;
+        }
 
-.hint{
-font-size:12px;
-color:#777;
-}
+        input:hover, select:hover {
+            border-color: var(--gray-300);
+        }
 
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
 
-/* ================= BUTTON ================= */
+        input::placeholder {
+            color: var(--gray-400);
+        }
 
-button{
-margin-top:12px;
-background:linear-gradient(135deg,#2563eb,#06b6d4);
-color:white;
-border:none;
-padding:14px;
-border-radius:11px;
-font-size:16px;
-font-weight:700;
-cursor:pointer;
-transition:.3s;
-}
+        /* Password Strength Indicator */
+        .password-strength {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+        }
 
-button:hover{
-transform:translateY(-2px);
-box-shadow:0 8px 25px rgba(37,99,235,.35);
-}
+        .strength-meter {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
 
+        .strength-segment {
+            height: 4px;
+            flex: 1;
+            background: var(--gray-200);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
 
-/* ================= FOOTER ================= */
+        .strength-segment.active-weak {
+            background: var(--danger);
+        }
 
-.footer{
-text-align:center;
-margin-top:24px;
-font-size:14px;
-color:#555;
-}
+        .strength-segment.active-medium {
+            background: var(--warning);
+        }
 
-.footer a{
-color:#2563eb;
-text-decoration:none;
-font-weight:600;
-}
+        .strength-segment.active-strong {
+            background: var(--success);
+        }
 
-.footer a:hover{
-text-decoration:underline;
-}
+        .strength-text {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
 
+        /* Hint Text */
+        .hint {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
 
-/* ================= ERROR / SUCCESS ================= */
+        .hint i {
+            color: var(--primary);
+            font-size: 0.875rem;
+        }
 
-.error{
-background:#fee2e2;
-color:#b91c1c;
-padding:10px 14px;
-border-radius:8px;
-font-size:14px;
-text-align:center;
-}
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
 
-.success{
-background:#dcfce7;
-color:#166534;
-padding:10px 14px;
-border-radius:8px;
-font-size:14px;
-text-align:center;
-}
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
 
+        .btn-submit:hover::before {
+            width: 300px;
+            height: 300px;
+        }
 
-/* ================= MOBILE ================= */
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
 
-@media(max-width:520px){
+        .btn-submit i {
+            font-size: 1.25rem;
+            transition: transform 0.3s;
+        }
 
-.container{
-padding:30px 22px;
-}
+        .btn-submit:hover i {
+            transform: translateX(5px);
+        }
 
-.logo h1{
-font-size:24px;
-}
+        /* Footer Links */
+        .signup-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
 
-}
+        .signup-footer p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
 
-</style>
+        .signup-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .signup-footer a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            color: var(--gray-500) !important;
+            font-weight: 500 !important;
+        }
+
+        .back-link:hover {
+            color: var(--primary) !important;
+            text-decoration: none !important;
+        }
+
+        /* Features List */
+        .features-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0 0.5rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+        }
+
+        .feature-item i {
+            color: var(--success);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .signup-header {
+                padding: 1.5rem;
+            }
+
+            .signup-header h1 {
+                font-size: 2rem;
+            }
+
+            .signup-form {
+                padding: 1.5rem;
+            }
+
+            .features-list {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Password toggle visibility */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+    </style>
 </head>
-
 <body>
-
-
-<div class="container">
-
-    <!-- LOGO -->
-    <div class="logo">
-        <h1>🚀 BizFlow <span>AI</span></h1>
-        <p>Start automating your business today</p>
-    </div>
-
-
-    <!-- PLAN -->
-    {% if plan %}
-    <div class="plan-badge">
-        Selected Plan: {{ plan|title }}
-    </div>
-    {% endif %}
-
-
-    <!-- ERROR -->
-    {% if error %}
-    <div class="error">
-        {{ error }}
-    </div>
-    {% endif %}
-
-    {% if success %}
-    <div class="success">
-        {{ success }}
-    </div>
-    {% endif %}
-
-
-    <!-- FORM -->
-    <form method="post" action="/signup">
-
-
-        <!-- BUSINESS NAME -->
-        <div class="field">
-            <label>Business Name</label>
-            <input
-                type="text"
-                name="name"
-                placeholder="Your Business Name"
-                required
-            >
+    <div class="signup-container">
+        <!-- Header -->
+        <div class="signup-header">
+            <h1>
+                <i class="fas fa-rocket"></i> BizFlow AI
+            </h1>
+            <p>Start automating your business with WhatsApp AI</p>
+            
+            <!-- Plan Badge -->
+            {% if plan %}
+            <div class="plan-badge">
+                <i class="fas fa-crown"></i>
+                Selected Plan: {{ plan|title }}
+            </div>
+            {% endif %}
         </div>
 
+        <!-- Form Section -->
+        <div class="signup-form">
+            <!-- Alert Messages -->
+            {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
 
-        <!-- PHONE (IMPORTANT FIX) -->
-        <div class="field">
-            <label>WhatsApp Number</label>
+            {% if success %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
 
-            <input
-                type="text"
-                name="phone"
-                placeholder="+919876543210"
-                pattern="^\+?[0-9]{10,14}$"
-                required
-            >
+            <!-- Features List -->
+            <div class="features-list">
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>7-day free trial</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>No credit card required</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Cancel anytime</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>24/7 support</span>
+                </div>
+            </div>
 
-            <div class="hint">
-                Include country code (Example: +91XXXXXXXXXX)
+            <!-- Signup Form -->
+            <form method="post" action="/signup" id="signupForm">
+                <!-- Business Name -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-building"></i>
+                        Business Name
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-store input-icon"></i>
+                        <input 
+                            type="text" 
+                            name="name" 
+                            placeholder="Your Business Name"
+                            required
+                            autocomplete="organization"
+                        >
+                    </div>
+                </div>
+
+                <!-- WhatsApp Number -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fab fa-whatsapp"></i>
+                        WhatsApp Number
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-phone input-icon"></i>
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            placeholder="+919876543210"
+                            pattern="^\+?[0-9]{10,14}$"
+                            required
+                            autocomplete="tel"
+                        >
+                    </div>
+                    <div class="hint">
+                        <i class="fas fa-info-circle"></i>
+                        Include country code (Example: +91XXXXXXXXXX)
+                    </div>
+                </div>
+
+                <!-- Email Address -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            placeholder="admin@business.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key input-icon"></i>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password"
+                            placeholder="Create a strong password"
+                            minlength="8"
+                            required
+                            autocomplete="new-password"
+                        >
+                        <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                    </div>
+
+                    <!-- Password Strength Indicator -->
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-meter">
+                            <div class="strength-segment" id="seg1"></div>
+                            <div class="strength-segment" id="seg2"></div>
+                            <div class="strength-segment" id="seg3"></div>
+                        </div>
+                        <div class="strength-text" id="strengthText">
+                            Enter a password
+                        </div>
+                    </div>
+
+                    <div class="hint">
+                        <i class="fas fa-shield-alt"></i>
+                        Min 8 chars, 1 uppercase, 1 number, 1 special char
+                    </div>
+                </div>
+
+                <!-- Business Type -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tag"></i>
+                        Business Type
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-industry input-icon"></i>
+                        <select name="business_type" required>
+                            <option value="" disabled selected>Select your industry</option>
+                            <option value="gym">🏋️ Gym / Fitness</option>
+                            <option value="salon">💇 Salon / Spa</option>
+                            <option value="clinic">🏥 Clinic / Doctor</option>
+                            <option value="restaurant">🍽️ Restaurant</option>
+                            <option value="realestate">🏠 Real Estate</option>
+                            <option value="auto">🚗 Auto Service</option>
+                            <option value="education">🎓 Coaching / School</option>
+                            <option value="shop">🛍️ Retail Shop</option>
+                            <option value="other">📌 Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-submit">
+                    <span>Create Account</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Footer Links -->
+            <div class="signup-footer">
+                <p>
+                    Already have an account?
+                    <a href="/login">Sign in</a>
+                </p>
+                <a href="/" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Home
+                </a>
             </div>
         </div>
-
-
-        <!-- EMAIL -->
-        <div class="field">
-            <label>Email Address</label>
-
-            <input
-                type="email"
-                name="email"
-                placeholder="admin@business.com"
-                required
-            >
-        </div>
-
-
-        <!-- PASSWORD -->
-        <div class="field">
-            <label>Password</label>
-
-            <input
-                type="password"
-                name="password"
-                placeholder="Min 8 chars, 1 uppercase, 1 number"
-                minlength="8"
-                required
-            >
-
-            <div class="hint">
-                Strong password recommended
-            </div>
-        </div>
-
-
-        <!-- BUSINESS TYPE -->
-        <div class="field">
-            <label>Business Type</label>
-
-            <select name="business_type" required>
-
-                <option value="">Select Industry</option>
-
-                <option value="gym">🏋️ Gym / Fitness</option>
-                <option value="salon">💇 Salon / Spa</option>
-                <option value="clinic">🏥 Clinic / Doctor</option>
-                <option value="restaurant">🍽 Restaurant</option>
-                <option value="realestate">🏠 Real Estate</option>
-                <option value="auto">🚗 Auto Service</option>
-                <option value="education">🎓 Coaching / School</option>
-                <option value="shop">🛍 Retail Shop</option>
-                <option value="other">📌 Other</option>
-
-            </select>
-        </div>
-
-
-        <!-- SUBMIT -->
-        <button type="submit">
-            Create Account 🚀
-        </button>
-
-    </form>
-
-
-    <!-- FOOTER -->
-    <div class="footer">
-
-        <p>
-            Already have an account?
-            <a href="/login">Login</a>
-        </p>
-
-        <p style="margin-top:8px;">
-            <a href="/">← Back to Home</a>
-        </p>
-
     </div>
 
+    <!-- JavaScript for Password Strength & Toggle -->
+    <script>
+        // Password visibility toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const password = document.getElementById('password');
 
-</div>
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
 
+        // Password strength checker
+        const passwordInput = document.getElementById('password');
+        const seg1 = document.getElementById('seg1');
+        const seg2 = document.getElementById('seg2');
+        const seg3 = document.getElementById('seg3');
+        const strengthText = document.getElementById('strengthText');
 
+        passwordInput.addEventListener('input', function() {
+            const value = this.value;
+            let strength = 0;
+            
+            // Reset classes
+            seg1.className = 'strength-segment';
+            seg2.className = 'strength-segment';
+            seg3.className = 'strength-segment';
+            
+            if (value.length >= 8) strength++;
+            if (value.match(/[A-Z]/)) strength++;
+            if (value.match(/[0-9]/)) strength++;
+            if (value.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            // Update UI based on strength
+            if (value.length === 0) {
+                strengthText.textContent = 'Enter a password';
+            } else if (strength <= 2) {
+                seg1.classList.add('active-weak');
+                seg2.classList.add('active-weak');
+                seg3.classList.add('active-weak');
+                strengthText.textContent = 'Weak password';
+                strengthText.style.color = '#ef4444';
+            } else if (strength === 3) {
+                seg1.classList.add('active-medium');
+                seg2.classList.add('active-medium');
+                seg3.classList.add('active-medium');
+                strengthText.textContent = 'Medium password';
+                strengthText.style.color = '#f59e0b';
+            } else {
+                seg1.classList.add('active-strong');
+                seg2.classList.add('active-strong');
+                seg3.classList.add('active-strong');
+                strengthText.textContent = 'Strong password';
+                strengthText.style.color = '#10b981';
+            }
+        });
+
+        // Form validation
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            const phone = document.querySelector('input[name="phone"]').value;
+            const phoneRegex = /^\+?[0-9]{10,14}$/;
+            
+            if (!phoneRegex.test(phone)) {
+                e.preventDefault();
+                alert('Please enter a valid phone number with country code');
+            }
+        });
+    </script>
 </body>
 </html>
