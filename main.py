@@ -995,14 +995,16 @@ def billing(req: Request, db=Depends(get_db)):
     if not is_logged(req):
         return RedirectResponse("/login", 302)
 
-
     user = get_user(req, db)
-
+    
+    if not user:
+        return RedirectResponse("/login", 302)
 
     return templates.TemplateResponse(
         "billing.html",
         {
             "request": req,
+            "business": user,  # This was missing!
             "user": user,
             "razorpay_key": RAZORPAY_KEY
         }
