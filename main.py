@@ -48,14 +48,11 @@ from twilio.twiml.messaging_response import MessagingResponse
 from database import SessionLocal, engine
 from models import Base, Business, Booking
 
-# ... rest of your main.py code continues ...
-import os
-import re
-import logging
-from datetime import datetime
+import sendgrid
+from sendgrid.helpers.mail import Mail
 
-from dotenv import load_dotenv
-load_dotenv()
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@bizflowai.online")
 
 # ... rest of your main.py code ...
 import os
@@ -175,6 +172,88 @@ def require_admin(req, db):
 
     return user
 
+def send_reset_email(to_email: str, reset_link: str):
+    """Send password reset email using SendGrid"""
+    print("="*50)
+    print(f"📧 ENTERING SEND_RESET_EMAIL FUNCTION")
+    print(f"📧 To: {to_email}")
+    print(f"📧 Reset link: {reset_link}")
+    print(f"📧 SendGrid API Key present: {bool(SENDGRID_API_KEY)}")
+    print(f"📧 From email: {FROM_EMAIL}")
+    
+    if not SENDGRID_API_KEY:
+        print("❌ CRITICAL: SendGrid API key not configured or empty")
+        print("📧 Please check Railway environment variables")
+        return False
+    
+    try:
+        print("📧 Creating email message...")
+        message = Mail(
+            from_email=FROM_EMAIL,
+            to_emails=to_email,
+            subject='Reset Your BizFlow AI Password',
+            html_content=f'''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #2563eb, #60a5fa); color: white; padding: 40px 20px; text-align: center; }}
+                    .content {{ background: white; padding: 40px 20px; }}
+                    .button {{ display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>BizFlow AI</h1>
+                        <p>Password Reset Request</p>
+                    </div>
+                    <div class="content">
+                        <h2>Hello!</h2>
+                        <p>Click the button below to reset your password:</p>
+                        <div style="text-align: center;">
+                            <a href="{reset_link}" class="button">Reset Password</a>
+                        </div>
+                        <p>Or copy this link: {reset_link}</p>
+                        <p>This link expires in 24 hours.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            '''
+        )
+        print("📧 Message created successfully")
+        
+        print("📧 Initializing SendGrid client...")
+        sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
+        print("📧 SendGrid client initialized")
+        
+        print("📧 Sending email...")
+        response = sg.send(message)
+        print(f"📧 SendGrid response received")
+        print(f"📧 Status code: {response.status_code}")
+        print(f"📧 Response body: {response.body}")
+        print(f"📧 Response headers: {response.headers}")
+        
+        if response.status_code == 202:
+            print(f"✅ EMAIL SENT SUCCESSFULLY to {to_email}")
+            print("="*50)
+            return True
+        else:
+            print(f"❌ SendGrid returned non-202 status: {response.status_code}")
+            print("="*50)
+            return False
+            
+    except Exception as e:
+        print(f"❌ EXCEPTION in send_reset_email: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("="*50)
+        return False
 
 # =====================================================
 # UTILITIES
@@ -1220,29 +1299,39 @@ def forgot_password(req: Request):
 
 @app.post("/forgot-password")
 def forgot_password_post(req: Request, email: str = Form(...), db=Depends(get_db)):
+    print(f"🔍 FORGOT PASSWORD REQUEST for email: {email}")
+    print(f"🔍 SENDGRID_API_KEY exists: {bool(SENDGRID_API_KEY)}")
+    print(f"🔍 FROM_EMAIL: {FROM_EMAIL}")
+    print(f"🔍 BASE_URL: {BASE_URL}")
+    
     # Check if email exists
     user = db.query(Business).filter(Business.admin_email == email).first()
     
-    if not user:
-        # Still show success to prevent email enumeration
-        return templates.TemplateResponse(
-            "forgot_password.html",
-            {
-                "request": req,
-                "success": "If an account exists with this email, you will receive password reset instructions."
-            }
-        )
+    if user:
+        print(f"✅ User found: {user.id} - {user.admin_email}")
+        
+        # Generate reset token
+        import secrets
+        reset_token = secrets.token_urlsafe(32)
+        print(f"✅ Generated reset token: {reset_token[:10]}...")
+        
+        user.reset_token = reset_token
+        user.reset_token_expiry = datetime.utcnow() + timedelta(hours=24)
+        db.commit()
+        print(f"✅ Token saved to database")
+        
+        # Create reset link
+        reset_link = f"{BASE_URL}/reset-password/{reset_token}"
+        print(f"✅ Reset link: {reset_link}")
+        
+        # Send email
+        print(f"📧 Attempting to send email to {user.admin_email}...")
+        email_result = send_reset_email(user.admin_email, reset_link)
+        print(f"📧 Email send result: {email_result}")
+    else:
+        print(f"❌ No user found with email: {email}")
     
-    # Generate reset token (you'll need to add this to your Business model)
-    import secrets
-    reset_token = secrets.token_urlsafe(32)
-    user.reset_token = reset_token
-    user.reset_token_expiry = datetime.utcnow() + timedelta(hours=24)
-    db.commit()
-    
-    # Send email with reset link (implement your email sending logic)
-    # send_reset_email(user.admin_email, f"{BASE_URL}/reset-password/{reset_token}")
-    
+    # Always show same message (security best practice)
     return templates.TemplateResponse(
         "forgot_password.html",
         {
@@ -1339,6 +1428,38 @@ def reset_password_post(
         }
     )
 
+@app.get("/test-sendgrid")
+def test_sendgrid():
+    """Test SendGrid connectivity and configuration"""
+    results = {
+        "sendgrid_key_exists": bool(SENDGRID_API_KEY),
+        "sendgrid_key_length": len(SENDGRID_API_KEY) if SENDGRID_API_KEY else 0,
+        "sendgrid_key_prefix": SENDGRID_API_KEY[:15] + "..." if SENDGRID_API_KEY else None,
+        "from_email": FROM_EMAIL,
+        "base_url": BASE_URL,
+    }
+    
+    # Test direct API call
+    try:
+        import requests
+        print("Testing SendGrid API directly...")
+        
+        url = "https://api.sendgrid.com/v3/mail/send"
+        headers = {
+            "Authorization": f"Bearer {SENDGRID_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # This is just a test to verify the API key works - won't actually send
+        response = requests.get("https://api.sendgrid.com/v3/scopes", headers=headers)
+        results["api_key_valid"] = response.status_code == 200
+        results["api_response"] = response.status_code
+        results["api_scopes"] = response.json() if response.status_code == 200 else None
+        
+    except Exception as e:
+        results["api_test_error"] = str(e)
+    
+    return results
 
 # =====================================================
 # HEALTH
