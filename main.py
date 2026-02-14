@@ -1022,13 +1022,27 @@ def conversations(req: Request, db=Depends(get_db)):
     if not user:
         return RedirectResponse("/login", 302)
     
-    # You can fetch conversation history here
-    # For now, return a simple template or redirect to dashboard
+    # Fetch bookings for analytics
+    bookings = db.query(Booking)\
+        .filter(Booking.business_id == user.id)\
+        .all()
+    
+    # Calculate analytics (same as dashboard)
+    analytics = {
+        "conversations": user.chat_used or 0,
+        "bookings": len(bookings),
+        "interested": 0,
+        "cancelled": len([b for b in bookings if b.status == "cancelled"]),
+        "conversion": round((len(bookings) / max(user.chat_used, 1)) * 100, 1)
+    }
+    
     return templates.TemplateResponse(
-        "conversations.html",  # You'll need to create this template
+        "conversations.html",
         {
             "request": req,
-            "business": user
+            "business": user,
+            "analytics": analytics,  # This was missing!
+            "bookings": bookings
         }
     )
 
@@ -1050,11 +1064,21 @@ def bookings_page(req: Request, db=Depends(get_db)):
         .order_by(Booking.created_at.desc())\
         .all()
     
+    # Calculate analytics (same as dashboard)
+    analytics = {
+        "conversations": user.chat_used or 0,
+        "bookings": len(bookings),
+        "interested": 0,
+        "cancelled": len([b for b in bookings if b.status == "cancelled"]),
+        "conversion": round((len(bookings) / max(user.chat_used, 1)) * 100, 1)
+    }
+    
     return templates.TemplateResponse(
-        "bookings.html",  # You'll need to create this template
+        "bookings.html",
         {
             "request": req,
             "business": user,
+            "analytics": analytics,  # This was missing!
             "bookings": bookings
         }
     )
