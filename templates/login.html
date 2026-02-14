@@ -1,254 +1,729 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Login — BizFlow AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — BizFlow AI | WhatsApp Business Automation</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        /* ================= RESET & VARIABLES ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-<style>
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            animation: float 20s infinite ease-in-out;
+        }
 
-/* ================= RESET ================= */
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+            z-index: 0;
+            animation: floatReverse 25s infinite ease-in-out;
+        }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Inter',sans-serif;
-}
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-2%, -2%) rotate(1deg); }
+            66% { transform: translate(2%, 2%) rotate(-1deg); }
+        }
 
-body{
-min-height:100vh;
-background:linear-gradient(135deg,#2563eb,#06b6d4);
-display:flex;
-align-items:center;
-justify-content:center;
-padding:40px;
-}
+        @keyframes floatReverse {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(-1deg); }
+            66% { transform: translate(-2%, -2%) rotate(1deg); }
+        }
 
+        /* ================= MAIN CARD ================= */
+        .login-container {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
 
-/* ================= CARD ================= */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-.container{
-width:100%;
-max-width:440px;
-background:white;
-border-radius:18px;
-padding:40px 35px;
-box-shadow:0 25px 60px rgba(0,0,0,.25);
-animation:fadeUp .6s ease;
-}
+        /* Header Gradient */
+        .login-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-@keyframes fadeUp{
-from{opacity:0;transform:translateY(25px);}
-to{opacity:1;transform:translateY(0);}
-}
+        .login-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
 
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-/* ================= LOGO ================= */
+        .login-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
 
-.logo{
-text-align:center;
-margin-bottom:22px;
-}
+        .login-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
 
-.logo h1{
-font-size:28px;
-font-weight:800;
-color:#2563eb;
-}
+        .login-header i {
+            margin-right: 0.5rem;
+        }
 
-.logo span{
-color:#06b6d4;
-}
+        /* ================= FORM SECTION ================= */
+        .login-form {
+            padding: 2.5rem 2rem;
+        }
 
-.logo p{
-color:#555;
-font-size:14px;
-margin-top:4px;
-}
+        /* Alert Messages */
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            animation: shake 0.5s ease-in-out;
+        }
 
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
 
-/* ================= FORM ================= */
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #991b1b;
+        }
 
-form{
-display:flex;
-flex-direction:column;
-gap:16px;
-}
+        .alert i {
+            font-size: 1.25rem;
+        }
 
-label{
-font-size:14px;
-font-weight:600;
-color:#444;
-}
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-input{
-padding:12px 14px;
-border-radius:8px;
-border:1px solid #ddd;
-font-size:15px;
-transition:.3s;
-}
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
 
-input:focus{
-border-color:#2563eb;
-outline:none;
-box-shadow:0 0 0 2px rgba(37,99,235,.15);
-}
+        .form-label i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
 
+        .input-wrapper {
+            position: relative;
+        }
 
-/* ================= BUTTON ================= */
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
 
-button{
-margin-top:10px;
-background:linear-gradient(135deg,#2563eb,#06b6d4);
-color:white;
-border:none;
-padding:14px;
-border-radius:10px;
-font-size:16px;
-font-weight:700;
-cursor:pointer;
-transition:.3s;
-}
+        input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            background: white;
+        }
 
-button:hover{
-transform:translateY(-2px);
-box-shadow:0 8px 25px rgba(37,99,235,.35);
-}
+        input:hover {
+            border-color: var(--gray-300);
+        }
 
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
 
-/* ================= LINKS ================= */
+        input::placeholder {
+            color: var(--gray-400);
+        }
 
-.links{
-display:flex;
-justify-content:space-between;
-font-size:14px;
-margin-top:8px;
-}
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            cursor: pointer;
+            transition: color 0.2s;
+            z-index: 2;
+        }
 
-.links a{
-color:#2563eb;
-text-decoration:none;
-font-weight:600;
-}
+        .password-toggle:hover {
+            color: var(--primary);
+        }
 
-.links a:hover{
-text-decoration:underline;
-}
+        /* Remember Me & Forgot Password */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0 1.5rem;
+        }
 
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
 
-/* ================= FOOTER ================= */
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
 
-.footer{
-text-align:center;
-margin-top:22px;
-font-size:14px;
-color:#555;
-}
+        .remember-me span {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
 
-.footer a{
-color:#2563eb;
-font-weight:600;
-text-decoration:none;
-}
+        .forgot-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
 
-.footer a:hover{
-text-decoration:underline;
-}
+        .forgot-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
 
+        /* Submit Button */
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-/* ================= ERROR ================= */
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
 
-.error{
-background:#fee2e2;
-color:#b91c1c;
-padding:10px 14px;
-border-radius:8px;
-font-size:14px;
-text-align:center;
-}
+        .btn-login:hover::before {
+            width: 300px;
+            height: 300px;
+        }
 
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
 
-/* ================= MOBILE ================= */
+        .btn-login i {
+            font-size: 1.25rem;
+            transition: transform 0.3s;
+        }
 
-@media(max-width:500px){
+        .btn-login:hover i {
+            transform: translateX(5px);
+        }
 
-.container{
-padding:30px 22px;
-}
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
 
-.logo h1{
-font-size:24px;
-}
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
 
-}
+        /* Social Login (Optional - can be removed if not needed) */
+        .social-login {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
 
-</style>
+        .social-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            background: white;
+            color: var(--gray-700);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .social-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .social-btn i {
+            font-size: 1.1rem;
+        }
+
+        .social-btn.google i {
+            color: #ea4335;
+        }
+
+        .social-btn.github i {
+            color: #333;
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .login-footer p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .login-footer a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            color: var(--gray-500) !important;
+            font-weight: 500 !important;
+        }
+
+        .back-link:hover {
+            color: var(--primary) !important;
+            text-decoration: none !important;
+        }
+
+        .back-link i {
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover i {
+            transform: translateX(-3px);
+        }
+
+        /* Features List */
+        .features-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0 0;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+        }
+
+        .feature-item i {
+            color: var(--success);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .login-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-header h1 {
+                font-size: 2rem;
+            }
+
+            .login-form {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-options {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .features-list {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+
+            .login-header {
+                padding: 1.5rem 1rem;
+            }
+
+            .login-form {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-
-<div class="container">
-
-    <!-- LOGO -->
-    <div class="logo">
-        <h1>🚀 BizFlow <span>AI</span></h1>
-        <p>Login to manage your automation</p>
-    </div>
-
-
-    <!-- ERROR -->
-    {% if error %}
-    <div class="error">
-        {{ error }}
-    </div>
-    {% endif %}
-
-
-    <!-- FORM -->
-    <form method="post" action="/login">
-
-        <div>
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="admin@business.com" required>
+    <div class="login-container">
+        <!-- Header -->
+        <div class="login-header">
+            <h1>
+                <i class="fas fa-robot"></i> BizFlow AI
+            </h1>
+            <p>Welcome back! Login to manage your automation</p>
         </div>
 
-        <div>
-            <label>Password</label>
-            <input type="password" name="password" placeholder="Enter your password" required>
+        <!-- Form Section -->
+        <div class="login-form">
+            <!-- Error Alert -->
+            {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Features List -->
+            <div class="features-list">
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>WhatsApp Automation</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Smart Bookings</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Analytics Dashboard</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>24/7 Support</span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form method="post" action="/login" id="loginForm">
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            placeholder="admin@business.com" 
+                            required
+                            autocomplete="email"
+                            autofocus
+                        >
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key input-icon"></i>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password"
+                            placeholder="Enter your password" 
+                            required
+                            autocomplete="current-password"
+                        >
+                        <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember" value="1">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="/forgot-password" class="forgot-link">
+                        <i class="fas fa-question-circle"></i>
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-login">
+                    <span>Login to Dashboard</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span>New to BizFlow AI?</span>
+            </div>
+
+            <!-- Sign Up Link -->
+            <div class="login-footer">
+                <p>
+                    Don't have an account?
+                    <a href="/signup">Create free account</a>
+                </p>
+                <a href="/" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+
+            <!-- Trust Badge -->
+            <div style="text-align: center; margin-top: 1rem; font-size: 0.75rem; color: var(--gray-400);">
+                <i class="fas fa-lock"></i> Secured by 256-bit encryption
+            </div>
         </div>
-
-        <button type="submit">
-            Login to Dashboard →
-        </button>
-
-    </form>
-
-
-    <!-- LINKS -->
-    <div class="links">
-        <a href="/forgot-password">Forgot Password?</a>
-        <a href="/signup">Create Account</a>
     </div>
 
+    <!-- JavaScript for Password Toggle & Form Validation -->
+    <script>
+        // Password visibility toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const password = document.getElementById('password');
 
-    <!-- FOOTER -->
-    <div class="footer">
+        if (togglePassword && password) {
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
 
-        <p>
-            <a href="/">← Back to Home</a>
-        </p>
+        // Form validation
+        document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+            const email = document.querySelector('input[name="email"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+            
+            if (!email || !password) {
+                e.preventDefault();
+                alert('Please fill in all fields');
+                return;
+            }
 
-    </div>
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address');
+                return;
+            }
+        });
 
+        // Auto-dismiss error alert after 5 seconds
+        const errorAlert = document.querySelector('.alert-error');
+        if (errorAlert) {
+            setTimeout(() => {
+                errorAlert.style.transition = 'opacity 0.5s';
+                errorAlert.style.opacity = '0';
+                setTimeout(() => {
+                    errorAlert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        }
 
-</div>
+        // Add loading state to button on submit
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.querySelector('.btn-login');
 
-
+        if (loginForm && submitBtn) {
+            loginForm.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                    <span>Logging in...</span>
+                    <i class="fas fa-spinner fa-spin"></i>
+                `;
+            });
+        }
+    </script>
 </body>
 </html>
