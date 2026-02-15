@@ -1287,6 +1287,32 @@ async def payment_success(req: Request, db=Depends(get_db)):
 
         return {"status": "failed"}
 
+@app.get("/test-create-order")
+def test_create_order():
+    """Test creating a simple order"""
+    if not razorpay_client:
+        return {"error": "Razorpay client not initialized"}
+    
+    try:
+        # Create a test order of ₹1
+        order = razorpay_client.order.create({
+            "amount": 100,  # ₹1.00
+            "currency": "INR",
+            "receipt": "test_receipt_123",
+            "payment_capture": 1
+        })
+        return {
+            "success": True,
+            "order_id": order["id"],
+            "amount": order["amount"],
+            "currency": order["currency"]
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "error_type": type(e).__name__
+        }
+
 @app.get("/debug-razorpay-full")
 def debug_razorpay_full():
     """Comprehensive debug endpoint for Razorpay"""
@@ -1313,14 +1339,23 @@ def debug_razorpay_full():
     # Try to make a simple API call
     if razorpay_client:
         try:
-            # Just check if we can access the API without creating an order
-            result["api_test"] = "Attempting..."
-            # Try to get payment methods (lightweight API call)
-            methods = razorpay_client.payment_method.all()
-            result["api_test"] = "Success"
+            # Try to get a list of payments (lightweight API call)
+            # This is a valid endpoint in Razorpay
+            result["api_test"] = "Attempting to fetch customers..."
+            customers = razorpay_client.customer.all()
+            result["api_test"] = "Success - API is working"
+            result["customers_count"] = len(customers.get('items', [])) if customers else 0
         except Exception as e:
             result["api_test"] = f"Failed: {str(e)}"
             result["error_type"] = type(e).__name__
+            
+            # Try an even simpler call - just get the balance
+            try:
+                result["balance_test"] = "Attempting to fetch balance..."
+                balance = razorpay_client.balance.fetch()
+                result["balance_test"] = f"Success - Balance: {balance}"
+            except Exception as e2:
+                result["balance_test"] = f"Failed: {str(e2)}"
     
     return result
 
