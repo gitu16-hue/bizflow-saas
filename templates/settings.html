@@ -1,114 +1,859 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Settings — SmartGym AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — {{ business.name }} | BizFlow AI</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        /* ================= RESET & VARIABLES ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+            color: var(--gray-900);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-<style>
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            animation: float 20s infinite ease-in-out;
+        }
 
-body{
-background:#f4f7fb;
-font-family:Inter,sans-serif;
-padding:40px;
-}
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -10%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+            z-index: 0;
+            animation: floatReverse 25s infinite ease-in-out;
+        }
 
-.box{
-max-width:600px;
-margin:auto;
-background:white;
-padding:30px;
-border-radius:14px;
-box-shadow:0 5px 20px rgba(0,0,0,.08);
-}
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-2%, -2%) rotate(1deg); }
+            66% { transform: translate(2%, 2%) rotate(-1deg); }
+        }
 
-h2{
-margin-bottom:20px;
-}
+        @keyframes floatReverse {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(-1deg); }
+            66% { transform: translate(-2%, -2%) rotate(1deg); }
+        }
 
-label{
-font-weight:600;
-font-size:14px;
-}
+        /* ================= MAIN CONTAINER ================= */
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
 
-input{
-width:100%;
-padding:12px;
-margin:8px 0 18px;
-border:1px solid #ddd;
-border-radius:6px;
-}
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-.btn{
-background:#4facfe;
-color:white;
-border:none;
-padding:12px 18px;
-border-radius:6px;
-cursor:pointer;
-font-weight:600;
-}
+        /* Header */
+        .settings-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
 
-.top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
+        .settings-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
 
-a{
-text-decoration:none;
-color:#555;
-font-size:14px;
-}
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-.badge{
-padding:4px 10px;
-border-radius:20px;
-font-size:12px;
-background:#eee;
-}
+        .header-title {
+            position: relative;
+            z-index: 1;
+        }
 
-</style>
+        .header-title h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-title p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+
+        .header-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-badge i {
+            margin-right: 0.5rem;
+            color: var(--warning);
+        }
+
+        /* Content */
+        .settings-content {
+            padding: 2rem;
+        }
+
+        /* Alert Messages */
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            color: #166534;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert i {
+            font-size: 1.25rem;
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .section-title h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .section-title p {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input:hover, select:hover, textarea:hover {
+            border-color: var(--gray-300);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--gray-400);
+        }
+
+        /* Read-only field */
+        .readonly-field {
+            background: var(--gray-50);
+            border-color: var(--gray-200);
+            color: var(--gray-600);
+            cursor: not-allowed;
+        }
+
+        .field-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+
+        .field-hint i {
+            color: var(--primary);
+            font-size: 0.875rem;
+        }
+
+        /* Stats Cards */
+        .stats-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-mini-card {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        .stat-mini-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-mini-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .danger-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--danger);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .danger-title i {
+            font-size: 1.25rem;
+        }
+
+        .danger-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-danger {
+            background: white;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 2px solid var(--gray-300);
+            padding: 0.875rem 2rem;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary i {
+            transition: transform 0.2s;
+        }
+
+        .btn-secondary:hover i {
+            transform: translateX(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .settings-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+
+            .stats-mini-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-content {
+                padding: 1.5rem;
+            }
+
+            .section-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="settings-container">
+        <!-- Header -->
+        <div class="settings-header">
+            <div class="header-title">
+                <h1><i class="fas fa-gear"></i> Account Settings</h1>
+                <p>Manage your business profile and preferences</p>
+            </div>
+            <div class="header-badge">
+                <i class="fas fa-crown"></i>
+                {{ business.plan|upper }} PLAN
+            </div>
+        </div>
 
-<div class="box">
+        <!-- Content -->
+        <div class="settings-content">
+            <!-- Success/Error Messages -->
+            {% if success %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
 
-<div class="top">
+            {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
 
-<h2>⚙️ Account Settings</h2>
+            <!-- Settings Form -->
+            <form method="post" id="settingsForm">
+                <!-- Business Information Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div>
+                            <h2>Business Information</h2>
+                            <p>Update your business details and profile</p>
+                        </div>
+                    </div>
 
-<div>
-<span class="badge">{{ business.plan|upper }}</span>
-</div>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                <i class="fas fa-store"></i>
+                                Business Name
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-store input-icon"></i>
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    value="{{ business.name }}"
+                                    placeholder="Your Business Name"
+                                    required
+                                >
+                            </div>
+                        </div>
 
-</div>
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                <i class="fas fa-bullseye"></i>
+                                Business Goal
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-bullseye input-icon"></i>
+                                <textarea 
+                                    name="goal" 
+                                    placeholder="What's your business goal?"
+                                    required
+                                >{{ business.goal or "Automate & grow your business" }}</textarea>
+                            </div>
+                            <div class="field-hint">
+                                <i class="fas fa-info-circle"></i>
+                                This will be displayed in your dashboard header
+                            </div>
+                        </div>
 
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i>
+                                Business Type
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-industry input-icon"></i>
+                                <select name="business_type" required>
+                                    <option value="gym" {% if business.business_type == 'gym' %}selected{% endif %}>🏋️ Gym / Fitness</option>
+                                    <option value="salon" {% if business.business_type == 'salon' %}selected{% endif %}>💇 Salon / Spa</option>
+                                    <option value="clinic" {% if business.business_type == 'clinic' %}selected{% endif %}>🏥 Clinic / Doctor</option>
+                                    <option value="restaurant" {% if business.business_type == 'restaurant' %}selected{% endif %}>🍽️ Restaurant</option>
+                                    <option value="realestate" {% if business.business_type == 'realestate' %}selected{% endif %}>🏠 Real Estate</option>
+                                    <option value="auto" {% if business.business_type == 'auto' %}selected{% endif %}>🚗 Auto Service</option>
+                                    <option value="education" {% if business.business_type == 'education' %}selected{% endif %}>🎓 Education</option>
+                                    <option value="retail" {% if business.business_type == 'retail' %}selected{% endif %}>🛍️ Retail</option>
+                                    <option value="other" {% if business.business_type == 'other' %}selected{% endif %}>📌 Other</option>
+                                </select>
+                            </div>
+                        </div>
 
-<form method="post">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar"></i>
+                                Member Since
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input 
+                                    type="text" 
+                                    value="{{ business.created_at.strftime('%d %B %Y') }}"
+                                    class="readonly-field"
+                                    readonly
+                                    disabled
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<label>Business Name</label>
-<input type="text" name="name" value="{{ business.name }}" required>
+                <!-- Contact Information Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-address-card"></i>
+                        </div>
+                        <div>
+                            <h2>Contact Information</h2>
+                            <p>Manage your contact details and notifications</p>
+                        </div>
+                    </div>
 
-<label>Goal</label>
-<input type="text" name="goal" value="{{ business.goal }}" required>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-envelope"></i>
+                                Email Address
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input 
+                                    type="email" 
+                                    value="{{ business.admin_email }}"
+                                    class="readonly-field"
+                                    readonly
+                                    disabled
+                                >
+                            </div>
+                            <div class="field-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Email cannot be changed. Contact support for assistance.
+                            </div>
+                        </div>
 
-<label>WhatsApp Number</label>
-<input type="text" name="whatsapp" value="{{ business.whatsapp_number }}" required>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fab fa-whatsapp"></i>
+                                WhatsApp Number
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-phone input-icon"></i>
+                                <input 
+                                    type="tel" 
+                                    name="whatsapp" 
+                                    value="{{ business.whatsapp_number }}"
+                                    placeholder="+919876543210"
+                                    pattern="^\+?[0-9]{10,14}$"
+                                    required
+                                >
+                            </div>
+                            <div class="field-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Include country code (e.g., +91 for India)
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<button class="btn">Save Changes</button>
+                <!-- Usage Statistics Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <h2>Usage Statistics</h2>
+                            <p>Your current plan usage and limits</p>
+                        </div>
+                    </div>
 
-</form>
+                    <div class="stats-mini-grid">
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-value">{{ business.chat_used or 0 }}</div>
+                            <div class="stat-mini-label">Chats Used</div>
+                        </div>
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-value">{{ business.chat_limit or 0 }}</div>
+                            <div class="stat-mini-label">Chat Limit</div>
+                        </div>
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-value">{{ ((business.chat_used or 0) / (business.chat_limit or 1) * 100)|round|int }}%</div>
+                            <div class="stat-mini-label">Usage</div>
+                        </div>
+                    </div>
 
-<br>
+                    {% if business.paid_until %}
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--gray-600);">Plan Valid Until:</span>
+                            <span style="font-weight: 600; color: var(--primary);">{{ business.paid_until.strftime('%d %B %Y') }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
 
-<a href="/dashboard">← Back to Dashboard</a>
+                <!-- Danger Zone -->
+                <div class="danger-zone">
+                    <div class="danger-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Danger Zone</span>
+                    </div>
+                    <p class="danger-description">Once you delete your account, there is no going back. Please be certain.</p>
+                    <button type="button" class="btn-danger" onclick="confirmDelete()">
+                        <i class="fas fa-trash-alt"></i>
+                        Delete Account
+                    </button>
+                </div>
 
-</div>
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="/dashboard" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
+    <!-- JavaScript for Form Validation -->
+    <script>
+        // Form validation
+        document.getElementById('settingsForm')?.addEventListener('submit', function(e) {
+            const name = document.querySelector('input[name="name"]').value;
+            const whatsapp = document.querySelector('input[name="whatsapp"]').value;
+            
+            if (!name || !whatsapp) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // WhatsApp number validation
+            const phoneRegex = /^\+?[0-9]{10,14}$/;
+            if (!phoneRegex.test(whatsapp)) {
+                e.preventDefault();
+                alert('Please enter a valid WhatsApp number with country code');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        });
+
+        // Delete account confirmation
+        function confirmDelete() {
+            if (confirm('⚠️ Are you sure you want to delete your account? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all your data. Type "DELETE" to confirm:')) {
+                    // Redirect to delete account endpoint
+                    window.location.href = '/delete-account';
+                }
+            }
+        }
+
+        // Auto-dismiss alerts
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
