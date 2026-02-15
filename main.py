@@ -1287,6 +1287,43 @@ async def payment_success(req: Request, db=Depends(get_db)):
 
         return {"status": "failed"}
 
+@app.get("/debug-razorpay-full")
+def debug_razorpay_full():
+    """Comprehensive debug endpoint for Razorpay"""
+    import os
+    
+    # Get raw environment variables
+    key_id = os.environ.get("RAZORPAY_KEY_ID", "NOT SET")
+    key_secret = os.environ.get("RAZORPAY_KEY_SECRET", "NOT SET")
+    
+    result = {
+        "raw_env": {
+            "RAZORPAY_KEY_ID": key_id[:15] + "..." if key_id != "NOT SET" and len(key_id) > 15 else key_id,
+            "RAZORPAY_KEY_SECRET": "PRESENT" if key_secret != "NOT SET" else "NOT SET",
+            "key_id_length": len(key_id) if key_id != "NOT SET" else 0,
+            "secret_length": len(key_secret) if key_secret != "NOT SET" else 0,
+        },
+        "global_vars": {
+            "RAZORPAY_KEY": RAZORPAY_KEY[:15] + "..." if RAZORPAY_KEY else None,
+            "RAZORPAY_SECRET": "PRESENT" if RAZORPAY_SECRET else None,
+            "client_initialized": razorpay_client is not None,
+        }
+    }
+    
+    # Try to make a simple API call
+    if razorpay_client:
+        try:
+            # Just check if we can access the API without creating an order
+            result["api_test"] = "Attempting..."
+            # Try to get payment methods (lightweight API call)
+            methods = razorpay_client.payment_method.all()
+            result["api_test"] = "Success"
+        except Exception as e:
+            result["api_test"] = f"Failed: {str(e)}"
+            result["error_type"] = type(e).__name__
+    
+    return result
+
 # =====================================================
 # FORGOT PASSWORD PAGE
 # =====================================================
@@ -1340,20 +1377,6 @@ def forgot_password_post(req: Request, email: str = Form(...), db=Depends(get_db
         }
     )
 
-@app.get("/debug-razorpay")
-def debug_razorpay():
-    """Debug endpoint to check Razorpay configuration"""
-    return {
-        "key_id_present": bool(RAZORPAY_KEY),
-        "key_id_value": RAZORPAY_KEY if RAZORPAY_KEY else "MISSING",
-        "key_id_prefix": RAZORPAY_KEY[:15] + "..." if RAZORPAY_KEY and len(RAZORPAY_KEY) > 15 else RAZORPAY_KEY,
-        "key_id_length": len(RAZORPAY_KEY) if RAZORPAY_KEY else 0,
-        "secret_present": bool(RAZORPAY_SECRET),
-        "secret_length": len(RAZORPAY_SECRET) if RAZORPAY_SECRET else 0,
-        "client_initialized": razorpay_client is not None,
-        "key_type": "test" if RAZORPAY_KEY and RAZORPAY_KEY.startswith("rzp_test") else 
-                   "live" if RAZORPAY_KEY and RAZORPAY_KEY.startswith("rzp_live") else "unknown"
-    }
 # =====================================================
 # RESET PASSWORD PAGE
 # =====================================================
