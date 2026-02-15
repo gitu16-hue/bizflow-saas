@@ -736,9 +736,17 @@ RAZORPAY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 razorpay_client = None
 
 if RAZORPAY_KEY and RAZORPAY_SECRET:
-    razorpay_client = razorpay.Client(
-        auth=(RAZORPAY_KEY, RAZORPAY_SECRET)
-    )
+    try:
+        # Explicitly initialize with both key and secret
+        razorpay_client = razorpay.Client(
+            auth=(RAZORPAY_KEY.strip(), RAZORPAY_SECRET.strip())  # Remove any hidden spaces
+        )
+        # Test the client with a simple API call
+        razorpay_client.order.all(count=1)
+        print("✅ Razorpay client initialized and tested successfully")
+    except Exception as e:
+        print(f"❌ Razorpay client initialization failed: {str(e)}")
+        razorpay_client = None
 
 
 # =====================================================
@@ -1287,77 +1295,7 @@ async def payment_success(req: Request, db=Depends(get_db)):
 
         return {"status": "failed"}
 
-@app.get("/test-create-order")
-def test_create_order():
-    """Test creating a simple order"""
-    if not razorpay_client:
-        return {"error": "Razorpay client not initialized"}
-    
-    try:
-        # Create a test order of ₹1
-        order = razorpay_client.order.create({
-            "amount": 100,  # ₹1.00
-            "currency": "INR",
-            "receipt": "test_receipt_123",
-            "payment_capture": 1
-        })
-        return {
-            "success": True,
-            "order_id": order["id"],
-            "amount": order["amount"],
-            "currency": order["currency"]
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "error_type": type(e).__name__
-        }
 
-@app.get("/debug-razorpay-full")
-def debug_razorpay_full():
-    """Comprehensive debug endpoint for Razorpay"""
-    import os
-    
-    # Get raw environment variables
-    key_id = os.environ.get("RAZORPAY_KEY_ID", "NOT SET")
-    key_secret = os.environ.get("RAZORPAY_KEY_SECRET", "NOT SET")
-    
-    result = {
-        "raw_env": {
-            "RAZORPAY_KEY_ID": key_id[:15] + "..." if key_id != "NOT SET" and len(key_id) > 15 else key_id,
-            "RAZORPAY_KEY_SECRET": "PRESENT" if key_secret != "NOT SET" else "NOT SET",
-            "key_id_length": len(key_id) if key_id != "NOT SET" else 0,
-            "secret_length": len(key_secret) if key_secret != "NOT SET" else 0,
-        },
-        "global_vars": {
-            "RAZORPAY_KEY": RAZORPAY_KEY[:15] + "..." if RAZORPAY_KEY else None,
-            "RAZORPAY_SECRET": "PRESENT" if RAZORPAY_SECRET else None,
-            "client_initialized": razorpay_client is not None,
-        }
-    }
-    
-    # Try to make a simple API call
-    if razorpay_client:
-        try:
-            # Try to get a list of payments (lightweight API call)
-            # This is a valid endpoint in Razorpay
-            result["api_test"] = "Attempting to fetch customers..."
-            customers = razorpay_client.customer.all()
-            result["api_test"] = "Success - API is working"
-            result["customers_count"] = len(customers.get('items', [])) if customers else 0
-        except Exception as e:
-            result["api_test"] = f"Failed: {str(e)}"
-            result["error_type"] = type(e).__name__
-            
-            # Try an even simpler call - just get the balance
-            try:
-                result["balance_test"] = "Attempting to fetch balance..."
-                balance = razorpay_client.balance.fetch()
-                result["balance_test"] = f"Success - Balance: {balance}"
-            except Exception as e2:
-                result["balance_test"] = f"Failed: {str(e2)}"
-    
-    return result
 
 # =====================================================
 # FORGOT PASSWORD PAGE
@@ -1533,6 +1471,44 @@ def test_sendgrid():
     
     return results
 
+@app.get("/test-razorpay-raw")
+def test_razorpay_raw():
+    """Test Razorpay with raw requests to isolate the issue"""
+    import requests
+    import base64
+    
+    if not RAZORPAY_KEY or not RAZORPAY_SECRET:
+        return {"error": "Missing keys"}
+    
+    # Clean the keys
+    key = RAZORPAY_KEY.strip()
+    secret = RAZORPAY_SECRET.strip()
+    
+    # Create Basic Auth header manually
+    auth_string = f"{key}:{secret}"
+    base64_auth = base64.b64encode(auth_string.encode()).decode()
+    
+    headers = {
+        "Authorization": f"Basic {base64_auth}",
+        "Content-Type": "application/json"
+    }
+    
+    # Test with a simple API call
+    try:
+        response = requests.get(
+            "https://api.razorpay.com/v1/orders",
+            headers=headers,
+            params={"count": 1}
+        )
+        
+        return {
+            "status_code": response.status_code,
+            "response": response.json() if response.status_code == 200 else response.text,
+            "auth_header": f"Basic {base64_auth[:10]}...",  # Truncated for security
+            "key_valid": response.status_code == 200
+        }
+    except Exception as e:
+        return {"error": str(e)}
 # =====================================================
 # HEALTH
 # =====================================================
