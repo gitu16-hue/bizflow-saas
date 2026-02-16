@@ -1762,6 +1762,88 @@ async def shutdown_event():
     """Tasks to run on shutdown"""
     logger.info(f"👋 {APP_NAME} shutting down...")
 
+@app.get("/billing", response_class=HTMLResponse)
+async def billing(req: Request, db=Depends(get_db)):
+    try:
+        if not is_logged(req):
+            req.session["next"] = "/billing"
+            return RedirectResponse("/login", 302)
+
+        user = get_user(req, db)
+        if not user:
+            req.session.clear()
+            return RedirectResponse("/login", 302)
+        
+        # Get payment history (this might be failing if table doesn't exist)
+        try:
+            payments = db.query(Payment).filter(Payment.business_id == user.id).order_by(Payment.created_at.desc()).all()
+        except Exception as e:
+            logger.error(f"Payment query error: {str(e)}")
+            payments = []  # Fallback to empty list
+        
+        return templates.TemplateResponse(
+            "billing.html",
+            {
+                "request": req,
+                "business": user,
+                "payments": payments,
+                "razorpay_key": RAZORPAY_KEY,
+                "plans": PLANS
+            }
+        )
+    except Exception as e:
+        logger.error(f"Billing page error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": req, "error": str(e)},
+            status_code=500
+        )
+
+@app.get("/conversations", response_class=HTMLResponse)
+async def conversations(req: Request, db=Depends(get_db)):
+    try:
+        if not is_logged(req):
+            req.session["next"] = "/conversations"
+            return RedirectResponse("/login", 302)
+        
+        user = get_user(req, db)
+        if not user:
+            req.session.clear()
+            return RedirectResponse("/login", 302)
+        
+        # Fetch bookings for analytics
+        bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .all()
+        
+        # Calculate analytics
+        analytics = {
+            "conversations": user.chat_used or 0,
+            "bookings": len(bookings),
+            "interested": 0,
+            "cancelled": len([b for b in bookings if b.status == "cancelled"]),
+            "conversion": round((len(bookings) / max(user.chat_used, 1)) * 100, 1)
+        }
+        
+        return templates.TemplateResponse(
+            "conversations.html",
+            {
+                "request": req,
+                "business": user,
+                "analytics": analytics,
+                "bookings": bookings
+            }
+        )
+    except Exception as e:
+        logger.error(f"Conversations page error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": req, "error": str(e)},
+            status_code=500
+        )
+
 # =====================================================
 # MAIN ENTRY POINT
 # =====================================================
