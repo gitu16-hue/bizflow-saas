@@ -1805,7 +1805,7 @@ async def shutdown_event():
     """Tasks to run on shutdown"""
     logger.info(f"👋 {APP_NAME} shutting down...")
 
-@
+
 # =====================================================
 # MAIN ENTRY POINT
 # =====================================================
