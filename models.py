@@ -5,7 +5,9 @@ from sqlalchemy import (
     Text,
     DateTime,
     ForeignKey,
-    Boolean
+    Boolean,
+    Float,
+    JSON
 )
 
 from sqlalchemy.orm import relationship
@@ -36,10 +38,8 @@ class Business(Base):
 
     address = Column(String(255), nullable=True)
 
-    # Add these new fields
-    reset_token = Column(String, nullable=True)
-    reset_token_expiry = Column(DateTime, nullable=True)
-
+    # Add business hours for better customer info
+    business_hours = Column(String, nullable=True)
 
     whatsapp_number = Column(String, unique=True, nullable=False)
 
@@ -55,9 +55,9 @@ class Business(Base):
     is_admin = Column(Boolean, default=False)
 
 
+    # Password reset fields (already present, just keeping one copy)
     reset_token = Column(String, nullable=True)
     reset_token_expiry = Column(DateTime, nullable=True)
-
 
 
     # ---------------- BILLING ----------------
@@ -67,13 +67,13 @@ class Business(Base):
 
     is_active = Column(Boolean, default=True)
 
-    trial_ends = Column(DateTime)
+    trial_ends_at = Column(DateTime, nullable=True)  # Renamed for consistency
 
-    paid_until = Column(DateTime)
+    paid_until = Column(DateTime, nullable=True)
 
-    plan_started = Column(DateTime)
+    plan_started = Column(DateTime, nullable=True)
 
-    last_order_id = Column(String, index=True)
+    last_order_id = Column(String, index=True, nullable=True)
 
 
     # ---------------- USAGE ----------------
@@ -95,15 +95,15 @@ class Business(Base):
     settings_json = Column(Text, default="{}")
 
 
-    # ---------------- SYSTEM ----------------
+    # ---------------- TIMESTAMPS ----------------
 
     created_at = Column(DateTime, default=datetime.utcnow)
-
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
+    last_login = Column(DateTime, nullable=True)
 
 
     # ---------------- RELATIONSHIPS ----------------
@@ -121,6 +121,92 @@ class Business(Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
+
+    payments = relationship(
+        "Payment",
+        back_populates="business",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+
+# =================================================
+# PAYMENT MODEL (NEW)
+# =================================================
+
+class Payment(Base):
+    __tablename__ = "payments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Foreign key to business
+    business_id = Column(
+        Integer,
+        ForeignKey("businesses.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    
+    # Payment gateway identifiers
+    payment_id = Column(String, unique=True, nullable=False, index=True)  # Razorpay payment ID
+    order_id = Column(String, unique=True, nullable=False, index=True)    # Razorpay order ID
+    signature = Column(String, nullable=True)  # Razorpay signature for verification
+    
+    # Payment details
+    amount = Column(Float, nullable=False)  # In INR
+    currency = Column(String, default="INR")
+    status = Column(String, default="pending")  # pending, success, failed, refunded
+    plan = Column(String, nullable=False)  # starter, pro
+    
+    # Payment method (card, upi, netbanking, etc.)
+    payment_method = Column(String, nullable=True)
+    
+    # Store full payment response from Razorpay for audit
+    payment_data = Column(JSON, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    business = relationship("Business", back_populates="payments")
+    
+    def __repr__(self):
+        return f"<Payment {self.id}: {self.payment_id} - ₹{self.amount}>"
+
+
+# =================================================
+# AUDIT LOG MODEL (NEW)
+# =================================================
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # User who performed the action (can be null for system actions)
+    user_id = Column(
+        Integer,
+        ForeignKey("businesses.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+    
+    # Action details
+    action = Column(String, nullable=False, index=True)  # e.g., "login", "payment", "admin_action"
+    details = Column(JSON, nullable=True)  # Store additional context
+    
+    # Request metadata
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    
+    # Timestamp
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    # Relationship (optional - to get user info)
+    user = relationship("Business")
+    
+    def __repr__(self):
+        return f"<AuditLog {self.id}: {self.action}>"
 
 
 # =================================================
@@ -200,6 +286,8 @@ class Booking(Base):
     phone = Column(String, nullable=False, index=True)
 
     name = Column(String, nullable=False)
+    
+    email = Column(String, nullable=True)  # Added email field
 
 
     booking_date = Column(String)
@@ -215,6 +303,8 @@ class Booking(Base):
 
     # whatsapp | manual | api
     source = Column(String, default="whatsapp")
+    
+    notes = Column(Text, nullable=True)  # Added notes field
 
 
     created_at = Column(DateTime, default=datetime.utcnow)
