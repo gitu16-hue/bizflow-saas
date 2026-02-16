@@ -14,3 +14,5 @@ starlette==0.27.0
 email-validator==2.1.0 
 setuptools
 sendgrid==6.11.0 
+"pytz==2025.2" 
+"aiofiles==24.1.0" 
