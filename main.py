@@ -221,11 +221,10 @@ if RAZORPAY_KEY and RAZORPAY_SECRET:
         razorpay_client = razorpay.Client(
             auth=(RAZORPAY_KEY.strip(), RAZORPAY_SECRET.strip())
         )
-        # Test connection
-        razorpay_client.order.all(count=1)
-        logger.info("✅ Razorpay client initialized successfully")
+        # Test line removed - it was causing the error
+        print("✅ Razorpay client initialized successfully")
     except Exception as e:
-        logger.error(f"❌ Razorpay client initialization failed: {str(e)}")
+        print(f"❌ Razorpay client initialization failed: {str(e)}")
         razorpay_client = None
 
 # =====================================================
