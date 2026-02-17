@@ -64,7 +64,7 @@ from typing import Optional
 import aiofiles
 import csv
 from io import StringIO
-
+from twilio.twiml.messaging_response import MessagingResponse
 # =====================================================
 # CONFIGURATION & ENVIRONMENT
 # =====================================================
@@ -189,6 +189,20 @@ templates = Jinja2Templates(directory="templates")
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# =====================================================
+# PLANS CONFIGURATION
+# =====================================================
+PLANS = {
+    "starter": {
+        "price": 999,
+        "chats": 300
+    },
+    "pro": {
+        "price": 2499,
+        "chats": 999999
+    }
+}
 
 # =====================================================
 # DATABASE DEPENDENCY
@@ -1389,49 +1403,6 @@ async def razorpay_webhook(req: Request):
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-app.get("/billing", response_class=HTMLResponse)
-async def billing_page(req: Request, db=Depends(get_db)):
-    try:
-        if not is_logged(req):
-            req.session["next"] = "/billing"
-            return RedirectResponse("/login", 302)
-
-        user = get_user(req, db)
-        if not user:
-            req.session.clear()
-            return RedirectResponse("/login", 302)
-        
-        # Debug: log the PLANS variable
-        logger.info(f"PLANS available: {list(PLANS.keys()) if PLANS else 'None'}")
-        
-        # Get payment history
-        try:
-            payments = db.query(Payment).filter(Payment.business_id == user.id).order_by(Payment.created_at.desc()).all()
-            logger.info(f"Found {len(payments)} payments for user {user.id}")
-        except Exception as e:
-            logger.error(f"Payment query error: {str(e)}")
-            payments = []
-        
-        return templates.TemplateResponse(
-            "billing.html",
-            {
-                "request": req,
-                "business": user,
-                "payments": payments,
-                "razorpay_key": RAZORPAY_KEY,
-                "plans": PLANS
-            }
-        )
-    except Exception as e:
-        logger.error(f"Billing page error: {str(e)}")
-        logger.error(traceback.format_exc())
-        return templates.TemplateResponse(
-            "500.html",
-            {"request": req, "error": str(e)},
-            status_code=500
-        )
-
 
 # =====================================================
 # ADMIN ROUTES
