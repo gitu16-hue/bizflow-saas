@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Onboarding — BizFlow AI</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .onboarding-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .content {
+            padding: 2.5rem 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label i {
+            color: var(--primary);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+        }
+
+        .btn-next {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px var(--primary);
+        }
+
+        .skip-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .skip-link a {
+            color: var(--gray-500);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .skip-link a:hover {
+            color: var(--primary);
+        }
+
+        .business-info {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-200);
+        }
+
+        .business-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .business-info-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .business-info-value {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="header">
+            <h1><i class="fas fa-rocket"></i> Welcome to BizFlow AI!</h1>
+            <p>Let's set up your business in just a few steps</p>
+        </div>
+
+        <div class="content">
+            <!-- Business Info Summary -->
+            <div class="business-info">
+                <div class="business-info-item">
+                    <span class="business-info-label">Business Name</span>
+                    <span class="business-info-value">{{ business.name }}</span>
+                </div>
+                <div class="business-info-item">
+                    <span class="business-info-label">Business Type</span>
+                    <span class="business-info-value">{{ business.business_type|title }}</span>
+                </div>
+                <div class="business-info-item">
+                    <span class="business-info-label">WhatsApp Number</span>
+                    <span class="business-info-value">{{ business.whatsapp_number }}</span>
+                </div>
+            </div>
+
+            <!-- Onboarding Form -->
+            <form method="post" action="/onboarding">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-bullseye"></i>
+                        What's your primary business goal?
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-bullseye input-icon"></i>
+                        <input 
+                            type="text" 
+                            name="business_goal" 
+                            placeholder="e.g., Increase appointments by 50%"
+                            value="{{ business.goal or '' }}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Business Address
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-marker-alt input-icon"></i>
+                        <input 
+                            type="text" 
+                            name="business_address" 
+                            placeholder="Street, City, State, PIN"
+                            value="{{ business.address or '' }}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-clock"></i>
+                        Business Hours
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-clock input-icon"></i>
+                        <input 
+                            type="text" 
+                            name="business_hours" 
+                            placeholder="e.g., Mon-Fri 9AM-8PM, Sat 10AM-6PM"
+                            value="{{ business.business_hours or '' }}"
+                            required
+                        >
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        This will be displayed to your customers
+                    </p>
+                </div>
+
+                <button type="submit" class="btn-next">
+                    <span>Complete Setup</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <div class="skip-link">
+                    <a href="/dashboard">Skip for now →</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
