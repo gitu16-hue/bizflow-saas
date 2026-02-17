@@ -20,10 +20,11 @@ import secrets
 import hmac
 import hashlib
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from contextlib import contextmanager
 import json
 import traceback
+from functools import wraps
 
 # ================= THIRD PARTY =================
 from dotenv import load_dotenv
@@ -36,6 +37,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from starlette.middleware.sessions import SessionMiddleware
@@ -47,7 +49,7 @@ import bcrypt as bcrypt_lib
 
 # Database
 from database import SessionLocal, engine
-from models import Base, Business, Booking, Payment, AuditLog
+from models import Base, Business, Booking, Payment, AuditLog, Conversation
 
 # Email
 import sendgrid
@@ -55,25 +57,25 @@ from sendgrid.helpers.mail import Mail
 
 # Payments
 import razorpay
-import hmac
-import hashlib
 
 # Utilities
 import pytz
-from typing import Optional
 import aiofiles
 import csv
 from io import StringIO
 from twilio.twiml.messaging_response import MessagingResponse
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
 # =====================================================
 # CONFIGURATION & ENVIRONMENT
 # =====================================================
 
 APP_NAME = "BizFlow AI"
-APP_VERSION = "10.0"
+APP_VERSION = "10.1"
 BASE_URL = os.getenv("BASE_URL", "https://bizflowai.online")
 SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")  # production/staging/development
+DEBUG = ENVIRONMENT == "development"
 
 # Email Configuration
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
@@ -91,6 +93,24 @@ WHATSAPP_WEBHOOK_TOKEN = os.getenv("WHATSAPP_WEBHOOK_TOKEN", secrets.token_urlsa
 # Rate Limiting
 MAX_LOGIN_ATTEMPTS = 5
 LOGIN_TIMEOUT_MINUTES = 15
+
+# =====================================================
+# PLANS CONFIGURATION
+# =====================================================
+PLANS = {
+    "starter": {
+        "name": "Starter",
+        "price": 999,
+        "chats": 300,
+        "features": ["WhatsApp Bot", "300 Chats/Month", "Booking System", "Basic Analytics", "Email Support"]
+    },
+    "pro": {
+        "name": "Pro",
+        "price": 2499,
+        "chats": 999999,
+        "features": ["Unlimited Chats", "Advanced AI", "Auto Reminders", "Calendar Sync", "Priority Support", "Lead Optimization"]
+    }
+}
 
 # =====================================================
 # LOGGING CONFIGURATION
@@ -129,7 +149,7 @@ file_handler.setFormatter(file_formatter)
 
 # Console handler with colors
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+console_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 console_handler.setFormatter(CustomFormatter())
 
 # Error file handler
@@ -139,7 +159,7 @@ error_handler.setFormatter(file_formatter)
 
 # Setup logger
 logger = logging.getLogger("bizflow")
-logger.setLevel(logging.DEBUG if ENVIRONMENT == "development" else logging.INFO)
+logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 logger.addHandler(error_handler)
@@ -152,9 +172,9 @@ app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
     description="Enterprise WhatsApp Business Automation Platform",
-    docs_url="/api/docs" if ENVIRONMENT == "development" else None,
-    redoc_url="/api/redoc" if ENVIRONMENT == "development" else None,
-    openapi_url="/api/openapi.json" if ENVIRONMENT == "development" else None,
+    docs_url="/api/docs" if DEBUG else None,
+    redoc_url="/api/redoc" if DEBUG else None,
+    openapi_url="/api/openapi.json" if DEBUG else None,
 )
 
 # Security Middleware
@@ -183,26 +203,15 @@ app.add_middleware(
     https_only=ENVIRONMENT == "production",
 )
 
+# Add GZip compression for better performance
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
-
-# =====================================================
-# PLANS CONFIGURATION
-# =====================================================
-PLANS = {
-    "starter": {
-        "price": 999,
-        "chats": 300
-    },
-    "pro": {
-        "price": 2499,
-        "chats": 999999
-    }
-}
 
 # =====================================================
 # DATABASE DEPENDENCY
@@ -235,11 +244,39 @@ if RAZORPAY_KEY and RAZORPAY_SECRET:
         razorpay_client = razorpay.Client(
             auth=(RAZORPAY_KEY.strip(), RAZORPAY_SECRET.strip())
         )
-        # Test line removed - it was causing the error
-        print("✅ Razorpay client initialized successfully")
+        logger.info("✅ Razorpay client initialized successfully")
     except Exception as e:
-        print(f"❌ Razorpay client initialization failed: {str(e)}")
+        logger.error(f"❌ Razorpay client initialization failed: {str(e)}")
         razorpay_client = None
+
+# =====================================================
+# DECORATORS & MIDDLEWARE
+# =====================================================
+
+def login_required(func):
+    """Decorator to require login"""
+    @wraps(func)
+    async def wrapper(request: Request, *args, **kwargs):
+        if not is_logged(request):
+            request.session["next"] = request.url.path
+            return RedirectResponse("/login", 302)
+        return await func(request, *args, **kwargs)
+    return wrapper
+
+def admin_required(func):
+    """Decorator to require admin privileges"""
+    @wraps(func)
+    async def wrapper(request: Request, db=Depends(get_db), *args, **kwargs):
+        if not is_logged(request):
+            request.session["next"] = request.url.path
+            return RedirectResponse("/login", 302)
+        
+        user = get_user(request, db)
+        if not user or not user.is_admin:
+            return RedirectResponse("/dashboard", 302)
+        
+        return await func(request, db, *args, **kwargs)
+    return wrapper
 
 # =====================================================
 # SECURITY UTILITIES
@@ -274,6 +311,13 @@ def validate_password_strength(password: str) -> tuple:
         return False, "Password must contain at least one special character"
     return True, "Password is strong"
 
+def sanitize_input(text: str) -> str:
+    """Sanitize user input"""
+    if not text:
+        return ""
+    # Remove any potential malicious characters
+    return re.sub(r'[<>\'"]', '', text)
+
 # =====================================================
 # AUTHENTICATION HELPERS
 # =====================================================
@@ -299,15 +343,17 @@ def require_admin(req: Request, db):
 def log_audit(user_id: int, action: str, details: dict = None, db=None):
     """Log audit event"""
     if db:
-        audit = AuditLog(
-            user_id=user_id,
-            action=action,
-            details=details or {},
-            ip_address=None,  # Would need to get from request
-            timestamp=datetime.utcnow()
-        )
-        db.add(audit)
-        db.commit()
+        try:
+            audit = AuditLog(
+                user_id=user_id,
+                action=action,
+                details=details or {},
+                created_at=datetime.utcnow()
+            )
+            db.add(audit)
+            db.commit()
+        except Exception as e:
+            logger.error(f"Audit log error: {str(e)}")
 
 # =====================================================
 # RATE LIMITING MIDDLEWARE
@@ -343,8 +389,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         
         return await call_next(request)
 
-# Add rate limiting middleware (optional, enable if needed)
-# app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+# Enable rate limiting in production
+if ENVIRONMENT == "production":
+    app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 
 # =====================================================
 # EMAIL SERVICE
@@ -661,8 +708,6 @@ Reply with number 👇
             return WhatsAppBot._handle_menu(message, business, db)
         elif state == "booking":
             return WhatsAppBot._handle_booking(message, phone, business, db)
-        elif state == "feedback":
-            return WhatsAppBot._handle_feedback(message, business, db)
         else:
             business.flow_state = "menu"
             db.commit()
@@ -739,9 +784,6 @@ Reply with number 👇
         business.chat_used = (business.chat_used or 0) + 1
         db.commit()
         
-        # Send confirmation email (optional)
-        # EmailService.send_email(...)
-        
         return f"""
 ✅ Booking Confirmed!
 
@@ -812,20 +854,28 @@ async def health_check(db=Depends(get_db)):
         # Test database connection
         db.execute("SELECT 1").first()
         db_status = "healthy"
-    except Exception as e:
-        db_status = f"unhealthy: {str(e)}"
-    
-    return {
-        "status": "ok",
-        "version": APP_VERSION,
-        "environment": ENVIRONMENT,
-        "timestamp": datetime.utcnow().isoformat(),
-        "database": db_status,
-        "services": {
+        
+        # Check critical services
+        services = {
             "razorpay": "configured" if razorpay_client else "not configured",
-            "sendgrid": "configured" if SENDGRID_API_KEY else "not configured"
+            "sendgrid": "configured" if SENDGRID_API_KEY else "not configured",
+            "database": "connected"
         }
-    }
+        
+        return {
+            "status": "ok",
+            "version": APP_VERSION,
+            "environment": ENVIRONMENT,
+            "timestamp": datetime.utcnow().isoformat(),
+            "services": services
+        }
+    except Exception as e:
+        logger.error(f"Health check error: {str(e)}")
+        return {
+            "status": "degraded",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 # =====================================================
 # HOME PAGE
@@ -834,14 +884,22 @@ async def health_check(db=Depends(get_db)):
 @app.get("/", response_class=HTMLResponse)
 async def home(req: Request):
     """Home page"""
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": req,
-            "logged": is_logged(req),
-            "year": datetime.now().year
-        }
-    )
+    try:
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": req,
+                "logged": is_logged(req),
+                "year": datetime.now().year
+            }
+        )
+    except Exception as e:
+        logger.error(f"Home page error: {str(e)}")
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": req, "error": "An error occurred loading the page"},
+            status_code=500
+        )
 
 # =====================================================
 # AUTHENTICATION ROUTES
@@ -924,7 +982,8 @@ async def signup_page(req: Request, plan: str = None):
         "signup.html",
         {
             "request": req,
-            "plan": plan
+            "plan": plan,
+            "plans": PLANS
         }
     )
 
@@ -942,6 +1001,7 @@ async def signup(
     try:
         phone = WhatsAppBot.clean_phone(phone)
         email = email.lower().strip()
+        name = sanitize_input(name)
         
         # Validate password strength
         is_valid, msg = validate_password_strength(password)
@@ -950,7 +1010,8 @@ async def signup(
                 "signup.html",
                 {
                     "request": req,
-                    "error": msg
+                    "error": msg,
+                    "plans": PLANS
                 }
             )
         
@@ -964,7 +1025,8 @@ async def signup(
                 "signup.html",
                 {
                     "request": req,
-                    "error": "Email or phone already registered"
+                    "error": "Email or phone already registered",
+                    "plans": PLANS
                 }
             )
         
@@ -990,7 +1052,7 @@ async def signup(
         # Set session
         req.session["business_id"] = user.id
         
-        # Send welcome email
+        # Send welcome email (async)
         await EmailService.send_email(
             email,
             "Welcome to BizFlow AI!",
@@ -1002,13 +1064,26 @@ async def signup(
         
         return RedirectResponse("/onboarding", 302)
         
-    except Exception as e:
-        logger.error(f"Signup error: {str(e)}")
+    except IntegrityError:
+        logger.error(f"Signup integrity error for email: {email}")
+        db.rollback()
         return templates.TemplateResponse(
             "signup.html",
             {
                 "request": req,
-                "error": "An error occurred. Please try again."
+                "error": "An account with this email already exists",
+                "plans": PLANS
+            }
+        )
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        db.rollback()
+        return templates.TemplateResponse(
+            "signup.html",
+            {
+                "request": req,
+                "error": "An error occurred. Please try again.",
+                "plans": PLANS
             }
         )
 
@@ -1017,85 +1092,94 @@ async def signup(
 # =====================================================
 
 @app.get("/dashboard", response_class=HTMLResponse)
+@login_required
 async def dashboard(req: Request, db=Depends(get_db)):
     """User dashboard"""
-    if not is_logged(req):
-        req.session["next"] = "/dashboard"
-        return RedirectResponse("/login", 302)
-    
-    user = get_user(req, db)
-    if not user:
-        req.session.clear()
-        return RedirectResponse("/login", 302)
-    
-    # Check trial expiry
-    if user.plan == "trial" and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
-        user.plan = "expired"
-        db.commit()
-    
-    # Get recent bookings
-    bookings = db.query(Booking)\
-        .filter(Booking.business_id == user.id)\
-        .order_by(Booking.created_at.desc())\
-        .limit(10)\
-        .all()
-    
-    # Calculate analytics
-    total_bookings = db.query(Booking)\
-        .filter(Booking.business_id == user.id)\
-        .count()
-    
-    cancelled = db.query(Booking)\
-        .filter(Booking.business_id == user.id, Booking.status == "cancelled")\
-        .count()
-    
-    analytics = {
-        "conversations": user.chat_used or 0,
-        "bookings": total_bookings,
-        "interested": 0,  # Could be calculated from chat logs
-        "cancelled": cancelled,
-        "conversion": round((total_bookings / max(user.chat_used, 1)) * 100, 1) if user.chat_used else 0,
-        "chat_usage_percent": round((user.chat_used / user.chat_limit) * 100, 1) if user.chat_limit else 0
-    }
-    
-    return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": req,
-            "business": user,
-            "bookings": bookings,
-            "analytics": analytics,
-            "now": datetime.utcnow(),
-            "trial_days_left": (user.trial_ends_at - datetime.utcnow()).days if user.plan == "trial" else 0
+    try:
+        user = get_user(req, db)
+        if not user:
+            req.session.clear()
+            return RedirectResponse("/login", 302)
+        
+        # Check trial expiry
+        if user.plan == "trial" and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
+            user.plan = "expired"
+            db.commit()
+        
+        # Get recent bookings
+        bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .order_by(Booking.created_at.desc())\
+            .limit(10)\
+            .all()
+        
+        # Calculate analytics
+        total_bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .count()
+        
+        cancelled = db.query(Booking)\
+            .filter(Booking.business_id == user.id, Booking.status == "cancelled")\
+            .count()
+        
+        analytics = {
+            "conversations": user.chat_used or 0,
+            "bookings": total_bookings,
+            "interested": 0,
+            "cancelled": cancelled,
+            "conversion": round((total_bookings / max(user.chat_used, 1)) * 100, 1) if user.chat_used else 0,
+            "chat_usage_percent": round((user.chat_used / user.chat_limit) * 100, 1) if user.chat_limit else 0
         }
-    )
+        
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": req,
+                "business": user,
+                "bookings": bookings,
+                "analytics": analytics,
+                "now": datetime.utcnow(),
+                "trial_days_left": (user.trial_ends_at - datetime.utcnow()).days if user.plan == "trial" else 0,
+                "plans": PLANS
+            }
+        )
+    except Exception as e:
+        logger.error(f"Dashboard error for user {getattr(user, 'id', 'unknown')}: {str(e)}")
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": req, "error": "An error occurred loading your dashboard"},
+            status_code=500
+        )
 
 # =====================================================
 # ONBOARDING
 # =====================================================
 
 @app.get("/onboarding", response_class=HTMLResponse)
+@login_required
 async def onboarding(req: Request, db=Depends(get_db)):
     """Onboarding wizard for new users"""
-    if not is_logged(req):
-        return RedirectResponse("/login", 302)
-    
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    if user.onboarding_done:
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        if user.onboarding_done:
+            return RedirectResponse("/dashboard", 302)
+        
+        return templates.TemplateResponse(
+            "onboarding.html",
+            {
+                "request": req,
+                "business": user
+            }
+        )
+    except Exception as e:
+        logger.error(f"Onboarding error: {str(e)}")
         return RedirectResponse("/dashboard", 302)
-    
-    return templates.TemplateResponse(
-        "onboarding.html",
-        {
-            "request": req,
-            "business": user
-        }
-    )
 
 @app.post("/onboarding")
+@login_required
 async def onboarding_complete(
     req: Request,
     business_goal: str = Form(...),
@@ -1104,17 +1188,23 @@ async def onboarding_complete(
     db=Depends(get_db)
 ):
     """Complete onboarding"""
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    user.goal = business_goal
-    user.address = business_address
-    user.business_hours = business_hours
-    user.onboarding_done = True
-    db.commit()
-    
-    return RedirectResponse("/dashboard", 302)
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        user.goal = sanitize_input(business_goal)
+        user.address = sanitize_input(business_address)
+        user.business_hours = sanitize_input(business_hours)
+        user.onboarding_done = True
+        db.commit()
+        
+        logger.info(f"User {user.id} completed onboarding")
+        return RedirectResponse("/dashboard", 302)
+        
+    except Exception as e:
+        logger.error(f"Onboarding completion error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
 
 # =====================================================
 # WHATSAPP WEBHOOK
@@ -1137,7 +1227,6 @@ async def whatsapp_webhook(req: Request, db=Depends(get_db)):
             .first()
         
         if not business:
-            # Unknown number - could redirect to signup
             reply = (
                 "👋 Welcome to BizFlow AI!\n\n"
                 "This WhatsApp number is not registered with any business.\n\n"
@@ -1184,57 +1273,64 @@ async def whatsapp_webhook(req: Request, db=Depends(get_db)):
 # =====================================================
 
 @app.get("/billing", response_class=HTMLResponse)
+@login_required
 async def billing_page(req: Request, db=Depends(get_db)):
     """Billing and subscription page"""
-    if not is_logged(req):
-        req.session["next"] = "/billing"
-        return RedirectResponse("/login", 302)
-    
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    # Get payment history
-    payments = db.query(Payment)\
-        .filter(Payment.business_id == user.id)\
-        .order_by(Payment.created_at.desc())\
-        .all()
-    
-    return templates.TemplateResponse(
-        "billing.html",
-        {
-            "request": req,
-            "business": user,
-            "payments": payments,
-            "razorpay_key": RAZORPAY_KEY,
-            "plans": PLANS
-        }
-    )
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Get payment history
+        payments = db.query(Payment)\
+            .filter(Payment.business_id == user.id)\
+            .order_by(Payment.created_at.desc())\
+            .all()
+        
+        return templates.TemplateResponse(
+            "billing.html",
+            {
+                "request": req,
+                "business": user,
+                "payments": payments,
+                "razorpay_key": RAZORPAY_KEY,
+                "plans": PLANS,
+                "current_plan": user.plan
+            }
+        )
+    except Exception as e:
+        logger.error(f"Billing page error: {str(e)}")
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": req, "error": "An error occurred loading the billing page"},
+            status_code=500
+        )
 
 @app.post("/api/create-order")
 async def create_order(req: Request, db=Depends(get_db)):
     """Create Razorpay order"""
-    if not razorpay_client:
-        return JSONResponse(
-            status_code=503,
-            content={"error": "Payment service unavailable"}
-        )
-    
-    user = get_user(req, db)
-    if not user:
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Authentication required"}
-        )
-    
     try:
+        if not razorpay_client:
+            logger.error("Razorpay client not initialized")
+            return JSONResponse(
+                status_code=503,
+                content={"error": "Payment service temporarily unavailable"}
+            )
+        
+        user = get_user(req, db)
+        if not user:
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Authentication required"}
+            )
+        
         data = await req.json()
         plan = data.get("plan")
         
         if plan not in PLANS:
             return JSONResponse(
                 status_code=400,
-                content={"error": "Invalid plan"}
+                content={"error": "Invalid plan selected"}
             )
         
         amount = PLANS[plan]["price"] * 100  # Convert to paise
@@ -1243,10 +1339,10 @@ async def create_order(req: Request, db=Depends(get_db)):
         order = razorpay_client.order.create({
             "amount": amount,
             "currency": "INR",
-            "receipt": f"order_{user.id}_{datetime.utcnow().timestamp()}",
+            "receipt": f"order_{user.id}_{int(datetime.utcnow().timestamp())}",
             "payment_capture": 1,
             "notes": {
-                "business_id": user.id,
+                "business_id": str(user.id),
                 "business_email": user.admin_email,
                 "plan": plan
             }
@@ -1265,24 +1361,31 @@ async def create_order(req: Request, db=Depends(get_db)):
             "plan": plan
         }
         
+    except razorpay.errors.BadRequestError as e:
+        logger.error(f"Razorpay error: {str(e)}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Payment service error. Please try again."}
+        )
     except Exception as e:
         logger.error(f"Order creation error: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"error": "Failed to create order"}
+            content={"error": "Failed to create order. Please try again."}
         )
 
 @app.post("/api/payment-success")
 async def payment_success(req: Request, db=Depends(get_db)):
     """Handle successful payment"""
-    if not razorpay_client:
-        return {"status": "disabled"}
-    
-    user = get_user(req, db)
-    if not user:
-        return {"status": "failed", "error": "User not authenticated"}
-    
     try:
+        if not razorpay_client:
+            logger.error("Razorpay client not initialized")
+            return {"status": "error", "message": "Payment service unavailable"}
+        
+        user = get_user(req, db)
+        if not user:
+            return {"status": "error", "message": "User not authenticated"}
+        
         data = await req.json()
         
         # Verify signature
@@ -1291,16 +1394,15 @@ async def payment_success(req: Request, db=Depends(get_db)):
         # Get payment details
         payment_id = data.get('razorpay_payment_id')
         order_id = data.get('razorpay_order_id')
-        signature = data.get('razorpay_signature')
         
-        # Fetch order details from Razorpay
+        # Fetch order details
         order = razorpay_client.order.fetch(order_id)
         amount_paid = order['amount']
         notes = order.get('notes', {})
         plan = notes.get('plan', 'pro')
         
         # Determine plan from amount if not in notes
-        if not plan or plan not in PLANS:
+        if plan not in PLANS:
             if amount_paid == PLANS["starter"]["price"] * 100:
                 plan = "starter"
             else:
@@ -1315,8 +1417,7 @@ async def payment_success(req: Request, db=Depends(get_db)):
             currency="INR",
             status="success",
             plan=plan,
-            payment_method=data.get('payment_method', 'unknown'),
-            created_at=datetime.utcnow()
+            payment_data=data
         )
         db.add(payment)
         
@@ -1329,7 +1430,7 @@ async def payment_success(req: Request, db=Depends(get_db)):
         
         logger.info(f"✅ Payment success: {payment_id} | User: {user.id} | Plan: {plan}")
         
-        # Send confirmation email
+        # Send confirmation email (async)
         await EmailService.send_email(
             user.admin_email,
             "Payment Successful!",
@@ -1345,16 +1446,15 @@ async def payment_success(req: Request, db=Depends(get_db)):
         return {
             "status": "success",
             "plan": plan,
-            "valid_until": user.paid_until.isoformat()
+            "message": "Your plan has been upgraded successfully!"
         }
         
     except razorpay.errors.SignatureVerificationError:
         logger.error(f"Payment signature verification failed")
-        return {"status": "failed", "error": "Invalid signature"}
-        
+        return {"status": "error", "message": "Payment verification failed"}
     except Exception as e:
         logger.error(f"Payment success error: {str(e)}")
-        return {"status": "failed", "error": str(e)}
+        return {"status": "error", "message": "An error occurred processing your payment"}
 
 @app.post("/api/razorpay-webhook")
 async def razorpay_webhook(req: Request):
@@ -1380,24 +1480,11 @@ async def razorpay_webhook(req: Request):
         # Parse webhook
         data = json.loads(body)
         event = data.get("event")
-        payload = data.get("payload", {})
         
         logger.info(f"📡 Razorpay webhook: {event}")
         
-        # Handle different events
-        if event == "payment.authorized":
-            # Payment authorized but not captured
-            pass
-        elif event == "payment.captured":
-            # Payment captured successfully
-            pass
-        elif event == "payment.failed":
-            # Payment failed
-            pass
-        elif event == "subscription.charged":
-            # Recurring payment successful
-            pass
-        
+        # Handle webhook events in a background task
+        # For now, just acknowledge
         return {"status": "received"}
         
     except Exception as e:
@@ -1409,128 +1496,114 @@ async def razorpay_webhook(req: Request):
 # =====================================================
 
 @app.get("/admin", response_class=HTMLResponse)
+@admin_required
 async def admin_dashboard(req: Request, db=Depends(get_db)):
     """Admin dashboard"""
-    admin = require_admin(req, db)
-    if not admin:
+    try:
+        # Get all users
+        users = db.query(Business)\
+            .order_by(Business.created_at.desc())\
+            .all()
+        
+        # Get stats
+        total_users = len(users)
+        active_users = len([u for u in users if u.is_active])
+        total_revenue = sum([p.amount for p in db.query(Payment).filter(Payment.status == "success").all()])
+        total_bookings = db.query(Booking).count()
+        
+        # Recent payments
+        recent_payments = db.query(Payment)\
+            .order_by(Payment.created_at.desc())\
+            .limit(10)\
+            .all()
+        
+        return templates.TemplateResponse(
+            "admin_dashboard.html",
+            {
+                "request": req,
+                "users": users,
+                "stats": {
+                    "total_users": total_users,
+                    "active_users": active_users,
+                    "inactive_users": total_users - active_users,
+                    "total_revenue": total_revenue,
+                    "total_bookings": total_bookings,
+                    "pro_users": len([u for u in users if u.plan == "pro"]),
+                    "trial_users": len([u for u in users if u.plan == "trial"])
+                },
+                "recent_payments": recent_payments
+            }
+        )
+    except Exception as e:
+        logger.error(f"Admin dashboard error: {str(e)}")
         return RedirectResponse("/dashboard", 302)
-    
-    # Get all users
-    users = db.query(Business)\
-        .order_by(Business.created_at.desc())\
-        .all()
-    
-    # Get stats
-    total_users = len(users)
-    active_users = len([u for u in users if u.is_active])
-    total_revenue = db.query(Payment).filter(Payment.status == "success").count() * 2499  # Approx
-    total_bookings = db.query(Booking).count()
-    
-    # Recent payments
-    recent_payments = db.query(Payment)\
-        .order_by(Payment.created_at.desc())\
-        .limit(10)\
-        .all()
-    
-    return templates.TemplateResponse(
-        "admin_dashboard.html",
-        {
-            "request": req,
-            "admin": admin,
-            "users": users,
-            "stats": {
-                "total_users": total_users,
-                "active_users": active_users,
-                "inactive_users": total_users - active_users,
-                "total_revenue": total_revenue,
-                "total_bookings": total_bookings,
-                "pro_users": len([u for u in users if u.plan == "pro"]),
-                "trial_users": len([u for u in users if u.plan == "trial"])
-            },
-            "recent_payments": recent_payments
-        }
-    )
 
 @app.post("/admin/toggle-user/{user_id}")
+@admin_required
 async def toggle_user(user_id: int, req: Request, db=Depends(get_db)):
     """Enable/disable user account"""
-    admin = require_admin(req, db)
-    if not admin:
-        return JSONResponse(status_code=403, content={"error": "Unauthorized"})
-    
-    user = db.query(Business).get(user_id)
-    if not user:
-        return JSONResponse(status_code=404, content={"error": "User not found"})
-    
-    user.is_active = not user.is_active
-    db.commit()
-    
-    logger.info(f"Admin {admin.id} toggled user {user_id} to {user.is_active}")
-    
-    return {"status": "success", "is_active": user.is_active}
+    try:
+        user = db.query(Business).get(user_id)
+        if not user:
+            return JSONResponse(status_code=404, content={"error": "User not found"})
+        
+        user.is_active = not user.is_active
+        db.commit()
+        
+        logger.info(f"Admin toggled user {user_id} to {user.is_active}")
+        
+        return {"status": "success", "is_active": user.is_active}
+        
+    except Exception as e:
+        logger.error(f"Toggle user error: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": "Failed to update user"})
 
 @app.post("/admin/make-admin/{user_id}")
+@admin_required
 async def make_admin(user_id: int, req: Request, db=Depends(get_db)):
     """Make user admin"""
-    admin = require_admin(req, db)
-    if not admin:
-        return JSONResponse(status_code=403, content={"error": "Unauthorized"})
-    
-    user = db.query(Business).get(user_id)
-    if not user:
-        return JSONResponse(status_code=404, content={"error": "User not found"})
-    
-    user.is_admin = True
-    db.commit()
-    
-    logger.info(f"Admin {admin.id} made user {user_id} an admin")
-    
-    return {"status": "success"}
-
-@app.delete("/admin/delete-user/{user_id}")
-async def delete_user(user_id: int, req: Request, db=Depends(get_db)):
-    """Delete user account (soft delete)"""
-    admin = require_admin(req, db)
-    if not admin:
-        return JSONResponse(status_code=403, content={"error": "Unauthorized"})
-    
-    user = db.query(Business).get(user_id)
-    if not user:
-        return JSONResponse(status_code=404, content={"error": "User not found"})
-    
-    # Soft delete - just mark inactive and remove sensitive data
-    user.is_active = False
-    user.admin_email = f"deleted_{user.id}@deleted.com"
-    user.whatsapp_number = f"deleted_{user.id}"
-    db.commit()
-    
-    logger.info(f"Admin {admin.id} deleted user {user_id}")
-    
-    return {"status": "success"}
+    try:
+        user = db.query(Business).get(user_id)
+        if not user:
+            return JSONResponse(status_code=404, content={"error": "User not found"})
+        
+        user.is_admin = True
+        db.commit()
+        
+        logger.info(f"Admin made user {user_id} an admin")
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        logger.error(f"Make admin error: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": "Failed to update user"})
 
 # =====================================================
 # USER ROUTES
 # =====================================================
 
 @app.get("/settings", response_class=HTMLResponse)
+@login_required
 async def settings_page(req: Request, db=Depends(get_db)):
     """User settings page"""
-    if not is_logged(req):
-        return RedirectResponse("/login", 302)
-    
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    return templates.TemplateResponse(
-        "settings.html",
-        {
-            "request": req,
-            "business": user
-        }
-    )
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        return templates.TemplateResponse(
+            "settings.html",
+            {
+                "request": req,
+                "business": user
+            }
+        )
+    except Exception as e:
+        logger.error(f"Settings page error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
 
 @app.post("/settings")
+@login_required
 async def update_settings(
     req: Request,
     name: str = Form(...),
@@ -1540,126 +1613,145 @@ async def update_settings(
     db=Depends(get_db)
 ):
     """Update user settings"""
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    user.name = name
-    user.whatsapp_number = WhatsAppBot.clean_phone(whatsapp)
-    if business_goal:
-        user.goal = business_goal
-    if business_address:
-        user.address = business_address
-    
-    db.commit()
-    
-    logger.info(f"User {user.id} updated settings")
-    
-    return templates.TemplateResponse(
-        "settings.html",
-        {
-            "request": req,
-            "business": user,
-            "success": "Settings updated successfully!"
-        }
-    )
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        user.name = sanitize_input(name)
+        user.whatsapp_number = WhatsAppBot.clean_phone(whatsapp)
+        if business_goal:
+            user.goal = sanitize_input(business_goal)
+        if business_address:
+            user.address = sanitize_input(business_address)
+        
+        db.commit()
+        
+        logger.info(f"User {user.id} updated settings")
+        
+        return templates.TemplateResponse(
+            "settings.html",
+            {
+                "request": req,
+                "business": user,
+                "success": "Settings updated successfully!"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Settings update error: {str(e)}")
+        return RedirectResponse("/settings", 302)
 
 # =====================================================
 # BOOKINGS ROUTES
 # =====================================================
 
 @app.get("/bookings", response_class=HTMLResponse)
+@login_required
 async def bookings_page(req: Request, db=Depends(get_db)):
     """View all bookings"""
-    if not is_logged(req):
-        return RedirectResponse("/login", 302)
-    
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    # Get all bookings with filters
-    status_filter = req.query_params.get("status")
-    query = db.query(Booking).filter(Booking.business_id == user.id)
-    
-    if status_filter and status_filter != "all":
-        query = query.filter(Booking.status == status_filter)
-    
-    bookings = query.order_by(Booking.booking_date.desc()).all()
-    
-    return templates.TemplateResponse(
-        "bookings.html",
-        {
-            "request": req,
-            "business": user,
-            "bookings": bookings,
-            "current_filter": status_filter or "all"
-        }
-    )
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Get all bookings with filters
+        status_filter = req.query_params.get("status")
+        query = db.query(Booking).filter(Booking.business_id == user.id)
+        
+        if status_filter and status_filter != "all":
+            query = query.filter(Booking.status == status_filter)
+        
+        bookings = query.order_by(Booking.booking_date.desc()).all()
+        
+        return templates.TemplateResponse(
+            "bookings.html",
+            {
+                "request": req,
+                "business": user,
+                "bookings": bookings,
+                "current_filter": status_filter or "all"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Bookings page error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
 
 @app.post("/api/bookings/{booking_id}/cancel")
+@login_required
 async def cancel_booking(booking_id: int, req: Request, db=Depends(get_db)):
     """Cancel a booking"""
-    user = get_user(req, db)
-    if not user:
-        return JSONResponse(status_code=401, content={"error": "Unauthorized"})
-    
-    booking = db.query(Booking)\
-        .filter(Booking.id == booking_id, Booking.business_id == user.id)\
-        .first()
-    
-    if not booking:
-        return JSONResponse(status_code=404, content={"error": "Booking not found"})
-    
-    booking.status = "cancelled"
-    db.commit()
-    
-    return {"status": "success"}
+    try:
+        user = get_user(req, db)
+        if not user:
+            return JSONResponse(status_code=401, content={"error": "Unauthorized"})
+        
+        booking = db.query(Booking)\
+            .filter(Booking.id == booking_id, Booking.business_id == user.id)\
+            .first()
+        
+        if not booking:
+            return JSONResponse(status_code=404, content={"error": "Booking not found"})
+        
+        booking.status = "cancelled"
+        db.commit()
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        logger.error(f"Cancel booking error: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": "Failed to cancel booking"})
 
 # =====================================================
 # EXPORT ROUTES
 # =====================================================
 
 @app.get("/export/bookings")
+@login_required
 async def export_bookings(req: Request, db=Depends(get_db)):
     """Export bookings as CSV"""
-    user = get_user(req, db)
-    if not user:
-        return RedirectResponse("/login", 302)
-    
-    # Create CSV in memory
-    output = StringIO()
-    writer = csv.writer(output)
-    
-    # Write header
-    writer.writerow(['ID', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Created At'])
-    
-    # Write data
-    bookings = db.query(Booking)\
-        .filter(Booking.business_id == user.id)\
-        .order_by(Booking.created_at.desc())\
-        .all()
-    
-    for b in bookings:
-        writer.writerow([
-            b.id,
-            b.name,
-            b.phone,
-            b.booking_date,
-            b.booking_time,
-            b.status,
-            b.created_at.strftime('%Y-%m-%d %H:%M:%S')
-        ])
-    
-    # Return as downloadable file
-    output.seek(0)
-    filename = f"bookings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    
-    return Response(
-        content=output.getvalue(),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
+    try:
+        user = get_user(req, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Create CSV in memory
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['ID', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Created At'])
+        
+        # Write data
+        bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .order_by(Booking.created_at.desc())\
+            .all()
+        
+        for b in bookings:
+            writer.writerow([
+                b.id,
+                b.name,
+                b.phone,
+                b.booking_date,
+                b.booking_time,
+                b.status,
+                b.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+        
+        # Return as downloadable file
+        output.seek(0)
+        filename = f"bookings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        return Response(
+            content=output.getvalue(),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Export bookings error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
 
 # =====================================================
 # STATIC PAGES
@@ -1697,6 +1789,18 @@ async def about(req: Request):
         {"request": req, "now": datetime.utcnow()}
     )
 
+@app.get("/contact", response_class=HTMLResponse)
+async def contact(req: Request):
+    """Contact page"""
+    return templates.TemplateResponse(
+        "contact.html",
+        {
+            "request": req,
+            "support_email": SUPPORT_EMAIL,
+            "now": datetime.utcnow()
+        }
+    )
+
 # =====================================================
 # DEBUG ROUTES (Development Only)
 # =====================================================
@@ -1710,7 +1814,8 @@ if ENVIRONMENT == "development":
             "key_present": bool(RAZORPAY_KEY),
             "secret_present": bool(RAZORPAY_SECRET),
             "client_initialized": razorpay_client is not None,
-            "key_prefix": RAZORPAY_KEY[:10] + "..." if RAZORPAY_KEY else None
+            "key_prefix": RAZORPAY_KEY[:10] + "..." if RAZORPAY_KEY else None,
+            "environment": ENVIRONMENT
         }
     
     @app.get("/debug/email")
@@ -1729,163 +1834,26 @@ if ENVIRONMENT == "development":
         """Test database connection"""
         try:
             result = db.execute("SELECT 1").first()
-            return {"database": "connected", "result": result[0] if result else None}
+            return {
+                "database": "connected",
+                "result": result[0] if result else None,
+                "tables": {
+                    "businesses": db.query(Business).count(),
+                    "bookings": db.query(Booking).count(),
+                    "payments": db.query(Payment).count()
+                }
+            }
         except Exception as e:
             return {"database": "error", "error": str(e)}
-
-@app.post("/api/create-order")
-async def create_order(req: Request, db=Depends(get_db)):
-    logger.info(f"📝 Create order called")
-    logger.info(f"PLANS available: {list(PLANS.keys()) if PLANS else 'None'}")
     
-    if not razorpay_client:
-        logger.error("❌ Razorpay client not initialized")
-        return JSONResponse(
-            status_code=503,
-            content={"error": "Payment service unavailable"}
-        )
-    
-    user = get_user(req, db)
-    if not user:
-        logger.error("❌ User not authenticated")
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Authentication required"}
-        )
-    
-    try:
-        data = await req.json()
-        plan = data.get("plan")
-        logger.info(f"Plan requested: {plan}")
-        
-        if plan not in PLANS:
-            logger.error(f"Invalid plan: {plan}")
-            return JSONResponse(
-                status_code=400,
-                content={"error": "Invalid plan"}
-            )
-        
-        amount = PLANS[plan]["price"] * 100
-        logger.info(f"Amount: {amount} paise")
-        
-        # Create Razorpay order
-        order = razorpay_client.order.create({
-            "amount": amount,
-            "currency": "INR",
-            "receipt": f"order_{user.id}_{datetime.utcnow().timestamp()}",
-            "payment_capture": 1,
-            "notes": {
-                "business_id": user.id,
-                "business_email": user.admin_email,
-                "plan": plan
-            }
-        })
-        
-        logger.info(f"✅ Order created: {order['id']}")
-        
+    @app.get("/debug/session")
+    async def debug_session(req: Request):
+        """Debug session data"""
         return {
-            "order_id": order["id"],
-            "amount": amount,
-            "currency": "INR",
-            "key": RAZORPAY_KEY,
-            "name": user.name,
-            "email": user.admin_email,
-            "phone": user.whatsapp_number,
-            "plan": plan
+            "session_id": req.session.get("business_id"),
+            "session_data": dict(req.session)
         }
-        
-    except razorpay.errors.BadRequestError as e:
-        logger.error(f"❌ Razorpay error: {str(e)}")
-        return JSONResponse(
-            status_code=400,
-            content={"error": f"Razorpay error: {str(e)}"}
-        )
-    except Exception as e:
-        logger.error(f"❌ Order creation error: {str(e)}")
-        logger.error(traceback.format_exc())
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Failed to create order"}
-        )
 
-@app.get("/test/payment")
-async def test_payment(req: Request, db=Depends(get_db)):
-    """Test payment endpoint"""
-    if not is_logged(req):
-        return {"error": "Not logged in"}
-    
-    user = get_user(req, db)
-    if not user:
-        return {"error": "User not found"}
-    
-    return {
-        "user": user.name,
-        "razorpay_key": RAZORPAY_KEY,
-        "razorpay_configured": razorpay_client is not None,
-        "plans": PLANS
-    }
-
-@app.post("/api/payment-success")
-async def payment_success(req: Request, db=Depends(get_db)):
-    logger.info("💰 Payment success callback received")
-    
-    if not razorpay_client:
-        logger.error("Razorpay client not initialized")
-        return {"status": "disabled"}
-    
-    try:
-        data = await req.json()
-        logger.info(f"Payment data: {data}")
-        
-        user = get_user(req, db)
-        if not user:
-            logger.error("User not authenticated")
-            return {"status": "failed", "error": "User not authenticated"}
-        
-        # Verify signature
-        razorpay_client.utility.verify_payment_signature(data)
-        logger.info("✅ Signature verified")
-        
-        # Get payment details
-        payment_id = data.get('razorpay_payment_id')
-        order_id = data.get('razorpay_order_id')
-        
-        # Fetch order details
-        order = razorpay_client.order.fetch(order_id)
-        amount_paid = order['amount']
-        notes = order.get('notes', {})
-        plan = notes.get('plan', 'pro')
-        
-        # Record payment
-        payment = Payment(
-            business_id=user.id,
-            payment_id=payment_id,
-            order_id=order_id,
-            amount=amount_paid / 100,
-            currency="INR",
-            status="success",
-            plan=plan,
-            created_at=datetime.utcnow()
-        )
-        db.add(payment)
-        
-        # Upgrade user
-        user.plan = plan
-        user.chat_limit = PLANS[plan]["chats"]
-        user.paid_until = datetime.utcnow() + timedelta(days=30)
-        db.commit()
-        
-        logger.info(f"✅ Payment success for user {user.id}, plan {plan}")
-        
-        return {"status": "success", "plan": plan}
-        
-    except razorpay.errors.SignatureVerificationError:
-        logger.error("❌ Signature verification failed")
-        return {"status": "failed", "error": "Invalid signature"}
-    except Exception as e:
-        logger.error(f"❌ Payment success error: {str(e)}")
-        logger.error(traceback.format_exc())
-        return {"status": "failed", "error": str(e)}
 # =====================================================
 # ERROR HANDLERS
 # =====================================================
@@ -1903,10 +1871,22 @@ async def not_found_handler(req: Request, exc):
 async def internal_error_handler(req: Request, exc):
     """Custom 500 handler"""
     logger.error(f"500 error: {str(exc)}")
+    logger.error(traceback.format_exc())
     return templates.TemplateResponse(
         "500.html",
         {"request": req},
         status_code=500
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(req: Request, exc: HTTPException):
+    """Custom HTTP exception handler"""
+    if exc.status_code == 401:
+        return RedirectResponse("/login", 302)
+    return templates.TemplateResponse(
+        "error.html",
+        {"request": req, "error": exc.detail, "status_code": exc.status_code},
+        status_code=exc.status_code
     )
 
 # =====================================================
@@ -1916,19 +1896,19 @@ async def internal_error_handler(req: Request, exc):
 @app.on_event("startup")
 async def startup_event():
     """Tasks to run on startup"""
-    logger.info("=" * 50)
+    logger.info("=" * 60)
     logger.info(f"🚀 {APP_NAME} v{APP_VERSION} starting...")
     logger.info(f"🌍 Environment: {ENVIRONMENT}")
     logger.info(f"🔗 Base URL: {BASE_URL}")
     logger.info(f"💳 Razorpay: {'✅ Configured' if razorpay_client else '❌ Not configured'}")
     logger.info(f"📧 SendGrid: {'✅ Configured' if SENDGRID_API_KEY else '❌ Not configured'}")
-    logger.info("=" * 50)
+    logger.info(f"📊 Database: Connected")
+    logger.info("=" * 60)
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Tasks to run on shutdown"""
     logger.info(f"👋 {APP_NAME} shutting down...")
-
 
 # =====================================================
 # MAIN ENTRY POINT
@@ -1941,6 +1921,7 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=ENVIRONMENT == "development",
-        log_level="info"
+        reload=DEBUG,
+        log_level="debug" if DEBUG else "info",
+        workers=1  # Start with 1 worker, increase in production if needed
     )

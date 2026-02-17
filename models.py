@@ -1,3 +1,4 @@
+# models.py
 from sqlalchemy import (
     Column,
     Integer,
@@ -41,7 +42,7 @@ class Business(Base):
     # Add business hours for better customer info
     business_hours = Column(String, nullable=True)
 
-    whatsapp_number = Column(String, unique=True, nullable=False)
+    whatsapp_number = Column(String, unique=True, nullable=False, index=True)
 
     flow_state = Column(String(50), default="start")
 
@@ -55,8 +56,8 @@ class Business(Base):
     is_admin = Column(Boolean, default=False)
 
 
-    # Password reset fields (already present, just keeping one copy)
-    reset_token = Column(String, nullable=True)
+    # Password reset fields
+    reset_token = Column(String, nullable=True, unique=True)
     reset_token_expiry = Column(DateTime, nullable=True)
 
 
@@ -67,7 +68,7 @@ class Business(Base):
 
     is_active = Column(Boolean, default=True)
 
-    trial_ends_at = Column(DateTime, nullable=True)  # Renamed for consistency
+    trial_ends_at = Column(DateTime, nullable=True)
 
     paid_until = Column(DateTime, nullable=True)
 
@@ -80,7 +81,7 @@ class Business(Base):
 
     chat_used = Column(Integer, default=0)
 
-    chat_limit = Column(Integer, default=300)
+    chat_limit = Column(Integer, default=1000)  # Increased default to 1000
 
 
     # ---------------- STATUS ----------------
@@ -97,7 +98,7 @@ class Business(Base):
 
     # ---------------- TIMESTAMPS ----------------
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
@@ -129,9 +130,19 @@ class Business(Base):
         passive_deletes=True
     )
 
+    audit_logs = relationship(
+        "AuditLog",
+        back_populates="business",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    def __repr__(self):
+        return f"<Business {self.id}: {self.name}>"
+
 
 # =================================================
-# PAYMENT MODEL (NEW)
+# PAYMENT MODEL
 # =================================================
 
 class Payment(Base):
@@ -155,8 +166,8 @@ class Payment(Base):
     # Payment details
     amount = Column(Float, nullable=False)  # In INR
     currency = Column(String, default="INR")
-    status = Column(String, default="pending")  # pending, success, failed, refunded
-    plan = Column(String, nullable=False)  # starter, pro
+    status = Column(String, default="pending", index=True)  # pending, success, failed, refunded
+    plan = Column(String, nullable=False, index=True)  # starter, pro
     
     # Payment method (card, upi, netbanking, etc.)
     payment_method = Column(String, nullable=True)
@@ -165,7 +176,7 @@ class Payment(Base):
     payment_data = Column(JSON, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     
     # Relationships
     business = relationship("Business", back_populates="payments")
@@ -175,7 +186,7 @@ class Payment(Base):
 
 
 # =================================================
-# AUDIT LOG MODEL (NEW)
+# AUDIT LOG MODEL
 # =================================================
 
 class AuditLog(Base):
@@ -202,8 +213,8 @@ class AuditLog(Base):
     # Timestamp
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     
-    # Relationship (optional - to get user info)
-    user = relationship("Business")
+    # Relationship
+    business = relationship("Business", back_populates="audit_logs")
     
     def __repr__(self):
         return f"<AuditLog {self.id}: {self.action}>"
@@ -219,43 +230,35 @@ class Conversation(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-
     business_id = Column(
         Integer,
         ForeignKey("businesses.id", ondelete="CASCADE"),
         index=True
     )
 
-
     phone = Column(String, index=True, nullable=False)
-
+    customer_name = Column(String, nullable=True)
 
     last_message = Column(Text)
-
     last_reply = Column(Text)
-
 
     # ---------------- FLOW STATE ----------------
 
     stage = Column(String, default="New")
 
-
     # Temp memory
-    temp_date = Column(String)
-
-    temp_time = Column(String)
-
+    temp_data = Column(JSON, default={})  # Store temporary data as JSON
 
     # ---------------- META ----------------
 
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
-        onupdate=datetime.utcnow
+        onupdate=datetime.utcnow,
+        index=True
     )
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     # ---------------- RELATION ----------------
 
@@ -263,6 +266,9 @@ class Conversation(Base):
         "Business",
         back_populates="conversations"
     )
+
+    def __repr__(self):
+        return f"<Conversation {self.id}: {self.phone}>"
 
 
 # =================================================
@@ -275,46 +281,35 @@ class Booking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-
     business_id = Column(
         Integer,
         ForeignKey("businesses.id", ondelete="CASCADE"),
         index=True
     )
 
-
     phone = Column(String, nullable=False, index=True)
-
     name = Column(String, nullable=False)
-    
     email = Column(String, nullable=True)  # Added email field
 
-
-    booking_date = Column(String)
-
-    booking_time = Column(String)
-
+    booking_date = Column(String, nullable=False, index=True)  # Format: DD-MM-YYYY
+    booking_time = Column(String, nullable=False)  # Format: HH:MM
 
     # Booked | Cancelled | Completed | NoShow
     status = Column(String, default="Booked", index=True)
 
+    notes = Column(Text, nullable=True)  # Added notes field
 
     # ---------------- META ----------------
 
     # whatsapp | manual | api
     source = Column(String, default="whatsapp")
-    
-    notes = Column(Text, nullable=True)  # Added notes field
 
-
-    created_at = Column(DateTime, default=datetime.utcnow)
-
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
-
 
     # ---------------- RELATION ----------------
 
@@ -322,3 +317,6 @@ class Booking(Base):
         "Business",
         back_populates="bookings"
     )
+
+    def __repr__(self):
+        return f"<Booking {self.id}: {self.name} - {self.booking_date}>"
