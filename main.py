@@ -1733,6 +1733,159 @@ if ENVIRONMENT == "development":
         except Exception as e:
             return {"database": "error", "error": str(e)}
 
+@app.post("/api/create-order")
+async def create_order(req: Request, db=Depends(get_db)):
+    logger.info(f"📝 Create order called")
+    logger.info(f"PLANS available: {list(PLANS.keys()) if PLANS else 'None'}")
+    
+    if not razorpay_client:
+        logger.error("❌ Razorpay client not initialized")
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Payment service unavailable"}
+        )
+    
+    user = get_user(req, db)
+    if not user:
+        logger.error("❌ User not authenticated")
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Authentication required"}
+        )
+    
+    try:
+        data = await req.json()
+        plan = data.get("plan")
+        logger.info(f"Plan requested: {plan}")
+        
+        if plan not in PLANS:
+            logger.error(f"Invalid plan: {plan}")
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Invalid plan"}
+            )
+        
+        amount = PLANS[plan]["price"] * 100
+        logger.info(f"Amount: {amount} paise")
+        
+        # Create Razorpay order
+        order = razorpay_client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "receipt": f"order_{user.id}_{datetime.utcnow().timestamp()}",
+            "payment_capture": 1,
+            "notes": {
+                "business_id": user.id,
+                "business_email": user.admin_email,
+                "plan": plan
+            }
+        })
+        
+        logger.info(f"✅ Order created: {order['id']}")
+        
+        return {
+            "order_id": order["id"],
+            "amount": amount,
+            "currency": "INR",
+            "key": RAZORPAY_KEY,
+            "name": user.name,
+            "email": user.admin_email,
+            "phone": user.whatsapp_number,
+            "plan": plan
+        }
+        
+    except razorpay.errors.BadRequestError as e:
+        logger.error(f"❌ Razorpay error: {str(e)}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"Razorpay error: {str(e)}"}
+        )
+    except Exception as e:
+        logger.error(f"❌ Order creation error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to create order"}
+        )
+
+@app.get("/test/payment")
+async def test_payment(req: Request, db=Depends(get_db)):
+    """Test payment endpoint"""
+    if not is_logged(req):
+        return {"error": "Not logged in"}
+    
+    user = get_user(req, db)
+    if not user:
+        return {"error": "User not found"}
+    
+    return {
+        "user": user.name,
+        "razorpay_key": RAZORPAY_KEY,
+        "razorpay_configured": razorpay_client is not None,
+        "plans": PLANS
+    }
+
+@app.post("/api/payment-success")
+async def payment_success(req: Request, db=Depends(get_db)):
+    logger.info("💰 Payment success callback received")
+    
+    if not razorpay_client:
+        logger.error("Razorpay client not initialized")
+        return {"status": "disabled"}
+    
+    try:
+        data = await req.json()
+        logger.info(f"Payment data: {data}")
+        
+        user = get_user(req, db)
+        if not user:
+            logger.error("User not authenticated")
+            return {"status": "failed", "error": "User not authenticated"}
+        
+        # Verify signature
+        razorpay_client.utility.verify_payment_signature(data)
+        logger.info("✅ Signature verified")
+        
+        # Get payment details
+        payment_id = data.get('razorpay_payment_id')
+        order_id = data.get('razorpay_order_id')
+        
+        # Fetch order details
+        order = razorpay_client.order.fetch(order_id)
+        amount_paid = order['amount']
+        notes = order.get('notes', {})
+        plan = notes.get('plan', 'pro')
+        
+        # Record payment
+        payment = Payment(
+            business_id=user.id,
+            payment_id=payment_id,
+            order_id=order_id,
+            amount=amount_paid / 100,
+            currency="INR",
+            status="success",
+            plan=plan,
+            created_at=datetime.utcnow()
+        )
+        db.add(payment)
+        
+        # Upgrade user
+        user.plan = plan
+        user.chat_limit = PLANS[plan]["chats"]
+        user.paid_until = datetime.utcnow() + timedelta(days=30)
+        db.commit()
+        
+        logger.info(f"✅ Payment success for user {user.id}, plan {plan}")
+        
+        return {"status": "success", "plan": plan}
+        
+    except razorpay.errors.SignatureVerificationError:
+        logger.error("❌ Signature verification failed")
+        return {"status": "failed", "error": "Invalid signature"}
+    except Exception as e:
+        logger.error(f"❌ Payment success error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return {"status": "failed", "error": str(e)}
 # =====================================================
 # ERROR HANDLERS
 # =====================================================
