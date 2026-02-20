@@ -851,8 +851,10 @@ Check our website for detailed pricing.
 async def health_check(db=Depends(get_db)):
     """Health check endpoint with database verification"""
     try:
-        # Test database connection
-        db.execute("SELECT 1").first()
+        from sqlalchemy import text
+        
+        # Test database connection - FIXED with text()
+        db.execute(text("SELECT 1")).first()
         db_status = "healthy"
         
         # Check critical services
@@ -1833,6 +1835,7 @@ if ENVIRONMENT == "development":
     async def debug_db(db=Depends(get_db)):
         """Test database connection"""
         try:
+            from sqlalchemy import text
             result = db.execute("SELECT 1").first()
             return {
                 "database": "connected",
