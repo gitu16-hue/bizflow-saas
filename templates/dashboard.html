@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ business.name }} — Dashboard | BizFlow AI</title>
+    <title>{{ business.name|default('BizFlow AI') }} — Dashboard | BizFlow AI</title>
     
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
@@ -226,6 +226,18 @@
             font-size: 1.25rem;
         }
 
+        .alert-success {
+            background: #d1fae5;
+            border-left-color: var(--success);
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-left-color: var(--danger);
+            color: #991b1b;
+        }
+
         /* ================= STATS GRID ================= */
         .stats-grid {
             display: grid;
@@ -339,7 +351,7 @@
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             border-radius: 999px;
             transition: width 0.3s ease;
-            width: {{ (business.chat_used / business.chat_limit * 100) if business.chat_limit else 0 }}%;
+            width: {{ ((business.chat_used|default(0) / business.chat_limit|default(1)) * 100)|round|int }}%;
         }
 
         .progress-stats {
@@ -407,6 +419,7 @@
         .badge.plan-enterprise { background: #dbeafe; color: #1e40af; }
         .badge.active { background: #d1fae5; color: #065f46; }
         .badge.expiring { background: #fff7ed; color: #9a3412; }
+        .badge.trial { background: #e0f2fe; color: #0369a1; }
 
         /* ================= TABLE SECTION ================= */
         .table-section {
@@ -451,6 +464,11 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+        }
+
+        .btn-export:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .table-responsive {
@@ -510,6 +528,11 @@
             color: #991b1b;
         }
 
+        .status-completed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
         .empty-state {
             text-align: center;
             padding: 3rem !important;
@@ -522,262 +545,258 @@
             opacity: 0.5;
         }
 
-                /* ================= MOBILE RESPONSIVE ================= */
-                /* Tablet and smaller */
-                @media (max-width: 1024px) {
-                    .sidebar {
-                        transform: translateX(-100%);
-                        position: fixed;
-                        z-index: 100;
-                    }
-            
-                    .sidebar.active {
-                        transform: translateX(0);
-                    }
-            
-                    .main {
-                        margin-left: 0;
-                    }
-            
-                    /* Mobile menu toggle button - you can add this later if needed */
-                    .menu-toggle {
-                        display: block;
-                        position: fixed;
-                        bottom: 2rem;
-                        right: 2rem;
-                        background: var(--primary);
-                        color: white;
-                        width: 50px;
-                        height: 50px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        box-shadow: var(--shadow-lg);
-                        cursor: pointer;
-                        z-index: 101;
-                        border: none;
-                    }
-                }
+        /* ================= LOADING & ERROR STATES ================= */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
 
-                /* Mobile phones */
-                @media (max-width: 768px) {
-                    .main {
-                        padding: 1rem;
-                    }
-            
-                    /* Top bar adjustments */
-                    .top-bar {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 1rem;
-                        padding: 1rem;
-                    }
-            
-                    .page-title h1 {
-                        font-size: 1.25rem;
-                    }
-            
-                    .user-menu {
-                        width: 100%;
-                        justify-content: flex-end;
-                    }
-            
-                    /* Stats grid - single column */
-                    .stats-grid {
-                        grid-template-columns: 1fr;
-                        gap: 1rem;
-                    }
-            
-                    /* Stat cards */
-                    .stat-card {
-                        padding: 1.25rem;
-                    }
-            
-                    .stat-value {
-                        font-size: 2rem;
-                    }
-            
-                    .stat-title {
-                        font-size: 0.75rem;
-                    }
-            
-                    .stat-icon {
-                        width: 40px;
-                        height: 40px;
-                        font-size: 1.25rem;
-                    }
-            
-                    /* Info card */
-                    .info-card {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 1rem;
-                        padding: 1.25rem;
-                    }
-            
-                    .business-name {
-                        font-size: 1.25rem;
-                        word-break: break-word;
-                     }
-            
-                    .badge-group {
-                        width: 100%;
-                        justify-content: flex-start;
-                     } 
-            
-                    .badge {
-                        font-size: 0.7rem;
-                        padding: 0.25rem 0.6rem;
-                    }
-            
-                    /* Progress card */
-                   .progress-card {
-                        padding: 1.25rem;
-                    }
-            
-                    .progress-stats {
-                        flex-direction: column;
-                        gap: 0.25rem;
-                        align-items: flex-start;
-                    }
-            
-                    /* Table section */
-                    .table-section {
-                        overflow-x: auto;
-                    }
-            
-                    .table-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 1rem;
-                        padding: 1.25rem;
-                     }
-            
-                    .table-header h2 {
-                        font-size: 1rem;
-                    }
-            
-                    .btn-export {
-                        width: 100%;
-                        justify-content: center;
-                    }
-            
-                    table {
-                        font-size: 0.875rem;
-                        min-width: 500px;
-                    }
-            
-                    th, td {
-                        padding: 0.75rem 0.5rem;
-                        white-space: nowrap;
-                    }
-             
-                    th {
-                        font-size: 0.7rem;
-                    } 
-            
-                    td {
-                        font-size: 0.8rem;
-                    }
-            
-                    .status-badge {
-                        padding: 0.2rem 0.5rem;
-                        font-size: 0.7rem;
-                    }
-            
-                    /* Empty state */
-                    .empty-state {
-                        padding: 2rem !important;
-                    }
-            
-                    .empty-state i {
-                        font-size: 2.5rem;
-                    }
-            
-                    .empty-state p {
-                        font-size: 0.875rem;
-                    }
-                }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
 
-                /* Small phones */
-                @media (max-width: 480px) {
-                    .main {
-                        padding: 0.75rem;
-                    }
-            
-                    .stats-grid {
-                        gap: 0.75rem;
-                    }
-            
-                    .stat-card {
-                        padding: 1rem;
-                    }
-            
-                    .stat-value {
-                        font-size: 1.75rem;
-                    }
-            
-                    .stat-trend {
-                        font-size: 0.75rem;
-                    }
-            
-                    .business-name {
-                        font-size: 1.1rem;
-                    }
-            
-                    .business-type {
-                        font-size: 0.8rem;
-                    }
-            
-                    /* Hide less important columns on very small screens */
-                    th:nth-child(2), td:nth-child(2), /* Phone column */
-                    th:nth-child(5), td:nth-child(5) { /* Status column (optional) */
-                        display: none;
-                    }
-            
-                    table {
-                        min-width: 350px;
-                    }
-            
-                    th, td {
-                        padding: 0.5rem 0.4rem;
-                    }
-            
-                    .progress-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 0.25rem;
-                    }
-                }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
-                /* Very tiny phones */
-                @media (max-width: 360px) {
-                    .business-name {
-                        font-size: 1rem;
-                    }
+        .error-container {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            margin: 2rem 0;
+        }
+
+        .error-container i {
+            font-size: 3rem;
+            color: var(--danger);
+            margin-bottom: 1rem;
+        }
+
+        .error-container h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-container p {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-refresh:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* ================= MOBILE RESPONSIVE ================= */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 100;
+            }
             
-                    .stat-value {
-                        font-size: 1.5rem;
-                    }
+            .sidebar.active {
+                transform: translateX(0);
+            }
             
-                    .stat-icon {
-                        width: 35px;
-                        height: 35px;
-                        font-size: 1rem;
-                    }
+            .main {
+                margin-left: 0;
+            }
             
-                    th, td {
-                        padding: 0.4rem 0.3rem;
-                        font-size: 0.7rem;
-                    }
+            .menu-toggle {
+                display: block;
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                background: var(--primary);
+                color: white;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--shadow-lg);
+                cursor: pointer;
+                z-index: 101;
+                border: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                padding: 1rem;
+            }
             
-                    /* Hide more columns if needed */
-                    th:nth-child(3), td:nth-child(3), /* Date column */
-                    th:nth-child(4), td:nth-child(4) { /* Time column */
-                        display: none;
-                    }
-                }
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .page-title h1 {
+                font-size: 1.25rem;
+            }
+            
+            .user-menu {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.25rem;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+            
+            .info-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1.25rem;
+            }
+            
+            .business-name {
+                font-size: 1.25rem;
+                word-break: break-word;
+            }
+            
+            .badge-group {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.6rem;
+            }
+            
+            .progress-card {
+                padding: 1.25rem;
+            }
+            
+            .progress-stats {
+                flex-direction: column;
+                gap: 0.25rem;
+                align-items: flex-start;
+            }
+            
+            .table-section {
+                overflow-x: auto;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1.25rem;
+            }
+            
+            .table-header h2 {
+                font-size: 1rem;
+            }
+            
+            .btn-export {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            table {
+                font-size: 0.875rem;
+                min-width: 500px;
+            }
+            
+            th, td {
+                padding: 0.75rem 0.5rem;
+                white-space: nowrap;
+            }
+            
+            th {
+                font-size: 0.7rem;
+            }
+            
+            td {
+                font-size: 0.8rem;
+            }
+            
+            .empty-state {
+                padding: 2rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main {
+                padding: 0.75rem;
+            }
+            
+            .stats-grid {
+                gap: 0.75rem;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+            
+            .stat-value {
+                font-size: 1.75rem;
+            }
+            
+            .stat-trend {
+                font-size: 0.75rem;
+            }
+            
+            .business-name {
+                font-size: 1.1rem;
+            }
+            
+            .business-type {
+                font-size: 0.8rem;
+            }
+            
+            th:nth-child(2), td:nth-child(2),
+            th:nth-child(5), td:nth-child(5) {
+                display: none;
+            }
+            
+            table {
+                min-width: 350px;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.4rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -815,7 +834,7 @@
                     <span>Settings</span>
                 </a>
                 
-                {% if business.is_admin %}
+                {% if business.is_admin|default(false) %}
                 <a href="/admin" class="nav-item">
                     <i class="fas fa-shield"></i>
                     <span>Admin Panel</span>
@@ -835,42 +854,70 @@
             <div class="top-bar">
                 <div class="page-title">
                     <h1>Dashboard</h1>
-                    <p>Welcome back, {{ business.name }}</p>
+                    <p>Welcome back, {{ business.name|default('User') }}</p>
                 </div>
                 <div class="user-menu">
                     <div class="notification-badge">
                         <i class="far fa-bell"></i>
                     </div>
                     <div class="avatar">
-                        {{ business.name[0] }}
+                        {{ business.name|default('U')|first|upper }}
                     </div>
                 </div>
             </div>
 
-            <!-- Alert -->
-            {% if business.paid_until and business.paid_until < now %}
-            <div class="alert">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>Your subscription expired on {{ business.paid_until.strftime('%d %B %Y') }}. Please renew to continue service.</span>
+            <!-- Mobile Menu Toggle -->
+            <button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- Alerts Section with Error Handling -->
+            {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+                <button onclick="location.reload()" style="margin-left: auto; background: none; border: none; color: #991b1b; cursor: pointer;">
+                    <i class="fas fa-redo-alt"></i>
+                </button>
             </div>
             {% endif %}
 
-            <!-- Business Info Card -->
+            {% if success %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
+
+            {% if business.paid_until and business.paid_until < now %}
+            <div class="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Your subscription expired on {{ business.paid_until.strftime('%d %B %Y') if business.paid_until else 'Unknown' }}. Please renew to continue service.</span>
+                <a href="/billing" style="margin-left: auto; color: #92400e; font-weight: 600;">Upgrade Now →</a>
+            </div>
+            {% endif %}
+
+            <!-- Business Info Card with Fallbacks -->
             <div class="info-card">
                 <div class="business-info">
-                    <div class="business-name">{{ business.name }}</div>
+                    <div class="business-name">{{ business.name|default('Your Business') }}</div>
                     <div class="business-type">
                         <i class="fas fa-building"></i>
-                        {{ business.business_type|title }}
+                        {{ business.business_type|default('business')|title }}
                     </div>
                 </div>
                 <div class="badge-group">
-                    <div class="badge {% if business.plan == 'pro' %}plan-pro{% elif business.plan == 'enterprise' %}plan-enterprise{% else %}plan-free{% endif %}">
-                        <i class="fas fa-crown"></i> {{ business.plan|upper }}
+                    <div class="badge {% if business.plan == 'pro' %}plan-pro{% elif business.plan == 'enterprise' %}plan-enterprise{% elif business.plan == 'trial' %}trial{% else %}plan-free{% endif %}">
+                        <i class="fas fa-crown"></i> {{ business.plan|default('trial')|upper }}
                     </div>
                     <div class="badge active">
                         <i class="fas fa-circle-check"></i> Active
                     </div>
+                    {% if business.trial_ends_at and business.plan == 'trial' %}
+                    <div class="badge trial">
+                        <i class="far fa-clock"></i> {{ trial_days_left|default(7) }} days left
+                    </div>
+                    {% endif %}
                     {% if business.paid_until %}
                     <div class="badge expiring">
                         <i class="far fa-calendar"></i> Valid till {{ business.paid_until.strftime('%d %b %Y') }}
@@ -879,7 +926,7 @@
                 </div>
             </div>
 
-            <!-- Stats Grid -->
+            <!-- Stats Grid with Fallbacks -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
@@ -888,7 +935,7 @@
                             <i class="fas fa-message"></i>
                         </div>
                     </div>
-                    <div class="stat-value">{{ analytics.conversations }}</div>
+                    <div class="stat-value">{{ analytics.conversations|default(0) }}</div>
                     <div class="stat-trend">
                         <span class="trend-up"><i class="fas fa-arrow-up"></i> +12%</span>
                         <span>vs last month</span>
@@ -902,7 +949,7 @@
                             <i class="fas fa-star"></i>
                         </div>
                     </div>
-                    <div class="stat-value">{{ analytics.interested }}</div>
+                    <div class="stat-value">{{ analytics.interested|default(0) }}</div>
                     <div class="stat-trend">
                         <span class="trend-up"><i class="fas fa-arrow-up"></i> +8%</span>
                         <span>vs last month</span>
@@ -916,7 +963,7 @@
                             <i class="fas fa-calendar-check"></i>
                         </div>
                     </div>
-                    <div class="stat-value">{{ analytics.bookings }}</div>
+                    <div class="stat-value">{{ analytics.bookings|default(0) }}</div>
                     <div class="stat-trend">
                         <span class="trend-up"><i class="fas fa-arrow-up"></i> +23%</span>
                         <span>vs last month</span>
@@ -930,7 +977,7 @@
                             <i class="fas fa-calendar-xmark"></i>
                         </div>
                     </div>
-                    <div class="stat-value">{{ analytics.cancelled }}</div>
+                    <div class="stat-value">{{ analytics.cancelled|default(0) }}</div>
                     <div class="stat-trend">
                         <span class="trend-down"><i class="fas fa-arrow-down"></i> -5%</span>
                         <span>vs last month</span>
@@ -944,7 +991,7 @@
                             <i class="fas fa-percent"></i>
                         </div>
                     </div>
-                    <div class="stat-value">{{ analytics.conversion }}%</div>
+                    <div class="stat-value">{{ analytics.conversion|default(0) }}%</div>
                     <div class="stat-trend">
                         <span class="trend-up"><i class="fas fa-arrow-up"></i> +2.5%</span>
                         <span>vs last month</span>
@@ -961,31 +1008,31 @@
                     <div class="stat-value">₹{% if business.plan == "pro" %}2,499{% else %}999{% endif %}</div>
                     <div class="stat-trend">
                         <span class="trend-up"><i class="fas fa-arrow-up"></i> Active</span>
-                        <span>{{ business.plan|upper }} plan</span>
+                        <span>{{ business.plan|default('trial')|upper }} plan</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Usage Progress -->
+            <!-- Usage Progress with Fallbacks -->
             <div class="progress-card">
                 <div class="progress-header">
                     <span class="progress-title">Monthly Chat Usage</span>
-                    <span class="progress-percent">{{ (business.chat_used / business.chat_limit * 100)|round(1) if business.chat_limit else 0 }}%</span>
+                    <span class="progress-percent">{{ ((business.chat_used|default(0) / business.chat_limit|default(1)) * 100)|round|int }}%</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill"></div>
+                    <div class="progress-fill" style="width: {{ ((business.chat_used|default(0) / business.chat_limit|default(1)) * 100)|round|int }}%"></div>
                 </div>
                 <div class="progress-stats">
-                    <span><strong>{{ business.chat_used }}</strong> messages used</span>
-                    <span><strong>{{ business.chat_limit - business.chat_used }}</strong> remaining</span>
+                    <span><strong>{{ business.chat_used|default(0) }}</strong> messages used</span>
+                    <span><strong>{{ (business.chat_limit|default(1000) - business.chat_used|default(0)) }}</strong> remaining</span>
                 </div>
             </div>
 
-            <!-- Recent Bookings Table -->
+            <!-- Recent Bookings Table with Fallbacks -->
             <div class="table-section">
                 <div class="table-header">
                     <h2><i class="far fa-calendar-alt" style="margin-right: 0.5rem;"></i> Recent Bookings</h2>
-                    <a href="/export/bookings" class="btn-export">
+                    <a href="/export/bookings" class="btn-export" {% if not bookings %}disabled{% endif %}>
                         <i class="fas fa-download"></i>
                         Export CSV
                     </a>
@@ -1003,22 +1050,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% if bookings %}
+                            {% if bookings and bookings|length > 0 %}
                                 {% for b in bookings %}
                                 <tr>
-                                    <td><strong>{{ b.name }}</strong></td>
-                                    <td>{{ b.phone }}</td>
-                                    <td>{{ b.booking_date }}</td>
-                                    <td>{{ b.booking_time }}</td>
+                                    <td><strong>{{ b.name|default('Unknown') }}</strong></td>
+                                    <td>{{ b.phone|default('N/A') }}</td>
+                                    <td>{{ b.booking_date|default('N/A') }}</td>
+                                    <td>{{ b.booking_time|default('N/A') }}</td>
                                     <td>
                                         <span class="status-badge 
-                                            {% if b.status == 'confirmed' or b.status == 'pending' %}status-confirmed
-                                            {% elif b.status == 'cancelled' %}status-cancelled
+                                            {% if b.status|lower == 'confirmed' %}status-confirmed
+                                            {% elif b.status|lower == 'cancelled' %}status-cancelled
+                                            {% elif b.status|lower == 'completed' %}status-completed
                                             {% else %}status-pending{% endif %}">
-                                            {{ b.status|title }}
+                                            {{ b.status|default('pending')|title }}
                                         </span>
                                     </td>
-                                    <td>{{ b.created_at.strftime('%d %b %Y') }}</td>
+                                    <td>{{ b.created_at.strftime('%d %b %Y') if b.created_at else 'N/A' }}</td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
@@ -1026,6 +1074,9 @@
                                     <td colspan="6" class="empty-state">
                                         <i class="far fa-calendar-xmark"></i>
                                         <p>No bookings yet. Your first booking will appear here.</p>
+                                        <a href="/" style="color: var(--primary); text-decoration: none; margin-top: 1rem; display: inline-block;">
+                                            <i class="fas fa-arrow-right"></i> Learn how to get bookings
+                                        </a>
                                     </td>
                                 </tr>
                             {% endif %}
@@ -1033,7 +1084,78 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Loading State (Hidden by Default) -->
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+            </div>
         </main>
     </div>
+
+    <script>
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Show mobile menu toggle on small screens
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'flex';
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 1024) {
+                document.querySelector('.menu-toggle').style.display = 'flex';
+            } else {
+                document.querySelector('.menu-toggle').style.display = 'none';
+                document.querySelector('.sidebar').classList.remove('active');
+            }
+        });
+
+        // Export button with loading state
+        document.querySelectorAll('.btn-export').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (this.hasAttribute('disabled')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+                this.style.pointerEvents = 'none';
+                
+                // Restore after timeout (in case download takes too long)
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.style.pointerEvents = 'auto';
+                }, 3000);
+            });
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        document.querySelectorAll('.alert:not(.alert-error)').forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+
+        // Handle trial days countdown
+        {% if trial_days_left is defined and trial_days_left <= 3 and trial_days_left > 0 %}
+        // Show warning for trial ending soon
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'alert';
+        warningDiv.innerHTML = `
+            <i class="fas fa-hourglass-half"></i>
+            <span>Your trial ends in {{ trial_days_left }} days. <a href="/billing" style="color: #92400e; font-weight: 600;">Upgrade now</a> to keep your service.</span>
+        `;
+        document.querySelector('.main').insertBefore(warningDiv, document.querySelector('.info-card'));
+        {% endif %}
+    </script>
 </body>
 </html>
