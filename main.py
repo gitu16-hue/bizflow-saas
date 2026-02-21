@@ -3,115 +3,127 @@
 # VERSION 10.0 - PRODUCTION READY
 # =====================================================
 
-# ================= PATCHES =================
-try:
-    import patch_pydantic
-    print("✅ Pydantic patch loaded successfully")
-except ImportError:
-    print("⚠️ Pydantic patch not found, continuing without it")
-except Exception as e:
-    print(f"⚠️ Error loading patch: {e}")
-
-# ================= STANDARD LIBRARY =================
-import os
-import re
-import logging
-import secrets
-import hmac
-import hashlib
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List, Union
-from contextlib import contextmanager
-import json
+import sys
 import traceback
-from functools import wraps
 
-# ================= THIRD PARTY =================
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    # ================= PATCHES =================
+    try:
+        import patch_pydantic
+        print("✅ Pydantic patch loaded successfully")
+    except ImportError:
+        print("⚠️ Pydantic patch not found, continuing without it")
+    except Exception as e:
+        print(f"⚠️ Error loading patch: {e}")
 
-# FastAPI & Related
-from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, Cookie
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+    # ================= STANDARD LIBRARY =================
+    import os
+    import re
+    import logging
+    import secrets
+    import hmac
+    import hashlib
+    from datetime import datetime, timedelta
+    from typing import Optional, Dict, Any, List, Union
+    from contextlib import contextmanager
+    import json
+    import traceback as tb
+    from functools import wraps
 
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
+    # ================= THIRD PARTY =================
+    from dotenv import load_dotenv
+    load_dotenv()
 
-# Security
-from passlib.hash import bcrypt
-import bcrypt as bcrypt_lib
+    # FastAPI & Related
+    from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, Cookie
+    from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
+    from fastapi.templating import Jinja2Templates
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.middleware.trustedhost import TrustedHostMiddleware
+    from fastapi.middleware.gzip import GZipMiddleware
+    from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-# Database
-from database import SessionLocal, engine
-from models import Base, Business, Booking, Payment, AuditLog, Conversation
+    from starlette.middleware.sessions import SessionMiddleware
+    from starlette.middleware.base import BaseHTTPMiddleware
 
-# Email
-import sendgrid
-from sendgrid.helpers.mail import Mail
+    # Security
+    from passlib.hash import bcrypt
+    import bcrypt as bcrypt_lib
 
-# Payments
-import razorpay
+    # Database
+    from database import SessionLocal, engine
+    from models import Base, Business, Booking, Payment, AuditLog, Conversation
 
-# Utilities
-import pytz
-import aiofiles
-import csv
-from io import StringIO
-from twilio.twiml.messaging_response import MessagingResponse
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+    # Email
+    import sendgrid
+    from sendgrid.helpers.mail import Mail
 
-# =====================================================
-# CONFIGURATION & ENVIRONMENT
-# =====================================================
+    # Payments
+    import razorpay
 
-APP_NAME = "BizFlow AI"
-APP_VERSION = "10.1"
-BASE_URL = os.getenv("BASE_URL", "https://bizflowai.online")
-SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
-ENVIRONMENT = os.getenv("ENVIRONMENT", "production")  # production/staging/development
-DEBUG = ENVIRONMENT == "development"
+    # Utilities
+    import pytz
+    import aiofiles
+    import csv
+    from io import StringIO
+    from twilio.twiml.messaging_response import MessagingResponse
+    from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-# Email Configuration
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@bizflowai.online")
-SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@bizflowai.online")
+    print("✅ Starting BizFlow AI...")
+    print(f"Python version: {sys.version}")
 
-# Payment Configuration
-RAZORPAY_KEY = os.getenv("RAZORPAY_KEY_ID")
-RAZORPAY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
+    # =====================================================
+    # CONFIGURATION & ENVIRONMENT
+    # =====================================================
+    APP_NAME = "BizFlow AI"
+    APP_VERSION = "10.1"
+    BASE_URL = os.getenv("BASE_URL", "https://bizflowai.online")
+    SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
+    DEBUG = ENVIRONMENT == "development"
 
-# WhatsApp Configuration
-WHATSAPP_WEBHOOK_TOKEN = os.getenv("WHATSAPP_WEBHOOK_TOKEN", secrets.token_urlsafe(16))
+    # Email Configuration
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@bizflowai.online")
+    SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@bizflowai.online")
 
-# Rate Limiting
-MAX_LOGIN_ATTEMPTS = 5
-LOGIN_TIMEOUT_MINUTES = 15
+    # Payment Configuration
+    RAZORPAY_KEY = os.getenv("RAZORPAY_KEY_ID")
+    RAZORPAY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+    RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 
-# =====================================================
-# PLANS CONFIGURATION
-# =====================================================
-PLANS = {
-    "starter": {
-        "name": "Starter",
-        "price": 999,
-        "chats": 300,
-        "features": ["WhatsApp Bot", "300 Chats/Month", "Booking System", "Basic Analytics", "Email Support"]
-    },
-    "pro": {
-        "name": "Pro",
-        "price": 2499,
-        "chats": 999999,
-        "features": ["Unlimited Chats", "Advanced AI", "Auto Reminders", "Calendar Sync", "Priority Support", "Lead Optimization"]
+    # WhatsApp Configuration
+    WHATSAPP_WEBHOOK_TOKEN = os.getenv("WHATSAPP_WEBHOOK_TOKEN", secrets.token_urlsafe(16))
+
+    # Rate Limiting
+    MAX_LOGIN_ATTEMPTS = 5
+    LOGIN_TIMEOUT_MINUTES = 15
+
+    # =====================================================
+    # PLANS CONFIGURATION
+    # =====================================================
+    PLANS = {
+        "starter": {
+            "name": "Starter",
+            "price": 999,
+            "chats": 300,
+            "features": ["WhatsApp Bot", "300 Chats/Month", "Booking System", "Basic Analytics", "Email Support"]
+        },
+        "pro": {
+            "name": "Pro",
+            "price": 2499,
+            "chats": 999999,
+            "features": ["Unlimited Chats", "Advanced AI", "Auto Reminders", "Calendar Sync", "Priority Support", "Lead Optimization"]
+        }
     }
-}
 
+    # [Rest of your code continues here... ALL OF IT must be inside the try block]
+
+except Exception as e:
+    print(f"❌ FATAL STARTUP ERROR: {str(e)}")
+    traceback.print_exc()
+    sys.exit(1)
 # =====================================================
 # LOGGING CONFIGURATION
 # =====================================================
@@ -970,6 +982,13 @@ async def logout(req: Request):
     logger.info(f"User logged out: {user_id}")
     return RedirectResponse("/", 302)
 
+@app.get("/test-template")
+async def test_template(req: Request):
+    """Simple test route"""
+    try:
+        return templates.TemplateResponse("test.html", {"request": req})
+    except Exception as e:
+        return {"error": str(e)}
 # =====================================================
 # SIGNUP ROUTES
 # =====================================================
@@ -1892,6 +1911,18 @@ async def debug_dashboard_raw(req: Request, db=Depends(get_db)):
             "error": str(e),
             "traceback": traceback.format_exc()
         }
+
+@app.get("/debug/templates")
+async def debug_templates():
+    """Check which templates exist"""
+    import os
+    template_dir = "templates"
+    files = os.listdir(template_dir) if os.path.exists(template_dir) else []
+    return {
+        "template_dir_exists": os.path.exists(template_dir),
+        "templates": files,
+        "working_dir": os.getcwd()
+    }
 # =====================================================
 # ERROR HANDLERS
 # =====================================================
