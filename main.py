@@ -1872,6 +1872,70 @@ async def debug_session(req: Request, db=Depends(get_db)):
             results["user"] = "User not found in database"
     
     return results
+
+@app.get("/debug/dashboard-raw")
+async def debug_dashboard_raw(req: Request, db=Depends(get_db)):
+    """Raw dashboard debug - no templates"""
+    try:
+        # Check login
+        if not is_logged(req):
+            return {"error": "Not logged in", "session": dict(req.session)}
+        
+        user = get_user(req, db)
+        if not user:
+            return {"error": "User not found in database", "session_id": req.session.get("business_id")}
+        
+        # Test each database query
+        results = {
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "plan": user.plan,
+                "chat_used": user.chat_used,
+                "chat_limit": user.chat_limit,
+            }
+        }
+        
+        # Test bookings query
+        try:
+            bookings = db.query(Booking).filter(Booking.business_id == user.id).limit(1).all()
+            results["bookings_query"] = f"✅ Success, found {len(bookings)}"
+        except Exception as e:
+            results["bookings_query"] = f"❌ Failed: {str(e)}"
+        
+        # Test analytics calculations
+        try:
+            total_bookings = db.query(Booking).filter(Booking.business_id == user.id).count()
+            results["total_bookings"] = total_bookings
+        except Exception as e:
+            results["total_bookings_error"] = str(e)
+        
+        try:
+            cancelled = db.query(Booking).filter(
+                Booking.business_id == user.id, 
+                Booking.status == "cancelled"
+            ).count()
+            results["cancelled"] = cancelled
+        except Exception as e:
+            results["cancelled_error"] = str(e)
+        
+        # Test trial days calculation
+        try:
+            if user.plan == "trial" and user.trial_ends_at:
+                trial_days = (user.trial_ends_at - datetime.utcnow()).days
+                results["trial_days"] = trial_days
+            else:
+                results["trial_days"] = "N/A"
+        except Exception as e:
+            results["trial_days_error"] = str(e)
+        
+        return results
+        
+    except Exception as e:
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 # =====================================================
 # ERROR HANDLERS
 # =====================================================
