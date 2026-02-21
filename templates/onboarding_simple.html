@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Your Setup - BizFlow AI</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 5px; margin-top: 20px; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, {{ business.name }}! 🚀</h1>
+        <p>Let's complete your business setup.</p>
+
+        <form method="post" action="/onboarding">
+            <label>Business Goal</label>
+            <input type="text" name="business_goal" placeholder="e.g., Increase appointments by 50%" required>
+
+            <label>Business Address</label>
+            <textarea name="business_address" placeholder="Street, City, State, PIN" required></textarea>
+
+            <label>Business Hours</label>
+            <input type="text" name="business_hours" placeholder="e.g., Mon-Fri 9AM-8PM, Sat 10AM-6PM" required>
+
+            <button type="submit">Complete Setup</button>
+        </form>
+
+        <p style="margin-top: 20px;"><a href="/dashboard">Skip for now</a></p>
+    </div>
+</body>
+</html>

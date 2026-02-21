@@ -1096,52 +1096,35 @@ async def signup(
 @app.get("/dashboard", response_class=HTMLResponse)
 @login_required
 async def dashboard(req: Request, db=Depends(get_db)):
-    """User dashboard - simplified version"""
+    """User dashboard"""
     try:
-        logger.info("=" * 50)
-        logger.info("📊 DASHBOARD ACCESSED")
-        
         user = get_user(req, db)
         if not user:
-            logger.error("❌ User not found")
-            req.session.clear()
             return RedirectResponse("/login", 302)
         
-        logger.info(f"✅ User found: {user.id} - {user.name}")
+        # Get real data
+        bookings = db.query(Booking).filter(Booking.business_id == user.id).order_by(Booking.created_at.desc()).limit(5).all()
+        total_bookings = len(bookings)
         
-        # Simple test data
         analytics = {
-            "conversations": 0,
-            "bookings": 0,
-            "interested": 0,
-            "cancelled": 0,
-            "conversion": 0,
-            "chat_usage_percent": 0
+            "conversations": user.chat_used or 0,
+            "bookings": total_bookings,
+            "conversion": 0
         }
         
-        bookings = []
-        
+        # Use the simple template
         return templates.TemplateResponse(
-            "dashboard.html",
+            "dashboard_simple.html",
             {
                 "request": req,
                 "business": user,
                 "bookings": bookings,
-                "analytics": analytics,
-                "now": datetime.utcnow(),
-                "trial_days_left": 0,
-                "plans": PLANS
+                "analytics": analytics
             }
         )
-        
     except Exception as e:
-        logger.error(f"❌ Dashboard error: {str(e)}")
-        logger.error(traceback.format_exc())
-        return templates.TemplateResponse(
-            "500.html",
-            {"request": req, "error": str(e)},
-            status_code=500
-        )
+        logger.error(f"Dashboard error: {str(e)}")
+        return HTMLResponse(f"<h1>Error</h1><pre>{str(e)}</pre>")
 # =====================================================
 # ONBOARDING
 # =====================================================
@@ -1158,8 +1141,9 @@ async def onboarding(req: Request, db=Depends(get_db)):
         if user.onboarding_done:
             return RedirectResponse("/dashboard", 302)
         
+        # Use the simple template
         return templates.TemplateResponse(
-            "onboarding.html",
+            "onboarding_simple.html",
             {
                 "request": req,
                 "business": user
@@ -1167,35 +1151,7 @@ async def onboarding(req: Request, db=Depends(get_db)):
         )
     except Exception as e:
         logger.error(f"Onboarding error: {str(e)}")
-        return RedirectResponse("/dashboard", 302)
-
-@app.post("/onboarding")
-@login_required
-async def onboarding_complete(
-    req: Request,
-    business_goal: str = Form(...),
-    business_address: str = Form(...),
-    business_hours: str = Form(...),
-    db=Depends(get_db)
-):
-    """Complete onboarding"""
-    try:
-        user = get_user(req, db)
-        if not user:
-            return RedirectResponse("/login", 302)
-        
-        user.goal = sanitize_input(business_goal)
-        user.address = sanitize_input(business_address)
-        user.business_hours = sanitize_input(business_hours)
-        user.onboarding_done = True
-        db.commit()
-        
-        logger.info(f"User {user.id} completed onboarding")
-        return RedirectResponse("/dashboard", 302)
-        
-    except Exception as e:
-        logger.error(f"Onboarding completion error: {str(e)}")
-        return RedirectResponse("/dashboard", 302)
+        return HTMLResponse(f"<h1>Error</h1><pre>{str(e)}</pre>")
 
 # =====================================================
 # WHATSAPP WEBHOOK

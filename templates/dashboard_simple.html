@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - {{ business.name }}</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #2563eb; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Welcome, {{ business.name }}! 👋</h1>
+        <p>Your plan: <strong>{{ business.plan|upper }}</strong></p>
+        <p>Email: {{ business.admin_email }}</p>
+        <p>Business type: {{ business.business_type|title }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Quick Stats</h2>
+        <p>📊 Conversations: {{ analytics.conversations|default(0) }}</p>
+        <p>📅 Bookings: {{ analytics.bookings|default(0) }}</p>
+        <p>✅ Conversion rate: {{ analytics.conversion|default(0) }}%</p>
+    </div>
+
+    <div class="card">
+        <h2>Recent Bookings</h2>
+        {% if bookings %}
+            <ul>
+            {% for booking in bookings %}
+                <li>{{ booking.name }} - {{ booking.booking_date }} at {{ booking.booking_time }} ({{ booking.status }})</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No bookings yet</p>
+        {% endif %}
+    </div>
+
+    <p><a href="/logout">Logout</a></p>
+</body>
+</html>
