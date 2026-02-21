@@ -11,7 +11,7 @@ razorpay==1.4.2
 sqlalchemy==2.0.44
 itsdangerous==2.1.2
 starlette==0.27.0
-email-validator==2.1.0
+email-validator>=2.2.0
 setuptools
 sendgrid==6.11.0
 pytz==2025.2
