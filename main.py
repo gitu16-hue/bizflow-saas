@@ -1096,42 +1096,30 @@ async def signup(
 @app.get("/dashboard", response_class=HTMLResponse)
 @login_required
 async def dashboard(req: Request, db=Depends(get_db)):
-    """User dashboard"""
+    """User dashboard - simplified version"""
     try:
+        logger.info("=" * 50)
+        logger.info("📊 DASHBOARD ACCESSED")
+        
         user = get_user(req, db)
         if not user:
+            logger.error("❌ User not found")
             req.session.clear()
             return RedirectResponse("/login", 302)
         
-        # Check trial expiry
-        if user.plan == "trial" and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
-            user.plan = "expired"
-            db.commit()
+        logger.info(f"✅ User found: {user.id} - {user.name}")
         
-        # Get recent bookings
-        bookings = db.query(Booking)\
-            .filter(Booking.business_id == user.id)\
-            .order_by(Booking.created_at.desc())\
-            .limit(10)\
-            .all()
-        
-        # Calculate analytics
-        total_bookings = db.query(Booking)\
-            .filter(Booking.business_id == user.id)\
-            .count()
-        
-        cancelled = db.query(Booking)\
-            .filter(Booking.business_id == user.id, Booking.status == "cancelled")\
-            .count()
-        
+        # Simple test data
         analytics = {
-            "conversations": user.chat_used or 0,
-            "bookings": total_bookings,
+            "conversations": 0,
+            "bookings": 0,
             "interested": 0,
-            "cancelled": cancelled,
-            "conversion": round((total_bookings / max(user.chat_used, 1)) * 100, 1) if user.chat_used else 0,
-            "chat_usage_percent": round((user.chat_used / user.chat_limit) * 100, 1) if user.chat_limit else 0
+            "cancelled": 0,
+            "conversion": 0,
+            "chat_usage_percent": 0
         }
+        
+        bookings = []
         
         return templates.TemplateResponse(
             "dashboard.html",
@@ -1141,18 +1129,19 @@ async def dashboard(req: Request, db=Depends(get_db)):
                 "bookings": bookings,
                 "analytics": analytics,
                 "now": datetime.utcnow(),
-                "trial_days_left": (user.trial_ends_at - datetime.utcnow()).days if user.plan == "trial" else 0,
+                "trial_days_left": 0,
                 "plans": PLANS
             }
         )
+        
     except Exception as e:
-        logger.error(f"Dashboard error for user {getattr(user, 'id', 'unknown')}: {str(e)}")
+        logger.error(f"❌ Dashboard error: {str(e)}")
+        logger.error(traceback.format_exc())
         return templates.TemplateResponse(
             "500.html",
-            {"request": req, "error": "An error occurred loading your dashboard"},
+            {"request": req, "error": str(e)},
             status_code=500
         )
-
 # =====================================================
 # ONBOARDING
 # =====================================================
@@ -1857,6 +1846,32 @@ if ENVIRONMENT == "development":
             "session_data": dict(req.session)
         }
 
+@app.get("/debug/session")
+async def debug_session(req: Request, db=Depends(get_db)):
+    """Debug session and user data"""
+    results = {
+        "is_logged": is_logged(req),
+        "session_id": req.session.get("business_id"),
+        "session_data": dict(req.session),
+    }
+    
+    if is_logged(req):
+        user = get_user(req, db)
+        if user:
+            results["user"] = {
+                "id": user.id,
+                "name": user.name,
+                "email": user.admin_email,
+                "plan": user.plan,
+                "chat_used": user.chat_used,
+                "chat_limit": user.chat_limit,
+                "trial_ends_at": str(user.trial_ends_at) if user.trial_ends_at else None,
+                "onboarding_done": user.onboarding_done
+            }
+        else:
+            results["user"] = "User not found in database"
+    
+    return results
 # =====================================================
 # ERROR HANDLERS
 # =====================================================
