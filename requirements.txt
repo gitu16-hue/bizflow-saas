@@ -16,3 +16,4 @@ setuptools
 sendgrid==6.11.0
 pytz==2025.2
 aiofiles==24.1.0
+psycopg2-binary==2.9.10
