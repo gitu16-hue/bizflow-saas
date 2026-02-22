@@ -203,7 +203,14 @@ try:
     print("  Adding middleware...", flush=True)
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["bizflowai.online", "*.railway.app", "localhost", "127.0.0.1"],
+        allowed_hosts=[
+            "bizflowai.online", 
+            "*.railway.app", 
+            "localhost", 
+            "127.0.0.1",
+            "bizflow-saas.onrender.com",  # Add this line
+            "*.onrender.com"               # Add this line
+        ],
     )
     app.add_middleware(
         CORSMiddleware,
