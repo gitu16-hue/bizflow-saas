@@ -326,34 +326,6 @@ app = FastAPI(
     openapi_url="/api/openapi.json" if DEBUG else None,
 )
 
-# Security Middleware
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["bizflowai.online", "*.railway.app", "localhost", "127.0.0.1"],
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://bizflowai.online",
-        "http://localhost:8001",
-        "http://127.0.0.1:8001"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=SECRET_KEY,
-    max_age=60 * 60 * 24 * 14,  # 14 days
-    same_site="lax",
-    https_only=ENVIRONMENT == "production",
-)
-
-# Add GZip compression for better performance
-app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
