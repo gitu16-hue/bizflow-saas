@@ -366,6 +366,25 @@ def rate_limit(limit: str):
     """Rate limiting decorator"""
     return limiter.limit(limit)
 
+@app.get("/debug/admin-status")
+async def debug_admin_status(request: Request, db: Session = Depends(get_db)):
+    """Check admin status"""
+    user_id = request.session.get("business_id")
+    if not user_id:
+        return {"error": "Not logged in"}
+    
+    user = db.query(Business).get(user_id)
+    if not user:
+        return {"error": "User not found"}
+    
+    return {
+        "user_id": user.id,
+        "email": user.admin_email,
+        "is_admin": user.is_admin,
+        "session_id": user_id,
+        "session_matches": user.id == user_id
+    }
+
 # =====================================================
 # SECURITY UTILITIES
 # =====================================================
@@ -752,39 +771,7 @@ async def signup(
             }
         )
 
-@app.get("/make-me-admin")
-async def make_me_admin(db: Session = Depends(get_db)):
-    """Temporary route to make yourself admin (REMOVE AFTER USE)"""
-    try:
-        # Find your user by email
-        user = db.query(Business).filter(Business.admin_email == "gitzsim06@gmail.com").first()
-        
-        if user:
-            user.is_admin = True
-            db.commit()
-            return {
-                "status": "success", 
-                "message": f"✅ Made {user.admin_email} an admin!",
-                "user": {
-                    "id": user.id,
-                    "name": user.name,
-                    "email": user.admin_email,
-                    "is_admin": user.is_admin
-                }
-            }
-        else:
-            # List all users if not found
-            users = db.query(Business).all()
-            return {
-                "status": "error",
-                "message": "❌ User not found",
-                "available_users": [
-                    {"id": u.id, "email": u.admin_email, "name": u.name} 
-                    for u in users
-                ]
-            }
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+
 # =====================================================
 # DASHBOARD
 # =====================================================
