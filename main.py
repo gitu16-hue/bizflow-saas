@@ -384,6 +384,62 @@ async def debug_admin_status(request: Request, db: Session = Depends(get_db)):
         "session_id": user_id,
         "session_matches": user.id == user_id
     }
+@app.get("/debug/fix-admin")
+async def fix_admin(request: Request, db: Session = Depends(get_db)):
+    """Debug and fix admin session issues"""
+    user_id = request.session.get("business_id")
+    results = {
+        "session_exists": user_id is not None,
+        "session_user_id": user_id,
+    }
+    
+    if not user_id:
+        return {"error": "Not logged in", "results": results}
+    
+    # Get user from database
+    user = db.query(Business).get(user_id)
+    if not user:
+        return {"error": "User not found in database", "results": results}
+    
+    results["database_user"] = {
+        "id": user.id,
+        "email": user.admin_email,
+        "is_admin": user.is_admin,
+        "name": user.name,
+        "plan": user.plan
+    }
+    
+    # Force session refresh
+    request.session["business_id"] = user.id
+    request.session["admin_checked"] = True
+    
+    results["session_refreshed"] = True
+    results["session_data"] = dict(request.session)
+    
+    return results
+
+@app.get("/debug/dashboard-data")
+@login_required
+async def debug_dashboard_data(request: Request, db: Session = Depends(get_db)):
+    """Debug what data is being sent to dashboard"""
+    user = get_user(request, db)
+    if not user:
+        return {"error": "User not found"}
+    
+    return {
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.admin_email,
+            "is_admin": user.is_admin,
+            "plan": user.plan
+        },
+        "template_data": {
+            "business.is_admin": user.is_admin,
+            "business.id": user.id,
+            "business.name": user.name
+        }
+    }
 
 # =====================================================
 # SECURITY UTILITIES
