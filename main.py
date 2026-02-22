@@ -311,6 +311,23 @@ app.add_middleware(
     same_site="lax",
     https_only=settings.ENVIRONMENT == "production"
 )
+
+class SessionDebugMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Safely check session
+        try:
+            session_data = dict(request.session) if hasattr(request, 'session') else {}
+            print(f"Request path: {request.url.path}")
+            print(f"Session data: {session_data}")
+        except Exception as e:
+            print(f"Could not access session: {e}")
+        
+        response = await call_next(request)
+        return response
+
+# Add this middleware right after SessionMiddleware
+app.add_middleware(SessionDebugMiddleware)
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(PerformanceMiddleware)
 
@@ -434,22 +451,7 @@ async def set_session(request: Request):
     request.session["test_time"] = str(datetime.utcnow())
     return {"message": "Session set", "session": dict(request.session)}
 
-class SessionDebugMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        # Log session before request
-        print(f"Request path: {request.url.path}")
-        print(f"Session before: {dict(request.session)}")
-        
-        response = await call_next(request)
-        
-        # Log session after request
-        print(f"Session after: {dict(request.session)}")
-        print(f"Response headers: {response.headers}")
-        
-        return response
 
-# Add this middleware right after SessionMiddleware
-app.add_middleware(SessionDebugMiddleware)
 
 # =====================================================
 # SECURITY UTILITIES
