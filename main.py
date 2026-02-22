@@ -491,7 +491,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.get("/health")
 @rate_limit("10/minute")
-async def health_check(db: Session = Depends(get_db)):
+async def health_check(request: Request, db: Session = Depends(get_db)):
     """Health check endpoint with detailed status"""
     try:
         # Test database
