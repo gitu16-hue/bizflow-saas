@@ -5,262 +5,125 @@
 
 import sys
 import os
+import logging
+import traceback
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, List, Union
+from contextlib import asynccontextmanager
+import json
+import secrets
+import hmac
+import hashlib
+import re
+from functools import wraps
+import time
 
-# Force unbuffered output
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
+# Third-party imports
+from dotenv import load_dotenv
+load_dotenv()
 
-print("=" * 60, flush=True)
-print("🚀 BIZFLOW AI STARTUP SEQUENCE", flush=True)
-print("=" * 60, flush=True)
-print(f"Python version: {sys.version}", flush=True)
-print(f"Current directory: {os.getcwd()}", flush=True)
-print(f"Files in root: {os.listdir('.')}", flush=True)
-print(f"Environment variables keys: {list(os.environ.keys())}", flush=True)
-print("=" * 60, flush=True)
+# FastAPI & Related
+from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, Cookie
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.concurrency import run_in_threadpool
+from fastapi.exceptions import RequestValidationError
 
-try:
-    # ================= STEP 1: PATCHES =================
-    print("\n📦 STEP 1: Loading patches...", flush=True)
-    try:
-        import patch_pydantic
-        print("  ✅ Pydantic patch loaded successfully", flush=True)
-    except ImportError:
-        print("  ⚠️ Pydantic patch not found, continuing without it", flush=True)
-    except Exception as e:
-        print(f"  ⚠️ Error loading patch: {e}", flush=True)
+# Starlette
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.datastructures import MutableHeaders
 
-    # ================= STEP 2: STANDARD LIBRARY =================
-    print("\n📦 STEP 2: Loading standard library...", flush=True)
-    import os
-    print("  ✅ os", flush=True)
-    import re
-    print("  ✅ re", flush=True)
-    import logging
-    print("  ✅ logging", flush=True)
-    import secrets
-    print("  ✅ secrets", flush=True)
-    import hmac
-    print("  ✅ hmac", flush=True)
-    import hashlib
-    print("  ✅ hashlib", flush=True)
-    from datetime import datetime, timedelta
-    print("  ✅ datetime", flush=True)
-    from typing import Optional, Dict, Any, List, Union
-    print("  ✅ typing", flush=True)
-    from contextlib import contextmanager
-    print("  ✅ contextlib", flush=True)
-    import json
-    print("  ✅ json", flush=True)
-    import traceback as tb
-    print("  ✅ traceback", flush=True)
-    from functools import wraps
-    print("  ✅ functools", flush=True)
+# Security
+from passlib.hash import bcrypt
+import bcrypt as bcrypt_lib
 
-    # ================= STEP 3: THIRD PARTY - dotenv =================
-    print("\n📦 STEP 3: Loading third-party packages...", flush=True)
-    from dotenv import load_dotenv
-    load_dotenv()
-    print("  ✅ dotenv loaded", flush=True)
+# Database
+from database import SessionLocal, engine
+from models import Base, Business, Booking, Payment, AuditLog, Conversation
 
-    # ================= STEP 4: FASTAPI & RELATED =================
-    print("\n📦 STEP 4: Loading FastAPI and related...", flush=True)
-    from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, Cookie
-    print("  ✅ fastapi core", flush=True)
-    from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
-    print("  ✅ fastapi responses", flush=True)
-    from fastapi.templating import Jinja2Templates
-    print("  ✅ Jinja2Templates", flush=True)
-    from fastapi.staticfiles import StaticFiles
-    print("  ✅ StaticFiles", flush=True)
-    from fastapi.middleware.cors import CORSMiddleware
-    print("  ✅ CORSMiddleware", flush=True)
-    from fastapi.middleware.trustedhost import TrustedHostMiddleware
-    print("  ✅ TrustedHostMiddleware", flush=True)
-    from fastapi.middleware.gzip import GZipMiddleware
-    print("  ✅ GZipMiddleware", flush=True)
-    from fastapi.security import HTTPBasic, HTTPBasicCredentials
-    print("  ✅ HTTPBasic", flush=True)
+# Email
+import sendgrid
+from sendgrid.helpers.mail import Mail
 
-    # ================= STEP 5: STARLETTE =================
-    print("\n📦 STEP 5: Loading Starlette middleware...", flush=True)
-    from starlette.middleware.sessions import SessionMiddleware
-    print("  ✅ SessionMiddleware", flush=True)
-    from starlette.middleware.base import BaseHTTPMiddleware
-    print("  ✅ BaseHTTPMiddleware", flush=True)
+# Payments
+import razorpay
 
-    # ================= STEP 6: SECURITY =================
-    print("\n📦 STEP 6: Loading security packages...", flush=True)
-    from passlib.hash import bcrypt
-    print("  ✅ passlib.bcrypt", flush=True)
-    import bcrypt as bcrypt_lib
-    print("  ✅ bcrypt", flush=True)
+# Utilities
+import pytz
+import aiofiles
+import csv
+from io import StringIO
+from twilio.twiml.messaging_response import MessagingResponse
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-    # ================= STEP 7: DATABASE =================
-    print("\n📦 STEP 7: Loading database modules...", flush=True)
-    print("  ⏳ Attempting to import from database...", flush=True)
-    from database import SessionLocal, engine
-    print("  ✅ SessionLocal, engine", flush=True)
-    from models import Base, Business, Booking, Payment, AuditLog, Conversation
-    print("  ✅ All models loaded", flush=True)
+# Rate limiting
+import aioredis
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
-    # ================= STEP 8: EMAIL =================
-    print("\n📦 STEP 8: Loading email packages...", flush=True)
-    import sendgrid
-    print("  ✅ sendgrid", flush=True)
-    from sendgrid.helpers.mail import Mail
-    print("  ✅ Mail helper", flush=True)
+# =====================================================
+# ENVIRONMENT & CONFIGURATION
+# =====================================================
 
-    # ================= STEP 9: PAYMENTS =================
-    print("\n📦 STEP 9: Loading payment packages...", flush=True)
-    import razorpay
-    print("  ✅ razorpay", flush=True)
-
-    # ================= STEP 10: UTILITIES =================
-    print("\n📦 STEP 10: Loading utilities...", flush=True)
-    import pytz
-    print("  ✅ pytz", flush=True)
-    import aiofiles
-    print("  ✅ aiofiles", flush=True)
-    import csv
-    print("  ✅ csv", flush=True)
-    from io import StringIO
-    print("  ✅ StringIO", flush=True)
-    from twilio.twiml.messaging_response import MessagingResponse
-    print("  ✅ twilio", flush=True)
-    from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-    print("  ✅ SQLAlchemy exceptions", flush=True)
-
-    print("\n" + "=" * 60, flush=True)
-    print("✅ ALL IMPORTS SUCCESSFUL", flush=True)
-    print("=" * 60 + "\n", flush=True)
-
-    # =====================================================
-    # CONFIGURATION & ENVIRONMENT
-    # =====================================================
-    print("⚙️ Loading configuration...", flush=True)
+class Settings:
+    """Application settings with validation"""
     APP_NAME = "BizFlow AI"
-    APP_VERSION = "10.1"
-    BASE_URL = os.getenv("BASE_URL", "https://bizflowai.online")
-    SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
+    APP_VERSION = "10.2"
     ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
     DEBUG = ENVIRONMENT == "development"
-
-    # Email Configuration
+    BASE_URL = os.getenv("BASE_URL", "https://bizflow-saas.onrender.com")
+    SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
+    
+    # Database
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./bizflow.db")
+    
+    # Email
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
     FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@bizflowai.online")
     SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@bizflowai.online")
-
-    # Payment Configuration
+    
+    # Payment
     RAZORPAY_KEY = os.getenv("RAZORPAY_KEY_ID")
     RAZORPAY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
     RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
-
-    # WhatsApp Configuration
-    WHATSAPP_WEBHOOK_TOKEN = os.getenv("WHATSAPP_WEBHOOK_TOKEN", secrets.token_urlsafe(16))
-
-    # Rate Limiting
+    
+    # Security
     MAX_LOGIN_ATTEMPTS = 5
     LOGIN_TIMEOUT_MINUTES = 15
+    SESSION_MAX_AGE = 60 * 60 * 24 * 14  # 14 days
+    SESSION_REMEMBER_AGE = 60 * 60 * 24 * 30  # 30 days
+    
+    # Rate Limiting
+    RATE_LIMIT_GLOBAL = "100/minute"
+    RATE_LIMIT_LOGIN = "5/minute"
+    RATE_LIMIT_API = "60/minute"
+    
+    # Redis (optional)
+    REDIS_URL = os.getenv("REDIS_URL", None)
+    
+    @classmethod
+    def validate(cls):
+        """Validate critical settings"""
+        required = ["SECRET_KEY", "DATABASE_URL"]
+        missing = [req for req in required if not getattr(cls, req)]
+        if missing:
+            raise ValueError(f"Missing required settings: {missing}")
 
-    print("  ✅ Configuration loaded", flush=True)
+# Initialize settings
+settings = Settings()
+settings.validate()
 
-    # =====================================================
-    # PLANS CONFIGURATION
-    # =====================================================
-    PLANS = {
-        "starter": {
-            "name": "Starter",
-            "price": 999,
-            "chats": 300,
-            "features": ["WhatsApp Bot", "300 Chats/Month", "Booking System", "Basic Analytics", "Email Support"]
-        },
-        "pro": {
-            "name": "Pro",
-            "price": 2499,
-            "chats": 999999,
-            "features": ["Unlimited Chats", "Advanced AI", "Auto Reminders", "Calendar Sync", "Priority Support", "Lead Optimization"]
-        }
-    }
-    print("  ✅ Plans configured", flush=True)
-
-    # [The rest of your FastAPI app code goes here]
-    # =====================================================
-    # FASTAPI APP INITIALIZATION
-    # =====================================================
-    print("\n🚀 Creating FastAPI app...", flush=True)
-    app = FastAPI(
-        title=APP_NAME,
-        version=APP_VERSION,
-        description="Enterprise WhatsApp Business Automation Platform",
-        docs_url="/api/docs" if DEBUG else None,
-        redoc_url="/api/redoc" if DEBUG else None,
-        openapi_url="/api/openapi.json" if DEBUG else None,
-    )
-    print("  ✅ FastAPI app created", flush=True)
-
-    # Add middleware
-    print("  Adding middleware...", flush=True)
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=[
-            "bizflowai.online", 
-            "*.railway.app", 
-            "localhost", 
-            "127.0.0.1",
-            "bizflow-saas.onrender.com",  # Add this line
-            "*.onrender.com"               # Add this line
-        ],
-    )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[
-            "https://bizflowai.online",
-            "http://localhost:8001",
-            "http://127.0.0.1:8001"
-        ],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key=SECRET_KEY,
-        max_age=60 * 60 * 24 * 14,
-        same_site="lax",
-        https_only=ENVIRONMENT == "production",
-    )
-    app.add_middleware(GZipMiddleware, minimum_size=1000)
-    print("  ✅ Middleware added", flush=True)
-
-    # Static files and templates
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    templates = Jinja2Templates(directory="templates")
-    print("  ✅ Static files and templates mounted", flush=True)
-
-    # Create database tables
-    print("\n🗄️ Creating database tables...", flush=True)
-    try:
-        Base.metadata.create_all(bind=engine)
-        print("  ✅ Database tables created successfully", flush=True)
-    except Exception as e:
-        print(f"  ❌ Database table creation failed: {str(e)}", flush=True)
-        raise
-
-    print("\n" + "=" * 60, flush=True)
-    print("🎉 BIZFLOW AI STARTUP COMPLETE", flush=True)
-    print("=" * 60 + "\n", flush=True)
-
-    # [All your route definitions go here...]
-    # (Your existing @app.get, @app.post, etc.)
-
-except Exception as e:
-    print("\n❌ FATAL STARTUP ERROR:", flush=True)
-    print(f"Error type: {type(e).__name__}", flush=True)
-    print(f"Error message: {str(e)}", flush=True)
-    print("\nTraceback:", flush=True)
-    traceback.print_exc(file=sys.stdout)
-    sys.exit(1)
 # =====================================================
 # LOGGING CONFIGURATION
 # =====================================================
@@ -284,86 +147,55 @@ class CustomFormatter(logging.Formatter):
 
     def format(self, record):
         log_fmt = f"{self.FORMATS.get(record.levelno)}%(asctime)s - %(name)s - %(levelname)s - %(message)s{self.reset}"
-        formatter = logging.Formatter(log_fmt)
+        formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
 
-# Create logs directory if it doesn't exist
+# Create logs directory
 os.makedirs("logs", exist_ok=True)
 
-# File handler for all logs
+# Setup logging
+logger = logging.getLogger("bizflow")
+logger.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
+
+# File handler
 file_handler = logging.FileHandler("logs/bizflow.log")
 file_handler.setLevel(logging.INFO)
 file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
-# Console handler with colors
+# Console handler
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+console_handler.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
 console_handler.setFormatter(CustomFormatter())
+logger.addHandler(console_handler)
 
 # Error file handler
 error_handler = logging.FileHandler("logs/error.log")
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(file_formatter)
-
-# Setup logger
-logger = logging.getLogger("bizflow")
-logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
 logger.addHandler(error_handler)
 
 # =====================================================
-# FASTAPI APP INITIALIZATION
+# RATE LIMITING
 # =====================================================
 
-app = FastAPI(
-    title=APP_NAME,
-    version=APP_VERSION,
-    description="Enterprise WhatsApp Business Automation Platform",
-    docs_url="/api/docs" if DEBUG else None,
-    redoc_url="/api/redoc" if DEBUG else None,
-    openapi_url="/api/openapi.json" if DEBUG else None,
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[settings.RATE_LIMIT_GLOBAL],
+    storage_uri=settings.REDIS_URL or "memory://",
+    strategy="fixed-window"
 )
-
-
-# Static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
-
-# =====================================================
-# DATABASE DEPENDENCY
-# =====================================================
-
-@contextmanager
-def get_db_context():
-    """Context manager for database sessions"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_db():
-    """FastAPI dependency for database sessions"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # =====================================================
 # PAYMENT CLIENT INITIALIZATION
 # =====================================================
 
 razorpay_client = None
-if RAZORPAY_KEY and RAZORPAY_SECRET:
+if settings.RAZORPAY_KEY and settings.RAZORPAY_SECRET:
     try:
         razorpay_client = razorpay.Client(
-            auth=(RAZORPAY_KEY.strip(), RAZORPAY_SECRET.strip())
+            auth=(settings.RAZORPAY_KEY.strip(), settings.RAZORPAY_SECRET.strip())
         )
         logger.info("✅ Razorpay client initialized successfully")
     except Exception as e:
@@ -371,14 +203,145 @@ if RAZORPAY_KEY and RAZORPAY_SECRET:
         razorpay_client = None
 
 # =====================================================
-# DECORATORS & MIDDLEWARE
+# LIFESPAN MANAGEMENT
+# =====================================================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manage application startup and shutdown events
+    """
+    logger.info("=" * 60)
+    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} starting...")
+    logger.info(f"🌍 Environment: {settings.ENVIRONMENT}")
+    logger.info(f"🔗 Base URL: {settings.BASE_URL}")
+    logger.info(f"💳 Razorpay: {'✅ Configured' if razorpay_client else '❌ Not configured'}")
+    logger.info(f"📧 SendGrid: {'✅ Configured' if settings.SENDGRID_API_KEY else '❌ Not configured'}")
+    logger.info(f"📊 Rate Limiting: {'✅ Enabled' if settings.REDIS_URL else '⚠️ Using memory storage'}")
+    logger.info("=" * 60)
+    
+    # Create database tables
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Database tables verified/created")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {str(e)}")
+        raise
+    
+    yield
+    
+    logger.info(f"👋 {settings.APP_NAME} shutting down...")
+
+# =====================================================
+# FASTAPI APP INITIALIZATION
+# =====================================================
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Enterprise WhatsApp Business Automation Platform",
+    docs_url="/api/docs" if settings.DEBUG else None,
+    redoc_url="/api/redoc" if settings.DEBUG else None,
+    openapi_url="/api/openapi.json" if settings.DEBUG else None,
+    lifespan=lifespan
+)
+
+# =====================================================
+# MIDDLEWARE SETUP
+# =====================================================
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Security headers middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
+
+# Performance monitoring middleware
+class PerformanceMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
+        
+        if process_time > 1.0:
+            logger.warning(f"Slow request: {request.method} {request.url.path} took {process_time:.2f}s")
+        
+        return response
+
+# Add middleware in correct order
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "bizflowai.online",
+        "*.railway.app",
+        "*.onrender.com",
+        "localhost",
+        "127.0.0.1",
+        "bizflow-saas.onrender.com"
+    ]
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        settings.BASE_URL,
+        "https://bizflowai.online",
+        "http://localhost:8001",
+        "http://127.0.0.1:8001"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    max_age=settings.SESSION_MAX_AGE,
+    same_site="lax",
+    https_only=settings.ENVIRONMENT == "production"
+)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.add_middleware(PerformanceMiddleware)
+
+# =====================================================
+# TEMPLATES & STATIC FILES
+# =====================================================
+
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# =====================================================
+# DATABASE DEPENDENCY
+# =====================================================
+
+def get_db() -> Session:
+    """Get database session with automatic cleanup"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# =====================================================
+# DECORATORS & HELPERS
 # =====================================================
 
 def login_required(func):
     """Decorator to require login"""
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        if not is_logged(request):
+        if not request.session.get("business_id"):
             request.session["next"] = request.url.path
             return RedirectResponse("/login", 302)
         return await func(request, *args, **kwargs)
@@ -387,17 +350,21 @@ def login_required(func):
 def admin_required(func):
     """Decorator to require admin privileges"""
     @wraps(func)
-    async def wrapper(request: Request, db=Depends(get_db), *args, **kwargs):
-        if not is_logged(request):
+    async def wrapper(request: Request, db: Session = Depends(get_db), *args, **kwargs):
+        if not request.session.get("business_id"):
             request.session["next"] = request.url.path
             return RedirectResponse("/login", 302)
         
-        user = get_user(request, db)
+        user = db.query(Business).get(request.session["business_id"])
         if not user or not user.is_admin:
             return RedirectResponse("/dashboard", 302)
         
         return await func(request, db, *args, **kwargs)
     return wrapper
+
+def rate_limit(limit: str):
+    """Rate limiting decorator"""
+    return limiter.limit(limit)
 
 # =====================================================
 # SECURITY UTILITIES
@@ -436,32 +403,9 @@ def sanitize_input(text: str) -> str:
     """Sanitize user input"""
     if not text:
         return ""
-    # Remove any potential malicious characters
     return re.sub(r'[<>\'"]', '', text)
 
-# =====================================================
-# AUTHENTICATION HELPERS
-# =====================================================
-
-def is_logged(req: Request) -> bool:
-    """Check if user is logged in"""
-    return bool(req.session.get("business_id"))
-
-def get_user(req: Request, db):
-    """Get current user from session"""
-    bid = req.session.get("business_id")
-    if not bid:
-        return None
-    return db.query(Business).get(bid)
-
-def require_admin(req: Request, db):
-    """Check if user is admin"""
-    user = get_user(req, db)
-    if not user or not user.is_admin:
-        return None
-    return user
-
-def log_audit(user_id: int, action: str, details: dict = None, db=None):
+def log_audit(user_id: int, action: str, details: dict = None, db: Session = None):
     """Log audit event"""
     if db:
         try:
@@ -477,178 +421,510 @@ def log_audit(user_id: int, action: str, details: dict = None, db=None):
             logger.error(f"Audit log error: {str(e)}")
 
 # =====================================================
-# RATE LIMITING MIDDLEWARE
+# AUTHENTICATION HELPERS
 # =====================================================
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, max_requests: int = 100, window_seconds: int = 60):
-        super().__init__(app)
-        self.max_requests = max_requests
-        self.window_seconds = window_seconds
-        self.requests = {}
-    
-    async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host
-        now = datetime.utcnow()
-        
-        # Clean old entries
-        self.requests = {
-            ip: times for ip, times in self.requests.items()
-            if times and (now - times[-1]).seconds < self.window_seconds
+def is_logged(req: Request) -> bool:
+    """Check if user is logged in"""
+    return bool(req.session.get("business_id"))
+
+def get_user(req: Request, db: Session):
+    """Get current user from session"""
+    bid = req.session.get("business_id")
+    if not bid:
+        return None
+    return db.query(Business).get(bid)
+
+# =====================================================
+# ERROR HANDLERS
+# =====================================================
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    """Custom 404 handler"""
+    return templates.TemplateResponse(
+        "404.html",
+        {"request": request},
+        status_code=404
+    )
+
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc):
+    """Custom 500 handler"""
+    logger.error(f"500 error: {str(exc)}")
+    logger.error(traceback.format_exc())
+    return templates.TemplateResponse(
+        "500.html",
+        {"request": request},
+        status_code=500
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors"""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "Validation error",
+            "details": exc.errors()
         }
-        
-        # Check rate limit
-        if client_ip in self.requests:
-            if len(self.requests[client_ip]) >= self.max_requests:
-                return JSONResponse(
-                    status_code=429,
-                    content={"error": "Too many requests", "retry_after": self.window_seconds}
-                )
-            self.requests[client_ip].append(now)
-        else:
-            self.requests[client_ip] = [now]
-        
-        return await call_next(request)
+    )
 
-# Enable rate limiting in production
-if ENVIRONMENT == "production":
-    app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Custom HTTP exception handler"""
+    if exc.status_code == 401:
+        return RedirectResponse("/login", 302)
+    return templates.TemplateResponse(
+        "error.html",
+        {
+            "request": request,
+            "error": exc.detail,
+            "status_code": exc.status_code
+        },
+        status_code=exc.status_code
+    )
 
 # =====================================================
-# EMAIL SERVICE
+# HEALTH CHECK
 # =====================================================
 
-class EmailService:
-    """Enterprise email service with templates"""
+@app.get("/health")
+@rate_limit("10/minute")
+async def health_check(db: Session = Depends(get_db)):
+    """Health check endpoint with detailed status"""
+    try:
+        # Test database
+        db.execute(text("SELECT 1")).first()
+        db_status = "healthy"
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
     
-    @staticmethod
-    async def send_email(to_email: str, subject: str, template_name: str, context: dict = None) -> bool:
-        """Send email using template"""
-        if not SENDGRID_API_KEY:
-            logger.error("SendGrid API key not configured")
-            return False
-        
+    # Test Redis if configured
+    redis_status = "not configured"
+    if settings.REDIS_URL:
         try:
-            # Load email template
-            template = EmailService._get_template(template_name, context or {})
-            
-            message = Mail(
-                from_email=FROM_EMAIL,
-                to_emails=to_email,
-                subject=subject,
-                html_content=template
-            )
-            
-            sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
-            response = sg.send(message)
-            
-            if response.status_code == 202:
-                logger.info(f"✅ Email sent to {to_email}: {subject}")
-                return True
-            else:
-                logger.error(f"❌ Email failed: {response.status_code}")
-                return False
-                
+            redis = await aioredis.from_url(settings.REDIS_URL)
+            await redis.ping()
+            redis_status = "healthy"
+            await redis.close()
         except Exception as e:
-            logger.error(f"❌ Email error: {str(e)}")
-            return False
+            redis_status = f"unhealthy: {str(e)}"
     
-    @staticmethod
-    def _get_template(name: str, context: dict) -> str:
-        """Get email template with context"""
-        templates = {
-            "welcome": f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background: linear-gradient(135deg, #2563eb, #60a5fa); color: white; padding: 40px 20px; text-align: center; }}
-                        .content {{ background: white; padding: 40px 20px; }}
-                        .button {{ display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>Welcome to BizFlow AI!</h1>
-                        </div>
-                        <div class="content">
-                            <h2>Hello {context.get('name', 'there')}!</h2>
-                            <p>Thank you for joining BizFlow AI. We're excited to help you automate your business with WhatsApp.</p>
-                            <p>Get started by visiting your dashboard:</p>
-                            <div style="text-align: center;">
-                                <a href="{BASE_URL}/dashboard" class="button">Go to Dashboard</a>
-                            </div>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            """,
-            "reset_password": f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background: linear-gradient(135deg, #2563eb, #60a5fa); color: white; padding: 40px 20px; text-align: center; }}
-                        .content {{ background: white; padding: 40px 20px; }}
-                        .button {{ display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>Reset Your Password</h1>
-                        </div>
-                        <div class="content">
-                            <p>Click the button below to reset your password:</p>
-                            <div style="text-align: center;">
-                                <a href="{context.get('reset_link')}" class="button">Reset Password</a>
-                            </div>
-                            <p>Or copy this link: {context.get('reset_link')}</p>
-                            <p>This link expires in 24 hours.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            """,
-            "payment_success": f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 40px 20px; text-align: center; }}
-                        .content {{ background: white; padding: 40px 20px; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>Payment Successful!</h1>
-                        </div>
-                        <div class="content">
-                            <h2>Thank you for upgrading to {context.get('plan', 'Pro')}!</h2>
-                            <p>Amount: ₹{context.get('amount')}</p>
-                            <p>Transaction ID: {context.get('payment_id')}</p>
-                            <p>Your plan is now active until {context.get('valid_until')}.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            """
+    return {
+        "status": "ok",
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT,
+        "timestamp": datetime.utcnow().isoformat(),
+        "services": {
+            "database": db_status,
+            "redis": redis_status,
+            "razorpay": "configured" if razorpay_client else "not configured",
+            "sendgrid": "configured" if settings.SENDGRID_API_KEY else "not configured"
+        },
+        "uptime": time.time() - start_time if 'start_time' in globals() else None
+    }
+
+# =====================================================
+# HOME PAGE
+# =====================================================
+
+@app.get("/", response_class=HTMLResponse)
+@rate_limit("30/minute")
+async def home(request: Request):
+    """Home page"""
+    try:
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "logged": is_logged(request),
+                "year": datetime.now().year
+            }
+        )
+    except Exception as e:
+        logger.error(f"Home page error: {str(e)}")
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": request, "error": "An error occurred loading the page"},
+            status_code=500
+        )
+
+# =====================================================
+# AUTHENTICATION ROUTES
+# =====================================================
+
+@app.get("/login", response_class=HTMLResponse)
+@rate_limit("10/minute")
+async def login_page(request: Request):
+    """Login page"""
+    if is_logged(request):
+        return RedirectResponse("/dashboard", 302)
+    
+    error = request.session.pop("login_error", None)
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": error}
+    )
+
+@app.post("/login")
+@rate_limit(settings.RATE_LIMIT_LOGIN)
+async def login(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    remember: bool = Form(False),
+    db: Session = Depends(get_db)
+):
+    """Login handler"""
+    try:
+        email = email.lower().strip()
+        user = db.query(Business).filter(Business.admin_email == email).first()
+        
+        if not user or not verify_password(password, user.admin_password):
+            logger.warning(f"Failed login attempt for email: {email}")
+            await asyncio.sleep(1)  # Prevent timing attacks
+            request.session["login_error"] = "Invalid email or password"
+            return RedirectResponse("/login", 302)
+        
+        if not user.is_active:
+            logger.warning(f"Inactive account login attempt: {email}")
+            request.session["login_error"] = "Account is disabled. Please contact support."
+            return RedirectResponse("/login", 302)
+        
+        # Set session
+        request.session["business_id"] = user.id
+        if remember:
+            request.session["max_age"] = settings.SESSION_REMEMBER_AGE
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        db.commit()
+        
+        # Log audit
+        log_audit(user.id, "login", {"ip": request.client.host}, db)
+        
+        logger.info(f"✅ User logged in: {email}")
+        
+        # Redirect to intended page
+        next_url = request.session.pop("next", "/dashboard")
+        return RedirectResponse(next_url, 302)
+        
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        request.session["login_error"] = "An error occurred. Please try again."
+        return RedirectResponse("/login", 302)
+
+@app.get("/logout")
+async def logout(request: Request, db: Session = Depends(get_db)):
+    """Logout handler"""
+    user_id = request.session.get("business_id")
+    if user_id:
+        log_audit(user_id, "logout", {"ip": request.client.host}, db)
+    
+    request.session.clear()
+    logger.info(f"User logged out: {user_id}")
+    return RedirectResponse("/", 302)
+
+# =====================================================
+# SIGNUP ROUTES
+# =====================================================
+
+@app.get("/signup", response_class=HTMLResponse)
+@rate_limit("10/minute")
+async def signup_page(request: Request, plan: str = None):
+    """Signup page"""
+    if is_logged(request):
+        return RedirectResponse("/dashboard", 302)
+    
+    return templates.TemplateResponse(
+        "signup.html",
+        {
+            "request": request,
+            "plan": plan,
+            "plans": PLANS
         }
-        return templates.get(name, "<h1>Notification</h1><p>{}</p>".format(context))
+    )
+
+@app.post("/signup")
+@rate_limit("5/minute")
+async def signup(
+    request: Request,
+    name: str = Form(...),
+    phone: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    business_type: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Signup handler"""
+    try:
+        phone = WhatsAppBot.clean_phone(phone)
+        email = email.lower().strip()
+        name = sanitize_input(name)
+        
+        # Validate password strength
+        is_valid, msg = validate_password_strength(password)
+        if not is_valid:
+            return templates.TemplateResponse(
+                "signup.html",
+                {
+                    "request": request,
+                    "error": msg,
+                    "plans": PLANS
+                }
+            )
+        
+        # Check if user exists
+        existing = db.query(Business).filter(
+            (Business.admin_email == email) | (Business.whatsapp_number == phone)
+        ).first()
+        
+        if existing:
+            return templates.TemplateResponse(
+                "signup.html",
+                {
+                    "request": request,
+                    "error": "Email or phone already registered",
+                    "plans": PLANS
+                }
+            )
+        
+        # Create user
+        user = Business(
+            name=name,
+            whatsapp_number=phone,
+            admin_email=email,
+            admin_password=hash_password(password),
+            business_type=business_type,
+            plan="trial",
+            is_active=True,
+            chat_used=0,
+            chat_limit=1000,
+            onboarding_done=False,
+            created_at=datetime.utcnow(),
+            trial_ends_at=datetime.utcnow() + timedelta(days=7)
+        )
+        
+        db.add(user)
+        db.commit()
+        
+        # Set session
+        request.session["business_id"] = user.id
+        
+        # Log audit
+        log_audit(user.id, "signup", {"ip": request.client.host}, db)
+        
+        # Send welcome email (async)
+        asyncio.create_task(
+            EmailService.send_email(
+                email,
+                "Welcome to BizFlow AI!",
+                "welcome",
+                {"name": name}
+            )
+        )
+        
+        logger.info(f"✅ New user signed up: {email}")
+        
+        return RedirectResponse("/onboarding", 302)
+        
+    except IntegrityError:
+        logger.error(f"Signup integrity error for email: {email}")
+        db.rollback()
+        return templates.TemplateResponse(
+            "signup.html",
+            {
+                "request": request,
+                "error": "An account with this email already exists",
+                "plans": PLANS
+            }
+        )
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        db.rollback()
+        return templates.TemplateResponse(
+            "signup.html",
+            {
+                "request": request,
+                "error": "An error occurred. Please try again.",
+                "plans": PLANS
+            }
+        )
+
+# =====================================================
+# DASHBOARD
+# =====================================================
+
+@app.get("/dashboard", response_class=HTMLResponse)
+@login_required
+@rate_limit("30/minute")
+async def dashboard(request: Request, db: Session = Depends(get_db)):
+    """User dashboard"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            request.session.clear()
+            return RedirectResponse("/login", 302)
+        
+        # Check trial expiry
+        if user.plan == "trial" and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
+            user.plan = "expired"
+            db.commit()
+        
+        # Get recent bookings
+        bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .order_by(Booking.created_at.desc())\
+            .limit(10)\
+            .all()
+        
+        # Calculate analytics
+        total_bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .count()
+        
+        cancelled = db.query(Booking)\
+            .filter(Booking.business_id == user.id, Booking.status == "cancelled")\
+            .count()
+        
+        analytics = {
+            "conversations": user.chat_used or 0,
+            "bookings": total_bookings,
+            "interested": 0,
+            "cancelled": cancelled,
+            "conversion": round((total_bookings / max(user.chat_used, 1)) * 100, 1) if user.chat_used else 0,
+            "chat_usage_percent": round((user.chat_used / user.chat_limit) * 100, 1) if user.chat_limit else 0
+        }
+        
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "business": user,
+                "bookings": bookings,
+                "analytics": analytics,
+                "now": datetime.utcnow(),
+                "trial_days_left": max((user.trial_ends_at - datetime.utcnow()).days, 0) if user.plan == "trial" and user.trial_ends_at else 0,
+                "plans": PLANS
+            }
+        )
+    except Exception as e:
+        logger.error(f"Dashboard error for user {getattr(user, 'id', 'unknown')}: {str(e)}")
+        logger.error(traceback.format_exc())
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": request, "error": "An error occurred loading your dashboard"},
+            status_code=500
+        )
+
+# =====================================================
+# ONBOARDING
+# =====================================================
+
+@app.get("/onboarding", response_class=HTMLResponse)
+@login_required
+async def onboarding(request: Request, db: Session = Depends(get_db)):
+    """Onboarding wizard for new users"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        if user.onboarding_done:
+            return RedirectResponse("/dashboard", 302)
+        
+        return templates.TemplateResponse(
+            "onboarding.html",
+            {
+                "request": request,
+                "business": user
+            }
+        )
+    except Exception as e:
+        logger.error(f"Onboarding error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
+
+@app.post("/onboarding")
+@login_required
+async def onboarding_complete(
+    request: Request,
+    business_goal: str = Form(...),
+    business_address: str = Form(...),
+    business_hours: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Complete onboarding"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        user.goal = sanitize_input(business_goal)
+        user.address = sanitize_input(business_address)
+        user.business_hours = sanitize_input(business_hours)
+        user.onboarding_done = True
+        db.commit()
+        
+        logger.info(f"User {user.id} completed onboarding")
+        return RedirectResponse("/dashboard", 302)
+        
+    except Exception as e:
+        logger.error(f"Onboarding completion error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
+
+# =====================================================
+# PLANS CONFIGURATION
+# =====================================================
+PLANS = {
+    "starter": {
+        "name": "Starter",
+        "price": 999,
+        "chats": 300,
+        "features": [
+            "WhatsApp Bot Integration",
+            "300 Chats/Month",
+            "Basic Booking System",
+            "Analytics Dashboard",
+            "Email Support"
+        ],
+        "color": "blue",
+        "icon": "rocket"
+    },
+    "pro": {
+        "name": "Pro",
+        "price": 2499,
+        "chats": 999999,
+        "features": [
+            "Unlimited Chats",
+            "Advanced AI Assistant",
+            "Auto Reminders & Alerts",
+            "Calendar Sync",
+            "Priority Support",
+            "Lead Optimization AI",
+            "CRM Integration"
+        ],
+        "color": "orange",
+        "icon": "crown",
+        "popular": True
+    },
+    "enterprise": {
+        "name": "Enterprise",
+        "price": 9999,
+        "chats": "Unlimited",
+        "features": [
+            "Everything in Pro",
+            "Dedicated Account Manager",
+            "Custom Integrations",
+            "SLA Guarantee",
+            "On-premise Option",
+            "24/7 Phone Support",
+            "Advanced Analytics"
+        ],
+        "color": "purple",
+        "icon": "building"
+    }
+}
 
 # =====================================================
 # WHATSAPP BOT ENGINE
@@ -674,7 +950,7 @@ class WhatsAppBot:
             "restaurant": """
 👋 Welcome to *{name}* 🍽️
 
-1️⃣ Book Table
+1️⃣ Book a Table
 2️⃣ View Menu
 3️⃣ Location & Hours
 4️⃣ Special Offers
@@ -700,9 +976,9 @@ Reply with number 👇
 
 1️⃣ Book Appointment
 2️⃣ Services & Prices
-3️⃣ Stylists
+3️⃣ Our Stylists
 4️⃣ Location
-5️⃣ Offers
+5️⃣ Special Offers
 6️⃣ Exit
 
 Reply with number 👇
@@ -738,9 +1014,9 @@ Reply with number 👇
 👋 Welcome to *{name}* 🚀
 
 1️⃣ Book Appointment
-2️⃣ Services
+2️⃣ Our Services
 3️⃣ Location
-4️⃣ Contact
+4️⃣ Contact Us
 5️⃣ Pricing
 6️⃣ Exit
 
@@ -760,7 +1036,8 @@ Reply with number 👇
                 r'(\d{1,2})[/-](\d{1,2})\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
                 r'(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
                 r'tomorrow\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
-                r'today\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)'
+                r'today\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
+                r'next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)'
             ]
             
             for pattern in patterns:
@@ -776,6 +1053,16 @@ Reply with number 👇
                     elif len(groups) == 4:  # Today/tomorrow pattern
                         hour, minute, ampm, name = groups
                         date = (datetime.now() + timedelta(days=1 if 'tomorrow' in text else 0)).strftime('%d-%m-%Y')
+                    elif len(groups) == 5:  # Next weekday pattern
+                        weekday, hour, minute, ampm, name = groups
+                        # Calculate next occurrence of weekday
+                        days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                        target_day = days.index(weekday)
+                        current_day = datetime.now().weekday()
+                        days_ahead = target_day - current_day
+                        if days_ahead <= 0:
+                            days_ahead += 7
+                        date = (datetime.now() + timedelta(days=days_ahead)).strftime('%d-%m-%Y')
                     else:
                         continue
                     
@@ -855,7 +1142,8 @@ Reply with number 👇
                     "Examples:\n"
                     "• 15 Mar 3PM John Doe\n"
                     "• 15/03 15:30 John Doe\n"
-                    "• tomorrow 4PM John Doe\n\n"
+                    "• tomorrow 4PM John Doe\n"
+                    "• next Monday 10AM Jane Smith\n\n"
                     "Type 'cancel' to go back"
                 )
             elif options[message] == 'services':
@@ -887,9 +1175,25 @@ Reply with number 👇
                 "❌ Could not understand. Please use format:\n"
                 "• 15 Mar 3PM John Doe\n"
                 "• 15/03 15:30 John Doe\n"
-                "• tomorrow 4PM John Doe\n\n"
+                "• tomorrow 4PM John Doe\n"
+                "• next Monday 10AM Jane Smith\n\n"
                 "Type 'cancel' to go back"
             )
+        
+        # Check for double booking (simplified)
+        existing = db.query(Booking).filter(
+            Booking.business_id == business.id,
+            Booking.booking_date == booking_data['date'],
+            Booking.booking_time == booking_data['time'],
+            Booking.status.in_(['pending', 'confirmed'])
+        ).first()
+        
+        if existing:
+            return f"""
+❌ Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
+
+Please choose another time.
+"""
         
         # Create booking
         booking = Booking(
@@ -921,10 +1225,10 @@ Type 'menu' for main menu 👋
     def _get_services(business) -> str:
         """Get services based on industry"""
         services = {
-            "restaurant": "🍽️ Our Services:\n• Dine-in\n• Takeaway\n• Delivery\n• Private Events",
-            "salon": "💇 Our Services:\n• Haircut\n• Styling\n• Coloring\n• Facial\n• Manicure/Pedicure",
+            "restaurant": "🍽️ Our Services:\n• Dine-in\n• Takeaway\n• Delivery\n• Private Events\n• Catering",
+            "salon": "💇 Our Services:\n• Haircut & Styling\n• Coloring\n• Facial\n• Manicure/Pedicure\n• Massage",
             "gym": "💪 Our Services:\n• Personal Training\n• Group Classes\n• Yoga\n• CrossFit\n• Nutrition Counseling",
-            "clinic": "🏥 Our Services:\n• General Consultation\n• Specialist Visit\n• Health Checkup\n• Vaccination",
+            "clinic": "🏥 Our Services:\n• General Consultation\n• Specialist Visit\n• Health Checkup\n• Vaccination\n• Lab Tests",
         }
         return services.get(business.business_type.lower(), "📋 Check our website for complete services.")
     
@@ -961,335 +1265,19 @@ For urgent inquiries, please call during business hours.
 Basic consultation: ₹500
 Premium services: Starting at ₹1000
 
-Check our website for detailed pricing.
+Check our website for detailed pricing and packages.
 """
-
-# =====================================================
-# HEALTH CHECK
-# =====================================================
-
-@app.get("/health")
-async def health_check(db=Depends(get_db)):
-    """Health check endpoint with database verification"""
-    try:
-        from sqlalchemy import text
-        
-        # Test database connection - FIXED with text()
-        db.execute(text("SELECT 1")).first()
-        db_status = "healthy"
-        
-        # Check critical services
-        services = {
-            "razorpay": "configured" if razorpay_client else "not configured",
-            "sendgrid": "configured" if SENDGRID_API_KEY else "not configured",
-            "database": "connected"
-        }
-        
-        return {
-            "status": "ok",
-            "version": APP_VERSION,
-            "environment": ENVIRONMENT,
-            "timestamp": datetime.utcnow().isoformat(),
-            "services": services
-        }
-    except Exception as e:
-        logger.error(f"Health check error: {str(e)}")
-        return {
-            "status": "degraded",
-            "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
-        }
-
-# =====================================================
-# HOME PAGE
-# =====================================================
-
-@app.get("/", response_class=HTMLResponse)
-async def home(req: Request):
-    """Home page"""
-    try:
-        return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": req,
-                "logged": is_logged(req),
-                "year": datetime.now().year
-            }
-        )
-    except Exception as e:
-        logger.error(f"Home page error: {str(e)}")
-        return templates.TemplateResponse(
-            "500.html",
-            {"request": req, "error": "An error occurred loading the page"},
-            status_code=500
-        )
-
-# =====================================================
-# AUTHENTICATION ROUTES
-# =====================================================
-
-@app.get("/login", response_class=HTMLResponse)
-async def login_page(req: Request):
-    """Login page"""
-    if is_logged(req):
-        return RedirectResponse("/dashboard", 302)
-    
-    error = req.session.pop("login_error", None)
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": req, "error": error}
-    )
-
-@app.post("/login")
-async def login(
-    req: Request,
-    email: str = Form(...),
-    password: str = Form(...),
-    remember: bool = Form(False),
-    db=Depends(get_db)
-):
-    """Login handler"""
-    try:
-        email = email.lower().strip()
-        user = db.query(Business).filter(Business.admin_email == email).first()
-        
-        if not user or not verify_password(password, user.admin_password):
-            logger.warning(f"Failed login attempt for email: {email}")
-            req.session["login_error"] = "Invalid email or password"
-            return RedirectResponse("/login", 302)
-        
-        if not user.is_active:
-            logger.warning(f"Inactive account login attempt: {email}")
-            req.session["login_error"] = "Account is disabled. Please contact support."
-            return RedirectResponse("/login", 302)
-        
-        # Set session
-        req.session["business_id"] = user.id
-        if remember:
-            req.session["max_age"] = 60 * 60 * 24 * 30  # 30 days
-        
-        # Update last login
-        user.last_login = datetime.utcnow()
-        db.commit()
-        
-        logger.info(f"✅ User logged in: {email}")
-        
-        # Redirect to intended page or dashboard
-        next_url = req.session.pop("next", "/dashboard")
-        return RedirectResponse(next_url, 302)
-        
-    except Exception as e:
-        logger.error(f"Login error: {str(e)}")
-        req.session["login_error"] = "An error occurred. Please try again."
-        return RedirectResponse("/login", 302)
-
-@app.get("/logout")
-async def logout(req: Request):
-    """Logout handler"""
-    user_id = req.session.get("business_id")
-    req.session.clear()
-    logger.info(f"User logged out: {user_id}")
-    return RedirectResponse("/", 302)
-
-@app.get("/test-template")
-async def test_template(req: Request):
-    """Simple test route"""
-    try:
-        return templates.TemplateResponse("test.html", {"request": req})
-    except Exception as e:
-        return {"error": str(e)}
-# =====================================================
-# SIGNUP ROUTES
-# =====================================================
-
-@app.get("/signup", response_class=HTMLResponse)
-async def signup_page(req: Request, plan: str = None):
-    """Signup page"""
-    if is_logged(req):
-        return RedirectResponse("/dashboard", 302)
-    
-    return templates.TemplateResponse(
-        "signup.html",
-        {
-            "request": req,
-            "plan": plan,
-            "plans": PLANS
-        }
-    )
-
-@app.post("/signup")
-async def signup(
-    req: Request,
-    name: str = Form(...),
-    phone: str = Form(...),
-    email: str = Form(...),
-    password: str = Form(...),
-    business_type: str = Form(...),
-    db=Depends(get_db)
-):
-    """Signup handler"""
-    try:
-        phone = WhatsAppBot.clean_phone(phone)
-        email = email.lower().strip()
-        name = sanitize_input(name)
-        
-        # Validate password strength
-        is_valid, msg = validate_password_strength(password)
-        if not is_valid:
-            return templates.TemplateResponse(
-                "signup.html",
-                {
-                    "request": req,
-                    "error": msg,
-                    "plans": PLANS
-                }
-            )
-        
-        # Check if user exists
-        existing = db.query(Business).filter(
-            (Business.admin_email == email) | (Business.whatsapp_number == phone)
-        ).first()
-        
-        if existing:
-            return templates.TemplateResponse(
-                "signup.html",
-                {
-                    "request": req,
-                    "error": "Email or phone already registered",
-                    "plans": PLANS
-                }
-            )
-        
-        # Create user
-        user = Business(
-            name=name,
-            whatsapp_number=phone,
-            admin_email=email,
-            admin_password=hash_password(password),
-            business_type=business_type,
-            plan="trial",
-            is_active=True,
-            chat_used=0,
-            chat_limit=1000,
-            onboarding_done=False,
-            created_at=datetime.utcnow(),
-            trial_ends_at=datetime.utcnow() + timedelta(days=7)
-        )
-        
-        db.add(user)
-        db.commit()
-        
-        # Set session
-        req.session["business_id"] = user.id
-        
-        # Send welcome email (async)
-        await EmailService.send_email(
-            email,
-            "Welcome to BizFlow AI!",
-            "welcome",
-            {"name": name}
-        )
-        
-        logger.info(f"✅ New user signed up: {email}")
-        
-        return RedirectResponse("/onboarding", 302)
-        
-    except IntegrityError:
-        logger.error(f"Signup integrity error for email: {email}")
-        db.rollback()
-        return templates.TemplateResponse(
-            "signup.html",
-            {
-                "request": req,
-                "error": "An account with this email already exists",
-                "plans": PLANS
-            }
-        )
-    except Exception as e:
-        logger.error(f"Signup error: {str(e)}")
-        db.rollback()
-        return templates.TemplateResponse(
-            "signup.html",
-            {
-                "request": req,
-                "error": "An error occurred. Please try again.",
-                "plans": PLANS
-            }
-        )
-
-# =====================================================
-# DASHBOARD
-# =====================================================
-
-@app.get("/dashboard", response_class=HTMLResponse)
-@login_required
-async def dashboard(req: Request, db=Depends(get_db)):
-    """User dashboard"""
-    try:
-        user = get_user(req, db)
-        if not user:
-            return RedirectResponse("/login", 302)
-        
-        # Get real data
-        bookings = db.query(Booking).filter(Booking.business_id == user.id).order_by(Booking.created_at.desc()).limit(5).all()
-        total_bookings = len(bookings)
-        
-        analytics = {
-            "conversations": user.chat_used or 0,
-            "bookings": total_bookings,
-            "conversion": 0
-        }
-        
-        # Use the simple template
-        return templates.TemplateResponse(
-            "dashboard_simple.html",
-            {
-                "request": req,
-                "business": user,
-                "bookings": bookings,
-                "analytics": analytics
-            }
-        )
-    except Exception as e:
-        logger.error(f"Dashboard error: {str(e)}")
-        return HTMLResponse(f"<h1>Error</h1><pre>{str(e)}</pre>")
-# =====================================================
-# ONBOARDING
-# =====================================================
-
-@app.get("/onboarding", response_class=HTMLResponse)
-@login_required
-async def onboarding(req: Request, db=Depends(get_db)):
-    """Onboarding wizard for new users"""
-    try:
-        user = get_user(req, db)
-        if not user:
-            return RedirectResponse("/login", 302)
-        
-        if user.onboarding_done:
-            return RedirectResponse("/dashboard", 302)
-        
-        # Use the simple template
-        return templates.TemplateResponse(
-            "onboarding_simple.html",
-            {
-                "request": req,
-                "business": user
-            }
-        )
-    except Exception as e:
-        logger.error(f"Onboarding error: {str(e)}")
-        return HTMLResponse(f"<h1>Error</h1><pre>{str(e)}</pre>")
 
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
 
 @app.post("/webhook/whatsapp")
-async def whatsapp_webhook(req: Request, db=Depends(get_db)):
+@rate_limit("60/minute")
+async def whatsapp_webhook(request: Request, db: Session = Depends(get_db)):
     """WhatsApp webhook handler"""
     try:
-        form = await req.form()
+        form = await request.form()
         raw_phone = form.get("From", "")
         message = form.get("Body", "")
         
@@ -1306,7 +1294,7 @@ async def whatsapp_webhook(req: Request, db=Depends(get_db)):
                 "👋 Welcome to BizFlow AI!\n\n"
                 "This WhatsApp number is not registered with any business.\n\n"
                 "If you're a business owner, sign up at:\n"
-                f"{BASE_URL}/signup\n\n"
+                f"{settings.BASE_URL}/signup\n\n"
                 "If you're a customer, please contact the business directly."
             )
         else:
@@ -1335,6 +1323,7 @@ async def whatsapp_webhook(req: Request, db=Depends(get_db)):
         
     except Exception as e:
         logger.error(f"WhatsApp webhook error: {str(e)}")
+        logger.error(traceback.format_exc())
         resp = MessagingResponse()
         resp.message("❌ An error occurred. Please try again later.")
         return Response(
@@ -1349,10 +1338,10 @@ async def whatsapp_webhook(req: Request, db=Depends(get_db)):
 
 @app.get("/billing", response_class=HTMLResponse)
 @login_required
-async def billing_page(req: Request, db=Depends(get_db)):
+async def billing_page(request: Request, db: Session = Depends(get_db)):
     """Billing and subscription page"""
     try:
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
@@ -1365,24 +1354,27 @@ async def billing_page(req: Request, db=Depends(get_db)):
         return templates.TemplateResponse(
             "billing.html",
             {
-                "request": req,
+                "request": request,
                 "business": user,
                 "payments": payments,
-                "razorpay_key": RAZORPAY_KEY,
+                "razorpay_key": settings.RAZORPAY_KEY,
                 "plans": PLANS,
                 "current_plan": user.plan
             }
         )
     except Exception as e:
         logger.error(f"Billing page error: {str(e)}")
+        logger.error(traceback.format_exc())
         return templates.TemplateResponse(
             "500.html",
-            {"request": req, "error": "An error occurred loading the billing page"},
+            {"request": request, "error": "An error occurred loading the billing page"},
             status_code=500
         )
 
 @app.post("/api/create-order")
-async def create_order(req: Request, db=Depends(get_db)):
+@login_required
+@rate_limit("10/minute")
+async def create_order(request: Request, db: Session = Depends(get_db)):
     """Create Razorpay order"""
     try:
         if not razorpay_client:
@@ -1392,14 +1384,14 @@ async def create_order(req: Request, db=Depends(get_db)):
                 content={"error": "Payment service temporarily unavailable"}
             )
         
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return JSONResponse(
                 status_code=401,
                 content={"error": "Authentication required"}
             )
         
-        data = await req.json()
+        data = await request.json()
         plan = data.get("plan")
         
         if plan not in PLANS:
@@ -1429,7 +1421,7 @@ async def create_order(req: Request, db=Depends(get_db)):
             "order_id": order["id"],
             "amount": amount,
             "currency": "INR",
-            "key": RAZORPAY_KEY,
+            "key": settings.RAZORPAY_KEY,
             "name": user.name,
             "email": user.admin_email,
             "phone": user.whatsapp_number,
@@ -1444,24 +1436,26 @@ async def create_order(req: Request, db=Depends(get_db)):
         )
     except Exception as e:
         logger.error(f"Order creation error: {str(e)}")
+        logger.error(traceback.format_exc())
         return JSONResponse(
             status_code=500,
             content={"error": "Failed to create order. Please try again."}
         )
 
 @app.post("/api/payment-success")
-async def payment_success(req: Request, db=Depends(get_db)):
+@login_required
+async def payment_success(request: Request, db: Session = Depends(get_db)):
     """Handle successful payment"""
     try:
         if not razorpay_client:
             logger.error("Razorpay client not initialized")
             return {"status": "error", "message": "Payment service unavailable"}
         
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return {"status": "error", "message": "User not authenticated"}
         
-        data = await req.json()
+        data = await request.json()
         
         # Verify signature
         razorpay_client.utility.verify_payment_signature(data)
@@ -1503,19 +1497,28 @@ async def payment_success(req: Request, db=Depends(get_db)):
         user.paid_until = datetime.utcnow() + timedelta(days=30)
         db.commit()
         
+        # Log audit
+        log_audit(user.id, "payment", {
+            "plan": plan,
+            "amount": amount_paid / 100,
+            "payment_id": payment_id
+        }, db)
+        
         logger.info(f"✅ Payment success: {payment_id} | User: {user.id} | Plan: {plan}")
         
         # Send confirmation email (async)
-        await EmailService.send_email(
-            user.admin_email,
-            "Payment Successful!",
-            "payment_success",
-            {
-                "plan": plan.upper(),
-                "amount": amount_paid / 100,
-                "payment_id": payment_id,
-                "valid_until": user.paid_until.strftime('%d %B %Y')
-            }
+        asyncio.create_task(
+            EmailService.send_email(
+                user.admin_email,
+                "Payment Successful!",
+                "payment_success",
+                {
+                    "plan": plan.upper(),
+                    "amount": amount_paid / 100,
+                    "payment_id": payment_id,
+                    "valid_until": user.paid_until.strftime('%d %B %Y')
+                }
+            )
         )
         
         return {
@@ -1529,21 +1532,22 @@ async def payment_success(req: Request, db=Depends(get_db)):
         return {"status": "error", "message": "Payment verification failed"}
     except Exception as e:
         logger.error(f"Payment success error: {str(e)}")
+        logger.error(traceback.format_exc())
         return {"status": "error", "message": "An error occurred processing your payment"}
 
 @app.post("/api/razorpay-webhook")
-async def razorpay_webhook(req: Request):
+async def razorpay_webhook(request: Request):
     """Razorpay webhook handler for async events"""
-    if not RAZORPAY_WEBHOOK_SECRET:
+    if not settings.RAZORPAY_WEBHOOK_SECRET:
         return {"status": "webhook disabled"}
     
     try:
         # Verify webhook signature
-        body = await req.body()
-        signature = req.headers.get("x-razorpay-signature")
+        body = await request.body()
+        signature = request.headers.get("x-razorpay-signature")
         
         expected_signature = hmac.new(
-            key=RAZORPAY_WEBHOOK_SECRET.encode(),
+            key=settings.RAZORPAY_WEBHOOK_SECRET.encode(),
             msg=body,
             digestmod=hashlib.sha256
         ).hexdigest()
@@ -1558,13 +1562,32 @@ async def razorpay_webhook(req: Request):
         
         logger.info(f"📡 Razorpay webhook: {event}")
         
-        # Handle webhook events in a background task
-        # For now, just acknowledge
+        # Handle different events asynchronously
+        asyncio.create_task(handle_razorpay_webhook_event(data))
+        
         return {"status": "received"}
         
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+async def handle_razorpay_webhook_event(data: dict):
+    """Handle razorpay webhook events asynchronously"""
+    event = data.get("event")
+    payload = data.get("payload", {})
+    
+    if event == "payment.failed":
+        payment_id = payload.get("payment", {}).get("entity", {}).get("id")
+        logger.warning(f"Payment failed: {payment_id}")
+        # Handle failed payment (e.g., notify user)
+    
+    elif event == "subscription.charged":
+        # Handle recurring payment success
+        pass
+    
+    elif event == "subscription.paused":
+        # Handle subscription paused
+        pass
 
 # =====================================================
 # ADMIN ROUTES
@@ -1572,7 +1595,7 @@ async def razorpay_webhook(req: Request):
 
 @app.get("/admin", response_class=HTMLResponse)
 @admin_required
-async def admin_dashboard(req: Request, db=Depends(get_db)):
+async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
     try:
         # Get all users
@@ -1595,7 +1618,7 @@ async def admin_dashboard(req: Request, db=Depends(get_db)):
         return templates.TemplateResponse(
             "admin_dashboard.html",
             {
-                "request": req,
+                "request": request,
                 "users": users,
                 "stats": {
                     "total_users": total_users,
@@ -1604,18 +1627,20 @@ async def admin_dashboard(req: Request, db=Depends(get_db)):
                     "total_revenue": total_revenue,
                     "total_bookings": total_bookings,
                     "pro_users": len([u for u in users if u.plan == "pro"]),
-                    "trial_users": len([u for u in users if u.plan == "trial"])
+                    "trial_users": len([u for u in users if u.plan == "trial"]),
+                    "enterprise_users": len([u for u in users if u.plan == "enterprise"])
                 },
                 "recent_payments": recent_payments
             }
         )
     except Exception as e:
         logger.error(f"Admin dashboard error: {str(e)}")
+        logger.error(traceback.format_exc())
         return RedirectResponse("/dashboard", 302)
 
 @app.post("/admin/toggle-user/{user_id}")
 @admin_required
-async def toggle_user(user_id: int, req: Request, db=Depends(get_db)):
+async def toggle_user(user_id: int, request: Request, db: Session = Depends(get_db)):
     """Enable/disable user account"""
     try:
         user = db.query(Business).get(user_id)
@@ -1625,7 +1650,14 @@ async def toggle_user(user_id: int, req: Request, db=Depends(get_db)):
         user.is_active = not user.is_active
         db.commit()
         
-        logger.info(f"Admin toggled user {user_id} to {user.is_active}")
+        # Log audit
+        admin = get_user(request, db)
+        log_audit(admin.id, "admin_toggle_user", {
+            "target_user": user_id,
+            "new_status": user.is_active
+        }, db)
+        
+        logger.info(f"Admin {admin.id} toggled user {user_id} to {user.is_active}")
         
         return {"status": "success", "is_active": user.is_active}
         
@@ -1635,7 +1667,7 @@ async def toggle_user(user_id: int, req: Request, db=Depends(get_db)):
 
 @app.post("/admin/make-admin/{user_id}")
 @admin_required
-async def make_admin(user_id: int, req: Request, db=Depends(get_db)):
+async def make_admin(user_id: int, request: Request, db: Session = Depends(get_db)):
     """Make user admin"""
     try:
         user = db.query(Business).get(user_id)
@@ -1645,7 +1677,13 @@ async def make_admin(user_id: int, req: Request, db=Depends(get_db)):
         user.is_admin = True
         db.commit()
         
-        logger.info(f"Admin made user {user_id} an admin")
+        # Log audit
+        admin = get_user(request, db)
+        log_audit(admin.id, "admin_make_admin", {
+            "target_user": user_id
+        }, db)
+        
+        logger.info(f"Admin {admin.id} made user {user_id} an admin")
         
         return {"status": "success"}
         
@@ -1653,23 +1691,58 @@ async def make_admin(user_id: int, req: Request, db=Depends(get_db)):
         logger.error(f"Make admin error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": "Failed to update user"})
 
+@app.delete("/admin/delete-user/{user_id}")
+@admin_required
+async def delete_user(user_id: int, request: Request, db: Session = Depends(get_db)):
+    """Delete user account (soft delete)"""
+    try:
+        user = db.query(Business).get(user_id)
+        if not user:
+            return JSONResponse(status_code=404, content={"error": "User not found"})
+        
+        # Store info before deletion
+        user_email = user.admin_email
+        user_name = user.name
+        
+        # Soft delete - just mark inactive and remove sensitive data
+        user.is_active = False
+        user.admin_email = f"deleted_{user.id}@deleted.com"
+        user.whatsapp_number = f"deleted_{user.id}"
+        db.commit()
+        
+        # Log audit
+        admin = get_user(request, db)
+        log_audit(admin.id, "admin_delete_user", {
+            "target_user": user_id,
+            "target_email": user_email,
+            "target_name": user_name
+        }, db)
+        
+        logger.info(f"Admin {admin.id} deleted user {user_id}")
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        logger.error(f"Delete user error: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": "Failed to delete user"})
+
 # =====================================================
 # USER ROUTES
 # =====================================================
 
 @app.get("/settings", response_class=HTMLResponse)
 @login_required
-async def settings_page(req: Request, db=Depends(get_db)):
+async def settings_page(request: Request, db: Session = Depends(get_db)):
     """User settings page"""
     try:
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
         return templates.TemplateResponse(
             "settings.html",
             {
-                "request": req,
+                "request": request,
                 "business": user
             }
         )
@@ -1680,16 +1753,16 @@ async def settings_page(req: Request, db=Depends(get_db)):
 @app.post("/settings")
 @login_required
 async def update_settings(
-    req: Request,
+    request: Request,
     name: str = Form(...),
     whatsapp: str = Form(...),
     business_goal: str = Form(None),
     business_address: str = Form(None),
-    db=Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Update user settings"""
     try:
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
@@ -1707,7 +1780,7 @@ async def update_settings(
         return templates.TemplateResponse(
             "settings.html",
             {
-                "request": req,
+                "request": request,
                 "business": user,
                 "success": "Settings updated successfully!"
             }
@@ -1723,15 +1796,15 @@ async def update_settings(
 
 @app.get("/bookings", response_class=HTMLResponse)
 @login_required
-async def bookings_page(req: Request, db=Depends(get_db)):
+async def bookings_page(request: Request, db: Session = Depends(get_db)):
     """View all bookings"""
     try:
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
         # Get all bookings with filters
-        status_filter = req.query_params.get("status")
+        status_filter = request.query_params.get("status")
         query = db.query(Booking).filter(Booking.business_id == user.id)
         
         if status_filter and status_filter != "all":
@@ -1742,7 +1815,7 @@ async def bookings_page(req: Request, db=Depends(get_db)):
         return templates.TemplateResponse(
             "bookings.html",
             {
-                "request": req,
+                "request": request,
                 "business": user,
                 "bookings": bookings,
                 "current_filter": status_filter or "all"
@@ -1754,10 +1827,10 @@ async def bookings_page(req: Request, db=Depends(get_db)):
 
 @app.post("/api/bookings/{booking_id}/cancel")
 @login_required
-async def cancel_booking(booking_id: int, req: Request, db=Depends(get_db)):
+async def cancel_booking(booking_id: int, request: Request, db: Session = Depends(get_db)):
     """Cancel a booking"""
     try:
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return JSONResponse(status_code=401, content={"error": "Unauthorized"})
         
@@ -1783,10 +1856,10 @@ async def cancel_booking(booking_id: int, req: Request, db=Depends(get_db)):
 
 @app.get("/export/bookings")
 @login_required
-async def export_bookings(req: Request, db=Depends(get_db)):
+async def export_bookings(request: Request, db: Session = Depends(get_db)):
     """Export bookings as CSV"""
     try:
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
@@ -1795,7 +1868,7 @@ async def export_bookings(req: Request, db=Depends(get_db)):
         writer = csv.writer(output)
         
         # Write header
-        writer.writerow(['ID', 'Name', 'Phone', 'Date', 'Time', 'Status', 'Created At'])
+        writer.writerow(['ID', 'Name', 'Phone', 'Email', 'Date', 'Time', 'Status', 'Created At'])
         
         # Write data
         bookings = db.query(Booking)\
@@ -1808,6 +1881,7 @@ async def export_bookings(req: Request, db=Depends(get_db)):
                 b.id,
                 b.name,
                 b.phone,
+                b.email or '',
                 b.booking_date,
                 b.booking_time,
                 b.status,
@@ -1833,45 +1907,45 @@ async def export_bookings(req: Request, db=Depends(get_db)):
 # =====================================================
 
 @app.get("/privacy", response_class=HTMLResponse)
-async def privacy(req: Request):
+async def privacy(request: Request):
     """Privacy policy page"""
     return templates.TemplateResponse(
         "privacy.html",
-        {"request": req, "now": datetime.utcnow()}
+        {"request": request, "now": datetime.utcnow()}
     )
 
 @app.get("/terms", response_class=HTMLResponse)
-async def terms(req: Request):
+async def terms(request: Request):
     """Terms of service page"""
     return templates.TemplateResponse(
         "terms.html",
-        {"request": req, "now": datetime.utcnow()}
+        {"request": request, "now": datetime.utcnow()}
     )
 
 @app.get("/refund", response_class=HTMLResponse)
-async def refund(req: Request):
+async def refund(request: Request):
     """Refund policy page"""
     return templates.TemplateResponse(
         "refund.html",
-        {"request": req, "now": datetime.utcnow()}
+        {"request": request, "now": datetime.utcnow()}
     )
 
 @app.get("/about", response_class=HTMLResponse)
-async def about(req: Request):
+async def about(request: Request):
     """About page"""
     return templates.TemplateResponse(
         "about.html",
-        {"request": req, "now": datetime.utcnow()}
+        {"request": request, "now": datetime.utcnow()}
     )
 
 @app.get("/contact", response_class=HTMLResponse)
-async def contact(req: Request):
+async def contact(request: Request):
     """Contact page"""
     return templates.TemplateResponse(
         "contact.html",
         {
-            "request": req,
-            "support_email": SUPPORT_EMAIL,
+            "request": request,
+            "support_email": settings.SUPPORT_EMAIL,
             "now": datetime.utcnow()
         }
     )
@@ -1880,17 +1954,17 @@ async def contact(req: Request):
 # DEBUG ROUTES (Development Only)
 # =====================================================
 
-if ENVIRONMENT == "development":
+if settings.DEBUG:
     
     @app.get("/debug/razorpay")
     async def debug_razorpay():
         """Debug Razorpay configuration"""
         return {
-            "key_present": bool(RAZORPAY_KEY),
-            "secret_present": bool(RAZORPAY_SECRET),
+            "key_present": bool(settings.RAZORPAY_KEY),
+            "secret_present": bool(settings.RAZORPAY_SECRET),
             "client_initialized": razorpay_client is not None,
-            "key_prefix": RAZORPAY_KEY[:10] + "..." if RAZORPAY_KEY else None,
-            "environment": ENVIRONMENT
+            "key_prefix": settings.RAZORPAY_KEY[:10] + "..." if settings.RAZORPAY_KEY else None,
+            "environment": settings.ENVIRONMENT
         }
     
     @app.get("/debug/email")
@@ -1905,10 +1979,9 @@ if ENVIRONMENT == "development":
         return {"email_sent": result}
     
     @app.get("/debug/db")
-    async def debug_db(db=Depends(get_db)):
+    async def debug_db(db: Session = Depends(get_db)):
         """Test database connection"""
         try:
-            from sqlalchemy import text
             result = db.execute("SELECT 1").first()
             return {
                 "database": "connected",
@@ -1916,31 +1989,33 @@ if ENVIRONMENT == "development":
                 "tables": {
                     "businesses": db.query(Business).count(),
                     "bookings": db.query(Booking).count(),
-                    "payments": db.query(Payment).count()
+                    "payments": db.query(Payment).count(),
+                    "audit_logs": db.query(AuditLog).count(),
+                    "conversations": db.query(Conversation).count()
                 }
             }
         except Exception as e:
             return {"database": "error", "error": str(e)}
     
     @app.get("/debug/session")
-    async def debug_session(req: Request):
+    async def debug_session(request: Request):
         """Debug session data"""
         return {
-            "session_id": req.session.get("business_id"),
-            "session_data": dict(req.session)
+            "session_id": request.session.get("business_id"),
+            "session_data": dict(request.session)
         }
 
 @app.get("/debug/session")
-async def debug_session(req: Request, db=Depends(get_db)):
+async def debug_session(request: Request, db: Session = Depends(get_db)):
     """Debug session and user data"""
     results = {
-        "is_logged": is_logged(req),
-        "session_id": req.session.get("business_id"),
-        "session_data": dict(req.session),
+        "is_logged": is_logged(request),
+        "session_id": request.session.get("business_id"),
+        "session_data": dict(request.session),
     }
     
-    if is_logged(req):
-        user = get_user(req, db)
+    if is_logged(request):
+        user = get_user(request, db)
         if user:
             results["user"] = {
                 "id": user.id,
@@ -1958,16 +2033,16 @@ async def debug_session(req: Request, db=Depends(get_db)):
     return results
 
 @app.get("/debug/dashboard-raw")
-async def debug_dashboard_raw(req: Request, db=Depends(get_db)):
+async def debug_dashboard_raw(request: Request, db: Session = Depends(get_db)):
     """Raw dashboard debug - no templates"""
     try:
         # Check login
-        if not is_logged(req):
-            return {"error": "Not logged in", "session": dict(req.session)}
+        if not is_logged(request):
+            return {"error": "Not logged in", "session": dict(request.session)}
         
-        user = get_user(req, db)
+        user = get_user(request, db)
         if not user:
-            return {"error": "User not found in database", "session_id": req.session.get("business_id")}
+            return {"error": "User not found in database", "session_id": request.session.get("business_id")}
         
         # Test each database query
         results = {
@@ -2032,61 +2107,6 @@ async def debug_templates():
         "templates": files,
         "working_dir": os.getcwd()
     }
-# =====================================================
-# ERROR HANDLERS
-# =====================================================
-
-@app.exception_handler(404)
-async def not_found_handler(req: Request, exc):
-    """Custom 404 handler"""
-    return templates.TemplateResponse(
-        "404.html",
-        {"request": req},
-        status_code=404
-    )
-
-@app.exception_handler(500)
-async def internal_error_handler(req: Request, exc):
-    """Custom 500 handler"""
-    logger.error(f"500 error: {str(exc)}")
-    logger.error(traceback.format_exc())
-    return templates.TemplateResponse(
-        "500.html",
-        {"request": req},
-        status_code=500
-    )
-
-@app.exception_handler(HTTPException)
-async def http_exception_handler(req: Request, exc: HTTPException):
-    """Custom HTTP exception handler"""
-    if exc.status_code == 401:
-        return RedirectResponse("/login", 302)
-    return templates.TemplateResponse(
-        "error.html",
-        {"request": req, "error": exc.detail, "status_code": exc.status_code},
-        status_code=exc.status_code
-    )
-
-# =====================================================
-# STARTUP/SHUTDOWN EVENTS
-# =====================================================
-
-@app.on_event("startup")
-async def startup_event():
-    """Tasks to run on startup"""
-    logger.info("=" * 60)
-    logger.info(f"🚀 {APP_NAME} v{APP_VERSION} starting...")
-    logger.info(f"🌍 Environment: {ENVIRONMENT}")
-    logger.info(f"🔗 Base URL: {BASE_URL}")
-    logger.info(f"💳 Razorpay: {'✅ Configured' if razorpay_client else '❌ Not configured'}")
-    logger.info(f"📧 SendGrid: {'✅ Configured' if SENDGRID_API_KEY else '❌ Not configured'}")
-    logger.info(f"📊 Database: Connected")
-    logger.info("=" * 60)
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Tasks to run on shutdown"""
-    logger.info(f"👋 {APP_NAME} shutting down...")
 
 # =====================================================
 # MAIN ENTRY POINT
@@ -2099,7 +2119,7 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=DEBUG,
-        log_level="debug" if DEBUG else "info",
-        workers=1  # Start with 1 worker, increase in production if needed
+        reload=settings.DEBUG,
+        log_level="debug" if settings.DEBUG else "info",
+        workers=4 if not settings.DEBUG else 1  # Multiple workers in production
     )
