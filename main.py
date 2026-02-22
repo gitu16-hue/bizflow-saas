@@ -318,8 +318,10 @@ app.add_middleware(PerformanceMiddleware)
 # TEMPLATES & STATIC FILES
 # =====================================================
 
-templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+# Disable template caching to ensure updates are picked up
+templates.env.cache = None
 
 # =====================================================
 # DATABASE DEPENDENCY
@@ -384,62 +386,32 @@ async def debug_admin_status(request: Request, db: Session = Depends(get_db)):
         "session_id": user_id,
         "session_matches": user.id == user_id
     }
-@app.get("/debug/fix-admin")
-async def fix_admin(request: Request, db: Session = Depends(get_db)):
-    """Debug and fix admin session issues"""
-    user_id = request.session.get("business_id")
+@app.get("/debug/check-template")
+async def check_template():
+    """Check which templates exist and their contents"""
+    import os
+    template_dir = "templates"
     results = {
-        "session_exists": user_id is not None,
-        "session_user_id": user_id,
+        "templates_exist": os.path.exists(template_dir),
+        "templates": []
     }
     
-    if not user_id:
-        return {"error": "Not logged in", "results": results}
-    
-    # Get user from database
-    user = db.query(Business).get(user_id)
-    if not user:
-        return {"error": "User not found in database", "results": results}
-    
-    results["database_user"] = {
-        "id": user.id,
-        "email": user.admin_email,
-        "is_admin": user.is_admin,
-        "name": user.name,
-        "plan": user.plan
-    }
-    
-    # Force session refresh
-    request.session["business_id"] = user.id
-    request.session["admin_checked"] = True
-    
-    results["session_refreshed"] = True
-    results["session_data"] = dict(request.session)
+    if os.path.exists(template_dir):
+        for file in os.listdir(template_dir):
+            if file.endswith('.html'):
+                file_path = os.path.join(template_dir, file)
+                with open(file_path, 'r') as f:
+                    content = f.read()
+                    # Check if this template has the admin panel code
+                    has_admin_code = 'Admin Panel' in content
+                    results['templates'].append({
+                        'name': file,
+                        'size': len(content),
+                        'has_admin_code': has_admin_code,
+                        'modified': os.path.getmtime(file_path)
+                    })
     
     return results
-
-@app.get("/debug/dashboard-data")
-@login_required
-async def debug_dashboard_data(request: Request, db: Session = Depends(get_db)):
-    """Debug what data is being sent to dashboard"""
-    user = get_user(request, db)
-    if not user:
-        return {"error": "User not found"}
-    
-    return {
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.admin_email,
-            "is_admin": user.is_admin,
-            "plan": user.plan
-        },
-        "template_data": {
-            "business.is_admin": user.is_admin,
-            "business.id": user.id,
-            "business.name": user.name
-        }
-    }
 
 # =====================================================
 # SECURITY UTILITIES
