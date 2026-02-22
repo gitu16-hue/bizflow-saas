@@ -4,78 +4,141 @@
 # =====================================================
 
 import sys
-import traceback
+import os
+
+# Force unbuffered output
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
+print("=" * 60, flush=True)
+print("🚀 BIZFLOW AI STARTUP SEQUENCE", flush=True)
+print("=" * 60, flush=True)
+print(f"Python version: {sys.version}", flush=True)
+print(f"Current directory: {os.getcwd()}", flush=True)
+print(f"Files in root: {os.listdir('.')}", flush=True)
+print(f"Environment variables keys: {list(os.environ.keys())}", flush=True)
+print("=" * 60, flush=True)
 
 try:
-    # ================= PATCHES =================
+    # ================= STEP 1: PATCHES =================
+    print("\n📦 STEP 1: Loading patches...", flush=True)
     try:
         import patch_pydantic
-        print("✅ Pydantic patch loaded successfully")
+        print("  ✅ Pydantic patch loaded successfully", flush=True)
     except ImportError:
-        print("⚠️ Pydantic patch not found, continuing without it")
+        print("  ⚠️ Pydantic patch not found, continuing without it", flush=True)
     except Exception as e:
-        print(f"⚠️ Error loading patch: {e}")
+        print(f"  ⚠️ Error loading patch: {e}", flush=True)
 
-    # ================= STANDARD LIBRARY =================
+    # ================= STEP 2: STANDARD LIBRARY =================
+    print("\n📦 STEP 2: Loading standard library...", flush=True)
     import os
+    print("  ✅ os", flush=True)
     import re
+    print("  ✅ re", flush=True)
     import logging
+    print("  ✅ logging", flush=True)
     import secrets
+    print("  ✅ secrets", flush=True)
     import hmac
+    print("  ✅ hmac", flush=True)
     import hashlib
+    print("  ✅ hashlib", flush=True)
     from datetime import datetime, timedelta
+    print("  ✅ datetime", flush=True)
     from typing import Optional, Dict, Any, List, Union
+    print("  ✅ typing", flush=True)
     from contextlib import contextmanager
+    print("  ✅ contextlib", flush=True)
     import json
+    print("  ✅ json", flush=True)
     import traceback as tb
+    print("  ✅ traceback", flush=True)
     from functools import wraps
+    print("  ✅ functools", flush=True)
 
-    # ================= THIRD PARTY =================
+    # ================= STEP 3: THIRD PARTY - dotenv =================
+    print("\n📦 STEP 3: Loading third-party packages...", flush=True)
     from dotenv import load_dotenv
     load_dotenv()
+    print("  ✅ dotenv loaded", flush=True)
 
-    # FastAPI & Related
+    # ================= STEP 4: FASTAPI & RELATED =================
+    print("\n📦 STEP 4: Loading FastAPI and related...", flush=True)
     from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, Cookie
+    print("  ✅ fastapi core", flush=True)
     from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
+    print("  ✅ fastapi responses", flush=True)
     from fastapi.templating import Jinja2Templates
+    print("  ✅ Jinja2Templates", flush=True)
     from fastapi.staticfiles import StaticFiles
+    print("  ✅ StaticFiles", flush=True)
     from fastapi.middleware.cors import CORSMiddleware
+    print("  ✅ CORSMiddleware", flush=True)
     from fastapi.middleware.trustedhost import TrustedHostMiddleware
+    print("  ✅ TrustedHostMiddleware", flush=True)
     from fastapi.middleware.gzip import GZipMiddleware
+    print("  ✅ GZipMiddleware", flush=True)
     from fastapi.security import HTTPBasic, HTTPBasicCredentials
+    print("  ✅ HTTPBasic", flush=True)
 
+    # ================= STEP 5: STARLETTE =================
+    print("\n📦 STEP 5: Loading Starlette middleware...", flush=True)
     from starlette.middleware.sessions import SessionMiddleware
+    print("  ✅ SessionMiddleware", flush=True)
     from starlette.middleware.base import BaseHTTPMiddleware
+    print("  ✅ BaseHTTPMiddleware", flush=True)
 
-    # Security
+    # ================= STEP 6: SECURITY =================
+    print("\n📦 STEP 6: Loading security packages...", flush=True)
     from passlib.hash import bcrypt
+    print("  ✅ passlib.bcrypt", flush=True)
     import bcrypt as bcrypt_lib
+    print("  ✅ bcrypt", flush=True)
 
-    # Database
+    # ================= STEP 7: DATABASE =================
+    print("\n📦 STEP 7: Loading database modules...", flush=True)
+    print("  ⏳ Attempting to import from database...", flush=True)
     from database import SessionLocal, engine
+    print("  ✅ SessionLocal, engine", flush=True)
     from models import Base, Business, Booking, Payment, AuditLog, Conversation
+    print("  ✅ All models loaded", flush=True)
 
-    # Email
+    # ================= STEP 8: EMAIL =================
+    print("\n📦 STEP 8: Loading email packages...", flush=True)
     import sendgrid
+    print("  ✅ sendgrid", flush=True)
     from sendgrid.helpers.mail import Mail
+    print("  ✅ Mail helper", flush=True)
 
-    # Payments
+    # ================= STEP 9: PAYMENTS =================
+    print("\n📦 STEP 9: Loading payment packages...", flush=True)
     import razorpay
+    print("  ✅ razorpay", flush=True)
 
-    # Utilities
+    # ================= STEP 10: UTILITIES =================
+    print("\n📦 STEP 10: Loading utilities...", flush=True)
     import pytz
+    print("  ✅ pytz", flush=True)
     import aiofiles
+    print("  ✅ aiofiles", flush=True)
     import csv
+    print("  ✅ csv", flush=True)
     from io import StringIO
+    print("  ✅ StringIO", flush=True)
     from twilio.twiml.messaging_response import MessagingResponse
+    print("  ✅ twilio", flush=True)
     from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+    print("  ✅ SQLAlchemy exceptions", flush=True)
 
-    print("✅ Starting BizFlow AI...")
-    print(f"Python version: {sys.version}")
+    print("\n" + "=" * 60, flush=True)
+    print("✅ ALL IMPORTS SUCCESSFUL", flush=True)
+    print("=" * 60 + "\n", flush=True)
 
     # =====================================================
     # CONFIGURATION & ENVIRONMENT
     # =====================================================
+    print("⚙️ Loading configuration...", flush=True)
     APP_NAME = "BizFlow AI"
     APP_VERSION = "10.1"
     BASE_URL = os.getenv("BASE_URL", "https://bizflowai.online")
@@ -100,6 +163,8 @@ try:
     MAX_LOGIN_ATTEMPTS = 5
     LOGIN_TIMEOUT_MINUTES = 15
 
+    print("  ✅ Configuration loaded", flush=True)
+
     # =====================================================
     # PLANS CONFIGURATION
     # =====================================================
@@ -117,12 +182,77 @@ try:
             "features": ["Unlimited Chats", "Advanced AI", "Auto Reminders", "Calendar Sync", "Priority Support", "Lead Optimization"]
         }
     }
+    print("  ✅ Plans configured", flush=True)
 
-    # [Rest of your code continues here... ALL OF IT must be inside the try block]
+    # [The rest of your FastAPI app code goes here]
+    # =====================================================
+    # FASTAPI APP INITIALIZATION
+    # =====================================================
+    print("\n🚀 Creating FastAPI app...", flush=True)
+    app = FastAPI(
+        title=APP_NAME,
+        version=APP_VERSION,
+        description="Enterprise WhatsApp Business Automation Platform",
+        docs_url="/api/docs" if DEBUG else None,
+        redoc_url="/api/redoc" if DEBUG else None,
+        openapi_url="/api/openapi.json" if DEBUG else None,
+    )
+    print("  ✅ FastAPI app created", flush=True)
+
+    # Add middleware
+    print("  Adding middleware...", flush=True)
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=["bizflowai.online", "*.railway.app", "localhost", "127.0.0.1"],
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "https://bizflowai.online",
+            "http://localhost:8001",
+            "http://127.0.0.1:8001"
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=SECRET_KEY,
+        max_age=60 * 60 * 24 * 14,
+        same_site="lax",
+        https_only=ENVIRONMENT == "production",
+    )
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
+    print("  ✅ Middleware added", flush=True)
+
+    # Static files and templates
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    templates = Jinja2Templates(directory="templates")
+    print("  ✅ Static files and templates mounted", flush=True)
+
+    # Create database tables
+    print("\n🗄️ Creating database tables...", flush=True)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("  ✅ Database tables created successfully", flush=True)
+    except Exception as e:
+        print(f"  ❌ Database table creation failed: {str(e)}", flush=True)
+        raise
+
+    print("\n" + "=" * 60, flush=True)
+    print("🎉 BIZFLOW AI STARTUP COMPLETE", flush=True)
+    print("=" * 60 + "\n", flush=True)
+
+    # [All your route definitions go here...]
+    # (Your existing @app.get, @app.post, etc.)
 
 except Exception as e:
-    print(f"❌ FATAL STARTUP ERROR: {str(e)}")
-    traceback.print_exc()
+    print("\n❌ FATAL STARTUP ERROR:", flush=True)
+    print(f"Error type: {type(e).__name__}", flush=True)
+    print(f"Error message: {str(e)}", flush=True)
+    print("\nTraceback:", flush=True)
+    traceback.print_exc(file=sys.stdout)
     sys.exit(1)
 # =====================================================
 # LOGGING CONFIGURATION
