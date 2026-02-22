@@ -1680,7 +1680,7 @@ async def handle_razorpay_webhook_event(data: dict):
 # ADMIN ROUTES
 # =====================================================
 
-@@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin", response_class=HTMLResponse)
 @admin_required
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
