@@ -407,32 +407,49 @@ async def debug_admin_status(request: Request, db: Session = Depends(get_db)):
         "session_id": user_id,
         "session_matches": user.id == user_id
     }
-@app.get("/debug/check-template")
-async def check_template():
-    """Check which templates exist and their contents"""
-    import os
-    template_dir = "templates"
-    results = {
-        "templates_exist": os.path.exists(template_dir),
-        "templates": []
+@app.get("/debug/session-all")
+async def debug_session_all(request: Request):
+    """Comprehensive session debugging"""
+    return {
+        "session_data": dict(request.session),
+        "session_cookie": request.cookies.get("session"),
+        "all_cookies": dict(request.cookies),
+        "headers": {
+            "host": request.headers.get("host"),
+            "origin": request.headers.get("origin"),
+            "referer": request.headers.get("referer"),
+            "user-agent": request.headers.get("user-agent"),
+            "cookie": request.headers.get("cookie")
+        },
+        "client": {
+            "host": request.client.host if request.client else None,
+            "port": request.client.port if request.client else None
+        }
     }
-    
-    if os.path.exists(template_dir):
-        for file in os.listdir(template_dir):
-            if file.endswith('.html'):
-                file_path = os.path.join(template_dir, file)
-                with open(file_path, 'r') as f:
-                    content = f.read()
-                    # Check if this template has the admin panel code
-                    has_admin_code = 'Admin Panel' in content
-                    results['templates'].append({
-                        'name': file,
-                        'size': len(content),
-                        'has_admin_code': has_admin_code,
-                        'modified': os.path.getmtime(file_path)
-                    })
-    
-    return results
+
+@app.get("/debug/set-session")
+async def set_session(request: Request):
+    """Set a test session value"""
+    request.session["test_value"] = "test123"
+    request.session["test_time"] = str(datetime.utcnow())
+    return {"message": "Session set", "session": dict(request.session)}
+
+class SessionDebugMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Log session before request
+        print(f"Request path: {request.url.path}")
+        print(f"Session before: {dict(request.session)}")
+        
+        response = await call_next(request)
+        
+        # Log session after request
+        print(f"Session after: {dict(request.session)}")
+        print(f"Response headers: {response.headers}")
+        
+        return response
+
+# Add this middleware right after SessionMiddleware
+app.add_middleware(SessionDebugMiddleware)
 
 # =====================================================
 # SECURITY UTILITIES
