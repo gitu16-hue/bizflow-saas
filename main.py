@@ -318,10 +318,8 @@ app.add_middleware(PerformanceMiddleware)
 # TEMPLATES & STATIC FILES
 # =====================================================
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-# Disable template caching to ensure updates are picked up
-templates.env.cache = None
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # =====================================================
 # DATABASE DEPENDENCY
@@ -353,17 +351,40 @@ def admin_required(func):
     """Decorator to require admin privileges"""
     @wraps(func)
     async def wrapper(request: Request, db: Session = Depends(get_db), *args, **kwargs):
-        if not request.session.get("business_id"):
+        # Debug logging
+        print("=" * 50)
+        print("🔐 ADMIN REQUIRED DECORATOR CHECK")
+        
+        # Check session
+        business_id = request.session.get("business_id")
+        print(f"Session business_id: {business_id}")
+        
+        if not business_id:
+            print("❌ Not logged in, redirecting to login")
             request.session["next"] = request.url.path
             return RedirectResponse("/login", 302)
         
-        user = db.query(Business).get(request.session["business_id"])
-        if not user or not user.is_admin:
+        # Get user from database
+        user = db.query(Business).get(business_id)
+        print(f"Database user found: {user is not None}")
+        
+        if user:
+            print(f"User ID: {user.id}")
+            print(f"User Email: {user.admin_email}")
+            print(f"User is_admin: {user.is_admin}")
+        else:
+            print("❌ User not found in database")
             return RedirectResponse("/dashboard", 302)
+        
+        if not user.is_admin:
+            print("❌ User is not admin, redirecting to dashboard")
+            return RedirectResponse("/dashboard", 302)
+        
+        print("✅ Admin check passed, proceeding to admin route")
+        print("=" * 50)
         
         return await func(request, db, *args, **kwargs)
     return wrapper
-
 def rate_limit(limit: str):
     """Rate limiting decorator"""
     return limiter.limit(limit)
@@ -1774,6 +1795,28 @@ async def delete_user(user_id: int, request: Request, db: Session = Depends(get_
         logger.error(f"Delete user error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": "Failed to delete user"})
 
+@app.get("/admin-test")
+async def admin_test(request: Request, db: Session = Depends(get_db)):
+    """Test admin access without decorator"""
+    business_id = request.session.get("business_id")
+    if not business_id:
+        return {"error": "Not logged in"}
+    
+    user = db.query(Business).get(business_id)
+    if not user:
+        return {"error": "User not found"}
+    
+    # Check if admin in database
+    return {
+        "session_user_id": business_id,
+        "database_user": {
+            "id": user.id,
+            "email": user.admin_email,
+            "is_admin": user.is_admin,
+            "name": user.name
+        },
+        "is_admin_in_db": user.is_admin
+    }
 # =====================================================
 # USER ROUTES
 # =====================================================
