@@ -2,7 +2,7 @@
 # BIZFLOW AI - ENTERPRISE SAAS PLATFORM
 # VERSION 10.0 - PRODUCTION READY
 # =====================================================
-
+import asyncio
 import sys
 import os
 import logging
@@ -314,16 +314,15 @@ app.add_middleware(
 
 class SessionDebugMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Safely check session
-        try:
-            session_data = dict(request.session) if hasattr(request, 'session') else {}
-            print(f"Request path: {request.url.path}")
-            print(f"Session data: {session_data}")
-        except Exception as e:
-            print(f"Could not access session: {e}")
+        # Only log for important paths
+        if request.url.path in ['/admin', '/dashboard', '/login']:
+            try:
+                session_data = dict(request.session) if hasattr(request, 'session') else {}
+                print(f"Session check for {request.url.path}: {session_data.get('business_id')}")
+            except:
+                pass  # Silently ignore session errors
         
-        response = await call_next(request)
-        return response
+        return await call_next(request)
 
 # Add this middleware right after SessionMiddleware
 app.add_middleware(SessionDebugMiddleware)
@@ -1681,15 +1680,17 @@ async def handle_razorpay_webhook_event(data: dict):
 # ADMIN ROUTES
 # =====================================================
 
-@app.get("/admin", response_class=HTMLResponse)
+@@app.get("/admin", response_class=HTMLResponse)
 @admin_required
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
     try:
+        print("=" * 50)
+        print("📊 ADMIN ROUTE EXECUTING")
+        
         # Get all users
-        users = db.query(Business)\
-            .order_by(Business.created_at.desc())\
-            .all()
+        users = db.query(Business).order_by(Business.created_at.desc()).all()
+        print(f"Found {len(users)} users")
         
         # Get stats
         total_users = len(users)
@@ -1697,33 +1698,44 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
         total_revenue = sum([p.amount for p in db.query(Payment).filter(Payment.status == "success").all()])
         total_bookings = db.query(Booking).count()
         
-        # Recent payments
-        recent_payments = db.query(Payment)\
-            .order_by(Payment.created_at.desc())\
-            .limit(10)\
-            .all()
+        print(f"Stats: total={total_users}, active={active_users}, revenue={total_revenue}")
         
-        return templates.TemplateResponse(
+        # Recent payments
+        recent_payments = db.query(Payment).order_by(Payment.created_at.desc()).limit(10).all()
+        
+        stats = {
+            "total_users": total_users,
+            "active_users": active_users,
+            "inactive_users": total_users - active_users,
+            "total_revenue": total_revenue,
+            "total_bookings": total_bookings,
+            "pro_users": len([u for u in users if u.plan == "pro"]),
+            "trial_users": len([u for u in users if u.plan == "trial"]),
+            "enterprise_users": len([u for u in users if u.plan == "enterprise"])
+        }
+        
+        print("✅ Admin data prepared, rendering template")
+        
+        response = templates.TemplateResponse(
             "admin_dashboard.html",
             {
                 "request": request,
                 "users": users,
-                "stats": {
-                    "total_users": total_users,
-                    "active_users": active_users,
-                    "inactive_users": total_users - active_users,
-                    "total_revenue": total_revenue,
-                    "total_bookings": total_bookings,
-                    "pro_users": len([u for u in users if u.plan == "pro"]),
-                    "trial_users": len([u for u in users if u.plan == "trial"]),
-                    "enterprise_users": len([u for u in users if u.plan == "enterprise"])
-                },
+                "stats": stats,
+                "total_users": total_users,  # Add for backward compatibility
+                "active_users": active_users,
                 "recent_payments": recent_payments
             }
         )
+        
+        print("✅ Admin page rendered successfully")
+        print("=" * 50)
+        return response
+        
     except Exception as e:
-        logger.error(f"Admin dashboard error: {str(e)}")
-        logger.error(traceback.format_exc())
+        print(f"❌ Admin dashboard error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return RedirectResponse("/dashboard", 302)
 
 @app.post("/admin/toggle-user/{user_id}")
