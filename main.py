@@ -2215,6 +2215,86 @@ async def cancel_booking(booking_id: int, request: Request, db: Session = Depend
         logger.error(f"Cancel booking error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": "Failed to cancel booking"})
 
+@app.get("/debug/template-diagnostic")
+async def template_diagnostic():
+    """Complete diagnostic of template system"""
+    import os
+    import sys
+    from pathlib import Path
+    
+    results = {
+        "working_directory": os.getcwd(),
+        "python_path": sys.path,
+        "templates_dir_exists": os.path.exists("templates"),
+        "templates_dir_path": str(Path("templates").absolute()) if os.path.exists("templates") else None,
+        "files_in_templates": [],
+        "template_content": {},
+        "jinja_config": {}
+    }
+    
+    # List all files in templates
+    if os.path.exists("templates"):
+        for file in os.listdir("templates"):
+            if file.endswith('.html'):
+                file_path = os.path.join("templates", file)
+                file_size = os.path.getsize(file_path)
+                results["files_in_templates"].append({
+                    "name": file,
+                    "size": file_size,
+                    "path": str(Path(file_path).absolute())
+                })
+                
+                # For bookings.html, get content preview
+                if file == "bookings.html":
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        results["template_content"]["bookings"] = {
+                            "size": len(content),
+                            "has_confirm_buttons": 'btn-confirm' in content,
+                            "has_cancel_buttons": 'btn-cancel' in content,
+                            "preview": content[:500]
+                        }
+    
+    # Check Jinja2 configuration
+    try:
+        results["jinja_config"] = {
+            "templates_object_exists": 'templates' in globals() or 'templates' in locals(),
+            "cache_setting": str(templates.env.cache) if 'templates' in dir() else "unknown"
+        }
+    except:
+        results["jinja_config"] = {"error": "Could not access templates object"}
+    
+    return results
+
+@app.get("/debug/booking-route")
+@login_required
+async def debug_booking_route(request: Request, db: Session = Depends(get_db)):
+    """Debug what the bookings route is doing"""
+    user = get_user(request, db)
+    if not user:
+        return {"error": "Not logged in"}
+    
+    bookings = db.query(Booking).filter(Booking.business_id == user.id).all()
+    
+    return {
+        "user_id": user.id,
+        "bookings_count": len(bookings),
+        "template_being_used": "bookings.html",
+        "template_exists": os.path.exists("templates/bookings.html"),
+        "bookings_data": [
+            {
+                "id": b.id,
+                "name": b.name,
+                "status": b.status,
+                "date": b.booking_date
+            } for b in bookings
+        ]
+    }
+
+@app.get("/test-page")
+async def test_page(request: Request):
+    """Simple test page"""
+    return templates.TemplateResponse("test.html", {"request": request})
 # =====================================================
 # EXPORT ROUTES
 # =====================================================
