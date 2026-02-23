@@ -1,7 +1,8 @@
 # =====================================================
 # BIZFLOW AI - ENTERPRISE SAAS PLATFORM
-# VERSION 10.0 - PRODUCTION READY
+# VERSION 11.0 - PRODUCTION READY
 # =====================================================
+
 import asyncio
 import sys
 import os
@@ -37,8 +38,6 @@ from fastapi.exceptions import RequestValidationError
 # Starlette
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.datastructures import MutableHeaders
 
 # Security
 from passlib.hash import bcrypt
@@ -66,11 +65,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 # Rate limiting
-import aioredis
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 
 # =====================================================
 # ENVIRONMENT & CONFIGURATION
@@ -79,7 +76,7 @@ from slowapi.middleware import SlowAPIMiddleware
 class Settings:
     """Application settings with validation"""
     APP_NAME = "BizFlow AI"
-    APP_VERSION = "10.2"
+    APP_VERSION = "11.0"
     ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
     DEBUG = ENVIRONMENT == "development"
     BASE_URL = os.getenv("BASE_URL", "https://bizflow-saas.onrender.com")
@@ -155,7 +152,7 @@ os.makedirs("logs", exist_ok=True)
 
 # Setup logging
 logger = logging.getLogger("bizflow")
-logger.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
+logger.setLevel(logging.INFO if not settings.DEBUG else logging.DEBUG)
 
 # File handler
 file_handler = logging.FileHandler("logs/bizflow.log")
@@ -311,22 +308,6 @@ app.add_middleware(
     same_site="lax",
     https_only=settings.ENVIRONMENT == "production"
 )
-
-class SessionDebugMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        # Only log for important paths
-        if request.url.path in ['/admin', '/dashboard', '/login']:
-            try:
-                session_data = dict(request.session) if hasattr(request, 'session') else {}
-                print(f"Session check for {request.url.path}: {session_data.get('business_id')}")
-            except:
-                pass  # Silently ignore session errors
-        
-        return await call_next(request)
-
-# Add this middleware right after SessionMiddleware
-app.add_middleware(SessionDebugMiddleware)
-
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(PerformanceMiddleware)
 
@@ -335,6 +316,10 @@ app.add_middleware(PerformanceMiddleware)
 # =====================================================
 
 templates = Jinja2Templates(directory="templates")
+# Disable template caching for development, enable for production
+if settings.DEBUG:
+    templates.env.cache = None
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # =====================================================
@@ -367,90 +352,23 @@ def admin_required(func):
     """Decorator to require admin privileges"""
     @wraps(func)
     async def wrapper(request: Request, db: Session = Depends(get_db), *args, **kwargs):
-        # Debug logging
-        print("=" * 50)
-        print("🔐 ADMIN REQUIRED DECORATOR CHECK")
-        
         # Check session
         business_id = request.session.get("business_id")
-        print(f"Session business_id: {business_id}")
-        
         if not business_id:
-            print("❌ Not logged in, redirecting to login")
             request.session["next"] = request.url.path
             return RedirectResponse("/login", 302)
         
         # Get user from database
         user = db.query(Business).get(business_id)
-        print(f"Database user found: {user is not None}")
-        
-        if user:
-            print(f"User ID: {user.id}")
-            print(f"User Email: {user.admin_email}")
-            print(f"User is_admin: {user.is_admin}")
-        else:
-            print("❌ User not found in database")
+        if not user or not user.is_admin:
             return RedirectResponse("/dashboard", 302)
-        
-        if not user.is_admin:
-            print("❌ User is not admin, redirecting to dashboard")
-            return RedirectResponse("/dashboard", 302)
-        
-        print("✅ Admin check passed, proceeding to admin route")
-        print("=" * 50)
         
         return await func(request, db, *args, **kwargs)
     return wrapper
+
 def rate_limit(limit: str):
     """Rate limiting decorator"""
     return limiter.limit(limit)
-
-@app.get("/debug/admin-status")
-async def debug_admin_status(request: Request, db: Session = Depends(get_db)):
-    """Check admin status"""
-    user_id = request.session.get("business_id")
-    if not user_id:
-        return {"error": "Not logged in"}
-    
-    user = db.query(Business).get(user_id)
-    if not user:
-        return {"error": "User not found"}
-    
-    return {
-        "user_id": user.id,
-        "email": user.admin_email,
-        "is_admin": user.is_admin,
-        "session_id": user_id,
-        "session_matches": user.id == user_id
-    }
-@app.get("/debug/session-all")
-async def debug_session_all(request: Request):
-    """Comprehensive session debugging"""
-    return {
-        "session_data": dict(request.session),
-        "session_cookie": request.cookies.get("session"),
-        "all_cookies": dict(request.cookies),
-        "headers": {
-            "host": request.headers.get("host"),
-            "origin": request.headers.get("origin"),
-            "referer": request.headers.get("referer"),
-            "user-agent": request.headers.get("user-agent"),
-            "cookie": request.headers.get("cookie")
-        },
-        "client": {
-            "host": request.client.host if request.client else None,
-            "port": request.client.port if request.client else None
-        }
-    }
-
-@app.get("/debug/set-session")
-async def set_session(request: Request):
-    """Set a test session value"""
-    request.session["test_value"] = "test123"
-    request.session["test_time"] = str(datetime.utcnow())
-    return {"message": "Session set", "session": dict(request.session)}
-
-
 
 # =====================================================
 # SECURITY UTILITIES
@@ -586,17 +504,6 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
     
-    # Test Redis if configured
-    redis_status = "not configured"
-    if settings.REDIS_URL:
-        try:
-            redis = await aioredis.from_url(settings.REDIS_URL)
-            await redis.ping()
-            redis_status = "healthy"
-            await redis.close()
-        except Exception as e:
-            redis_status = f"unhealthy: {str(e)}"
-    
     return {
         "status": "ok",
         "version": settings.APP_VERSION,
@@ -604,7 +511,6 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
         "timestamp": datetime.utcnow().isoformat(),
         "services": {
             "database": db_status,
-            "redis": redis_status,
             "razorpay": "configured" if razorpay_client else "not configured",
             "sendgrid": "configured" if settings.SENDGRID_API_KEY else "not configured"
         },
@@ -838,7 +744,6 @@ async def signup(
             }
         )
 
-
 # =====================================================
 # DASHBOARD
 # =====================================================
@@ -897,7 +802,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             }
         )
     except Exception as e:
-        logger.error(f"Dashboard error for user {getattr(user, 'id', 'unknown')}: {str(e)}")
+        logger.error(f"Dashboard error: {str(e)}")
         logger.error(traceback.format_exc())
         return templates.TemplateResponse(
             "500.html",
@@ -1420,6 +1325,142 @@ async def whatsapp_webhook(request: Request, db: Session = Depends(get_db)):
         )
 
 # =====================================================
+# EMAIL SERVICE
+# =====================================================
+
+class EmailService:
+    """Enterprise email service with templates"""
+    
+    @staticmethod
+    async def send_email(to_email: str, subject: str, template_name: str, context: dict = None) -> bool:
+        """Send email using template"""
+        if not settings.SENDGRID_API_KEY:
+            logger.error("SendGrid API key not configured")
+            return False
+        
+        try:
+            # Load email template
+            template = EmailService._get_template(template_name, context or {})
+            
+            message = Mail(
+                from_email=settings.FROM_EMAIL,
+                to_emails=to_email,
+                subject=subject,
+                html_content=template
+            )
+            
+            sg = sendgrid.SendGridAPIClient(settings.SENDGRID_API_KEY)
+            response = sg.send(message)
+            
+            if response.status_code == 202:
+                logger.info(f"✅ Email sent to {to_email}: {subject}")
+                return True
+            else:
+                logger.error(f"❌ Email failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Email error: {str(e)}")
+            return False
+    
+    @staticmethod
+    def _get_template(name: str, context: dict) -> str:
+        """Get email template with context"""
+        templates = {
+            "welcome": f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background: linear-gradient(135deg, #2563eb, #60a5fa); color: white; padding: 40px 20px; text-align: center; }}
+                        .content {{ background: white; padding: 40px 20px; }}
+                        .button {{ display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Welcome to BizFlow AI!</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Hello {context.get('name', 'there')}!</h2>
+                            <p>Thank you for joining BizFlow AI. We're excited to help you automate your business with WhatsApp.</p>
+                            <p>Get started by visiting your dashboard:</p>
+                            <div style="text-align: center;">
+                                <a href="{settings.BASE_URL}/dashboard" class="button">Go to Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            """,
+            "reset_password": f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background: linear-gradient(135deg, #2563eb, #60a5fa); color: white; padding: 40px 20px; text-align: center; }}
+                        .content {{ background: white; padding: 40px 20px; }}
+                        .button {{ display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Reset Your Password</h1>
+                        </div>
+                        <div class="content">
+                            <p>Click the button below to reset your password:</p>
+                            <div style="text-align: center;">
+                                <a href="{context.get('reset_link')}" class="button">Reset Password</a>
+                            </div>
+                            <p>Or copy this link: {context.get('reset_link')}</p>
+                            <p>This link expires in 24 hours.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            """,
+            "payment_success": f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 40px 20px; text-align: center; }}
+                        .content {{ background: white; padding: 40px 20px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Payment Successful!</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Thank you for upgrading to {context.get('plan', 'Pro')}!</h2>
+                            <p>Amount: ₹{context.get('amount')}</p>
+                            <p>Transaction ID: {context.get('payment_id')}</p>
+                            <p>Your plan is now active until {context.get('valid_until')}.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            """
+        }
+        return templates.get(name, "<h1>Notification</h1><p>{}</p>".format(context))
+
+# =====================================================
 # PAYMENT ROUTES
 # =====================================================
 
@@ -1578,7 +1619,6 @@ async def payment_success(request: Request, db: Session = Depends(get_db)):
         db.add(payment)
         
         # Upgrade user plan
-        old_plan = user.plan
         user.plan = plan
         user.chat_limit = PLANS[plan]["chats"]
         user.paid_until = datetime.utcnow() + timedelta(days=30)
@@ -1685,20 +1725,14 @@ async def handle_razorpay_webhook_event(data: dict):
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
     try:
-        print("=" * 50)
-        print("📊 ADMIN ROUTE EXECUTING")
-        
         # Get all users
         users = db.query(Business).order_by(Business.created_at.desc()).all()
-        print(f"Found {len(users)} users")
         
         # Get stats
         total_users = len(users)
         active_users = len([u for u in users if u.is_active])
         total_revenue = sum([p.amount for p in db.query(Payment).filter(Payment.status == "success").all()])
         total_bookings = db.query(Booking).count()
-        
-        print(f"Stats: total={total_users}, active={active_users}, revenue={total_revenue}")
         
         # Recent payments
         recent_payments = db.query(Payment).order_by(Payment.created_at.desc()).limit(10).all()
@@ -1714,28 +1748,19 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
             "enterprise_users": len([u for u in users if u.plan == "enterprise"])
         }
         
-        print("✅ Admin data prepared, rendering template")
-        
-        response = templates.TemplateResponse(
+        return templates.TemplateResponse(
             "admin_dashboard.html",
             {
                 "request": request,
                 "users": users,
                 "stats": stats,
-                "total_users": total_users,  # Add for backward compatibility
-                "active_users": active_users,
                 "recent_payments": recent_payments
             }
         )
         
-        print("✅ Admin page rendered successfully")
-        print("=" * 50)
-        return response
-        
     except Exception as e:
-        print(f"❌ Admin dashboard error: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Admin dashboard error: {str(e)}")
+        logger.error(traceback.format_exc())
         return RedirectResponse("/dashboard", 302)
 
 @app.post("/admin/toggle-user/{user_id}")
@@ -1826,28 +1851,6 @@ async def delete_user(user_id: int, request: Request, db: Session = Depends(get_
         logger.error(f"Delete user error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": "Failed to delete user"})
 
-@app.get("/admin-test")
-async def admin_test(request: Request, db: Session = Depends(get_db)):
-    """Test admin access without decorator"""
-    business_id = request.session.get("business_id")
-    if not business_id:
-        return {"error": "Not logged in"}
-    
-    user = db.query(Business).get(business_id)
-    if not user:
-        return {"error": "User not found"}
-    
-    # Check if admin in database
-    return {
-        "session_user_id": business_id,
-        "database_user": {
-            "id": user.id,
-            "email": user.admin_email,
-            "is_admin": user.is_admin,
-            "name": user.name
-        },
-        "is_admin_in_db": user.is_admin
-    }
 # =====================================================
 # USER ROUTES
 # =====================================================
@@ -2071,164 +2074,6 @@ async def contact(request: Request):
             "now": datetime.utcnow()
         }
     )
-
-# =====================================================
-# DEBUG ROUTES (Development Only)
-# =====================================================
-
-if settings.DEBUG:
-    
-    @app.get("/debug/razorpay")
-    async def debug_razorpay():
-        """Debug Razorpay configuration"""
-        return {
-            "key_present": bool(settings.RAZORPAY_KEY),
-            "secret_present": bool(settings.RAZORPAY_SECRET),
-            "client_initialized": razorpay_client is not None,
-            "key_prefix": settings.RAZORPAY_KEY[:10] + "..." if settings.RAZORPAY_KEY else None,
-            "environment": settings.ENVIRONMENT
-        }
-    
-    @app.get("/debug/email")
-    async def debug_email():
-        """Test email configuration"""
-        result = await EmailService.send_email(
-            "test@example.com",
-            "Test Email",
-            "welcome",
-            {"name": "Test User"}
-        )
-        return {"email_sent": result}
-    
-    @app.get("/debug/db")
-    async def debug_db(db: Session = Depends(get_db)):
-        """Test database connection"""
-        try:
-            result = db.execute("SELECT 1").first()
-            return {
-                "database": "connected",
-                "result": result[0] if result else None,
-                "tables": {
-                    "businesses": db.query(Business).count(),
-                    "bookings": db.query(Booking).count(),
-                    "payments": db.query(Payment).count(),
-                    "audit_logs": db.query(AuditLog).count(),
-                    "conversations": db.query(Conversation).count()
-                }
-            }
-        except Exception as e:
-            return {"database": "error", "error": str(e)}
-    
-    @app.get("/debug/session")
-    async def debug_session(request: Request):
-        """Debug session data"""
-        return {
-            "session_id": request.session.get("business_id"),
-            "session_data": dict(request.session)
-        }
-
-@app.get("/debug/session")
-async def debug_session(request: Request, db: Session = Depends(get_db)):
-    """Debug session and user data"""
-    results = {
-        "is_logged": is_logged(request),
-        "session_id": request.session.get("business_id"),
-        "session_data": dict(request.session),
-    }
-    
-    if is_logged(request):
-        user = get_user(request, db)
-        if user:
-            results["user"] = {
-                "id": user.id,
-                "name": user.name,
-                "email": user.admin_email,
-                "plan": user.plan,
-                "chat_used": user.chat_used,
-                "chat_limit": user.chat_limit,
-                "trial_ends_at": str(user.trial_ends_at) if user.trial_ends_at else None,
-                "onboarding_done": user.onboarding_done
-            }
-        else:
-            results["user"] = "User not found in database"
-    
-    return results
-
-@app.get("/debug/dashboard-raw")
-async def debug_dashboard_raw(request: Request, db: Session = Depends(get_db)):
-    """Raw dashboard debug - no templates"""
-    try:
-        # Check login
-        if not is_logged(request):
-            return {"error": "Not logged in", "session": dict(request.session)}
-        
-        user = get_user(request, db)
-        if not user:
-            return {"error": "User not found in database", "session_id": request.session.get("business_id")}
-        
-        # Test each database query
-        results = {
-            "user": {
-                "id": user.id,
-                "name": user.name,
-                "plan": user.plan,
-                "chat_used": user.chat_used,
-                "chat_limit": user.chat_limit,
-            }
-        }
-        
-        # Test bookings query
-        try:
-            bookings = db.query(Booking).filter(Booking.business_id == user.id).limit(1).all()
-            results["bookings_query"] = f"✅ Success, found {len(bookings)}"
-        except Exception as e:
-            results["bookings_query"] = f"❌ Failed: {str(e)}"
-        
-        # Test analytics calculations
-        try:
-            total_bookings = db.query(Booking).filter(Booking.business_id == user.id).count()
-            results["total_bookings"] = total_bookings
-        except Exception as e:
-            results["total_bookings_error"] = str(e)
-        
-        try:
-            cancelled = db.query(Booking).filter(
-                Booking.business_id == user.id, 
-                Booking.status == "cancelled"
-            ).count()
-            results["cancelled"] = cancelled
-        except Exception as e:
-            results["cancelled_error"] = str(e)
-        
-        # Test trial days calculation
-        try:
-            if user.plan == "trial" and user.trial_ends_at:
-                trial_days = (user.trial_ends_at - datetime.utcnow()).days
-                results["trial_days"] = trial_days
-            else:
-                results["trial_days"] = "N/A"
-        except Exception as e:
-            results["trial_days_error"] = str(e)
-        
-        return results
-        
-    except Exception as e:
-        return {
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-
-@app.get("/debug/templates")
-async def debug_templates():
-    """Check which templates exist"""
-    import os
-    template_dir = "templates"
-    files = os.listdir(template_dir) if os.path.exists(template_dir) else []
-    return {
-        "template_dir_exists": os.path.exists(template_dir),
-        "templates": files,
-        "working_dir": os.getcwd()
-    }
 
 # =====================================================
 # MAIN ENTRY POINT
