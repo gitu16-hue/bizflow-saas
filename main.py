@@ -1725,6 +1725,64 @@ async def debug_booking(booking_id: int, request: Request, db: Session = Depends
         },
         "user_id": user.id
     }
+
+@app.get("/test-booking-api/{booking_id}")
+@login_required
+async def test_booking_api(booking_id: int, request: Request, db: Session = Depends(get_db)):
+    """Test endpoint to check booking API functionality"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return {"error": "Not logged in"}
+        
+        # Try to find the booking
+        booking = db.query(Booking).filter(
+            Booking.id == booking_id,
+            Booking.business_id == user.id
+        ).first()
+        
+        if not booking:
+            return {
+                "success": False,
+                "error": "Booking not found",
+                "user_id": user.id,
+                "booking_id": booking_id
+            }
+        
+        # Try to update it
+        old_status = booking.status
+        booking.status = "confirmed"  # Test update
+        db.commit()
+        
+        result = {
+            "success": True,
+            "message": f"Booking {booking_id} updated from {old_status} to confirmed",
+            "booking": {
+                "id": booking.id,
+                "name": booking.name,
+                "old_status": old_status,
+                "new_status": booking.status
+            }
+        }
+        
+        # Revert back
+        booking.status = old_status
+        db.commit()
+        
+        return result
+        
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+@app.get("/test-ping")
+async def test_ping():
+    """Simple test endpoint"""
+    return {"status": "ok", "message": "API is working"}
 # =====================================================
 # PAYMENT ROUTES
 # =====================================================
