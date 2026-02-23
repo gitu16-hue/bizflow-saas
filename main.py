@@ -2266,35 +2266,46 @@ async def template_diagnostic():
     
     return results
 
-@app.get("/debug/booking-route")
+@app.get("/manage-bookings", response_class=HTMLResponse)
 @login_required
-async def debug_booking_route(request: Request, db: Session = Depends(get_db)):
-    """Debug what the bookings route is doing"""
-    user = get_user(request, db)
-    if not user:
-        return {"error": "Not logged in"}
-    
-    bookings = db.query(Booking).filter(Booking.business_id == user.id).all()
-    
-    return {
-        "user_id": user.id,
-        "bookings_count": len(bookings),
-        "template_being_used": "bookings.html",
-        "template_exists": os.path.exists("templates/bookings.html"),
-        "bookings_data": [
+async def manage_bookings(request: Request, db: Session = Depends(get_db)):
+    """New bookings management page with confirm/cancel buttons"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Get all bookings
+        bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .order_by(Booking.created_at.desc())\
+            .all()
+        
+        # Calculate stats
+        total = len(bookings)
+        pending = len([b for b in bookings if b.status == "pending"])
+        confirmed = len([b for b in bookings if b.status == "confirmed"])
+        completed = len([b for b in bookings if b.status == "completed"])
+        
+        return templates.TemplateResponse(
+            "manage_bookings.html",
             {
-                "id": b.id,
-                "name": b.name,
-                "status": b.status,
-                "date": b.booking_date
-            } for b in bookings
-        ]
-    }
+                "request": request,
+                "business": user,
+                "bookings": bookings,
+                "stats": {
+                    "total": total,
+                    "pending": pending,
+                    "confirmed": confirmed,
+                    "completed": completed
+                }
+            }
+        )
+    except Exception as e:
+        logger.error(f"Manage bookings error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
 
-@app.get("/test-page")
-async def test_page(request: Request):
-    """Simple test page"""
-    return templates.TemplateResponse("test.html", {"request": request})
+
 # =====================================================
 # EXPORT ROUTES
 # =====================================================
