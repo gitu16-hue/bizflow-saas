@@ -1655,11 +1655,16 @@ async def update_booking_status(
     request: Request, 
     db: Session = Depends(get_db)
 ):
-    """Update booking status (confirm, cancel, complete)"""
+    """Update booking status"""
     try:
+        print(f"🔵 Received request to update booking {booking_id}")
+        
         user = get_user(request, db)
         if not user:
+            print("🔴 User not authenticated")
             return JSONResponse(status_code=401, content={"status": "error", "message": "Not authenticated"})
+        
+        print(f"🟢 User authenticated: {user.id}")
         
         booking = db.query(Booking).filter(
             Booking.id == booking_id,
@@ -1667,34 +1672,59 @@ async def update_booking_status(
         ).first()
         
         if not booking:
+            print(f"🔴 Booking {booking_id} not found")
             return JSONResponse(status_code=404, content={"status": "error", "message": "Booking not found"})
+        
+        print(f"🟢 Booking found: {booking.id}, current status: {booking.status}")
         
         data = await request.json()
         new_status = data.get('status')
+        print(f"🟡 New status requested: {new_status}")
         
         valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
         if new_status not in valid_statuses:
+            print(f"🔴 Invalid status: {new_status}")
             return JSONResponse(status_code=400, content={"status": "error", "message": "Invalid status"})
         
         booking.status = new_status
         db.commit()
         
-        # Log audit
-        log_audit(user.id, f"booking_{new_status}", {
-            "booking_id": booking_id,
-            "customer": booking.name,
-            "date": booking.booking_date,
-            "time": booking.booking_time
-        }, db)
-        
-        logger.info(f"Booking {booking_id} status updated to {new_status} by user {user.id}")
+        print(f"✅ Booking {booking_id} status updated to {new_status}")
         
         return {"status": "success", "message": f"Booking {new_status}"}
         
     except Exception as e:
-        logger.error(f"Error updating booking status: {str(e)}")
+        print(f"🔴 Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
+@app.get("/debug/booking/{booking_id}")
+@login_required
+async def debug_booking(booking_id: int, request: Request, db: Session = Depends(get_db)):
+    """Debug a specific booking"""
+    user = get_user(request, db)
+    if not user:
+        return {"error": "Not logged in"}
+    
+    booking = db.query(Booking).filter(
+        Booking.id == booking_id,
+        Booking.business_id == user.id
+    ).first()
+    
+    if not booking:
+        return {"error": "Booking not found"}
+    
+    return {
+        "booking": {
+            "id": booking.id,
+            "name": booking.name,
+            "status": booking.status,
+            "date": booking.booking_date,
+            "time": booking.booking_time
+        },
+        "user_id": user.id
+    }
 # =====================================================
 # PAYMENT ROUTES
 # =====================================================
