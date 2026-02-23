@@ -1098,7 +1098,7 @@ Reply with number 👇
         state = business.flow_state or "start"
         
         # Reset command
-        if lower_msg in ["reset", "restart", "help", "menu"]:
+        if lower_msg in ["reset", "restart", "help", "menu", "hi", "hello", "hey", "start"]:
             business.flow_state = "menu"
             db.commit()
             return WhatsAppBot.get_industry_menu(business)
