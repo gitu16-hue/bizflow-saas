@@ -4,28 +4,316 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversations - {{ business.name }} | BizFlow AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
     <style>
-        /* Copy the dashboard styles here or link to a shared CSS file */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .back-link { color: #2563eb; text-decoration: none; }
-        .conversations-list { background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-900: #0f172a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-900);
+            line-height: 1.5;
+        }
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--gray-900) 0%, #0b1120 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+        }
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .logo-text span {
+            color: var(--primary-light);
+        }
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--gray-300);
+            text-decoration: none;
+            border-radius: 0.5rem;
+        }
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        .nav-item.logout {
+            margin-top: 2rem;
+            color: var(--danger);
+        }
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+        .top-bar {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .page-title p {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .table-section {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+        }
+        .table-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background: var(--gray-50);
+            color: var(--gray-600);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-700);
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-confirmed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-completed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .action-btn {
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 0.25rem;
+        }
+        .btn-confirm {
+            background: var(--success);
+            color: white;
+        }
+        .btn-confirm:hover {
+            background: #059669;
+        }
+        .btn-cancel {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-cancel:hover {
+            background: #dc2626;
+        }
+        .btn-complete {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-complete:hover {
+            background: var(--primary-dark);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem !important;
+            color: var(--gray-600);
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Conversations</h1>
-            <a href="/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-        </div>
-        <div class="conversations-list">
-            <p>Conversation history will appear here.</p>
-            <p style="color: #64748b; margin-top: 1rem;">Total conversations: {{ analytics.conversations }}</p>
-        </div>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">B</div>
+                <div class="logo-text">BizFlow<span>AI</span></div>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item"><i class="fas fa-home"></i> Home</a>
+                <a href="/dashboard" class="nav-item"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a href="/billing" class="nav-item"><i class="fas fa-credit-card"></i> Billing</a>
+                <a href="/conversations" class="nav-item active"><i class="fas fa-message"></i> Conversations</a>
+                <a href="/bookings" class="nav-item"><i class="fas fa-calendar"></i> Bookings</a>
+                <a href="/settings" class="nav-item"><i class="fas fa-gear"></i> Settings</a>
+                <a href="/logout" class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Conversations</h1>
+                    <p>Chat history with your customers</p>
+                </div>
+                <div class="avatar">
+                    {{ business.name[0] }}
+                </div>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h2><i class="fas fa-message" style="margin-right: 0.5rem;"></i> Recent Conversations</h2>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Last Message</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if conversations %}
+                                {% for conv in conversations %}
+                                <tr>
+                                    <td><strong>{{ conv.customer_name or 'Unknown' }}</strong></td>
+                                    <td>{{ conv.phone }}</td>
+                                    <td>{{ conv.last_message or 'No messages' }}</td>
+                                    <td>
+                                        <span class="status-badge status-pending">
+                                            {{ conv.stage or 'New' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ conv.updated_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                                    <td>
+                                        <button class="action-btn btn-confirm" onclick="viewConversation({{ conv.id }})">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-message" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                        <p>No conversations yet. Your first customer message will appear here.</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
+
+    <script>
+        function viewConversation(id) {
+            window.location.href = `/conversations/${id}`;
+        }
+    </script>
 </body>
 </html>

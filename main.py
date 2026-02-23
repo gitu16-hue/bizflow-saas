@@ -1649,6 +1649,53 @@ class EmailService:
         }
         return templates.get(name, "<h1>Notification</h1><p>{}</p>".format(context))
 
+@app.post("/api/bookings/{booking_id}/status")
+@login_required
+async def update_booking_status(
+    booking_id: int, 
+    request: Request, 
+    db: Session = Depends(get_db)
+):
+    """Update booking status (confirm, cancel, complete)"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return JSONResponse(status_code=401, content={"status": "error", "message": "Not authenticated"})
+        
+        booking = db.query(Booking).filter(
+            Booking.id == booking_id,
+            Booking.business_id == user.id
+        ).first()
+        
+        if not booking:
+            return JSONResponse(status_code=404, content={"status": "error", "message": "Booking not found"})
+        
+        data = await request.json()
+        new_status = data.get('status')
+        
+        valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
+        if new_status not in valid_statuses:
+            return JSONResponse(status_code=400, content={"status": "error", "message": "Invalid status"})
+        
+        booking.status = new_status
+        db.commit()
+        
+        # Log audit
+        log_audit(user.id, f"booking_{new_status}", {
+            "booking_id": booking_id,
+            "customer": booking.name,
+            "date": booking.booking_date,
+            "time": booking.booking_time
+        }, db)
+        
+        logger.info(f"Booking {booking_id} status updated to {new_status} by user {user.id}")
+        
+        return {"status": "success", "message": f"Booking {new_status}"}
+        
+    except Exception as e:
+        logger.error(f"Error updating booking status: {str(e)}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 # =====================================================
 # PAYMENT ROUTES
 # =====================================================
@@ -2111,28 +2158,24 @@ async def update_settings(
 @app.get("/bookings", response_class=HTMLResponse)
 @login_required
 async def bookings_page(request: Request, db: Session = Depends(get_db)):
-    """View all bookings"""
+    """View and manage all bookings"""
     try:
         user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
-        # Get all bookings with filters
-        status_filter = request.query_params.get("status")
-        query = db.query(Booking).filter(Booking.business_id == user.id)
-        
-        if status_filter and status_filter != "all":
-            query = query.filter(Booking.status == status_filter)
-        
-        bookings = query.order_by(Booking.booking_date.desc()).all()
+        # Get all bookings
+        bookings = db.query(Booking)\
+            .filter(Booking.business_id == user.id)\
+            .order_by(Booking.created_at.desc())\
+            .all()
         
         return templates.TemplateResponse(
             "bookings.html",
             {
                 "request": request,
                 "business": user,
-                "bookings": bookings,
-                "current_filter": status_filter or "all"
+                "bookings": bookings
             }
         )
     except Exception as e:
