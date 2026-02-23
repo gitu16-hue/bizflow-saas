@@ -316,9 +316,8 @@ app.add_middleware(PerformanceMiddleware)
 # =====================================================
 
 templates = Jinja2Templates(directory="templates")
-# Disable template caching for development, enable for production
-if settings.DEBUG:
-    templates.env.cache = None
+# TEMPORARILY DISABLE CACHING FOR TESTING
+templates.env.cache = None  # Force disable caching
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -2170,14 +2169,23 @@ async def bookings_page(request: Request, db: Session = Depends(get_db)):
             .order_by(Booking.created_at.desc())\
             .all()
         
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             "bookings.html",
             {
                 "request": request,
                 "business": user,
-                "bookings": bookings
+                "bookings": bookings,
+                "cache_buster": datetime.now().timestamp()  # Add cache buster
             }
         )
+        
+        # Add no-cache headers
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        
+        return response
+        
     except Exception as e:
         logger.error(f"Bookings page error: {str(e)}")
         return RedirectResponse("/dashboard", 302)
