@@ -2534,18 +2534,22 @@ async def contact(request: Request):
         }
     )
 
+@app.get("/ping")
+async def ping():
+    return {"ping": "pong", "time": datetime.utcnow().isoformat()}
+
 # =====================================================
 # MAIN ENTRY POINT
 # =====================================================
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8080))
+    port = int(os.getenv("PORT", 10000))  # Change from 8080 to 10000
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
+        host="0.0.0.0",  # This is correct - listens on all interfaces
         port=port,
         reload=settings.DEBUG,
         log_level="debug" if settings.DEBUG else "info",
-        workers=4 if not settings.DEBUG else 1  # Multiple workers in production
+        workers=4 if not settings.DEBUG else 1
     )
