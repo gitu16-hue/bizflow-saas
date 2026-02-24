@@ -422,6 +422,72 @@
             text-decoration: underline;
         }
 
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            background: white;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+        }
+
+        .toast.success i {
+            color: var(--success);
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .toast.info i {
+            color: var(--primary);
+        }
+
+        .toast-close {
+            margin-left: auto;
+            cursor: pointer;
+            color: var(--gray-400);
+        }
+
+        .toast-close:hover {
+            color: var(--gray-600);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         /* ================= RESPONSIVE ================= */
         @media (max-width: 768px) {
             .main {
@@ -594,9 +660,9 @@
                                                 <i class="fas fa-times"></i> Cancel
                                             </button>
                                             {% elif b.status == 'completed' %}
-                                            <span style="color: var(--gray-500);">✓ Completed</span>
+                                            <span style="color: var(--gray-500);"><i class="fas fa-check-circle"></i> Completed</span>
                                             {% elif b.status == 'cancelled' %}
-                                            <span style="color: var(--gray-500);">✗ Cancelled</span>
+                                            <span style="color: var(--gray-500);"><i class="fas fa-times-circle"></i> Cancelled</span>
                                             {% endif %}
                                         </div>
                                     </td>
@@ -621,9 +687,47 @@
         </main>
     </div>
 
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
     <script>
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'exclamation-circle';
+            
+            toast.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <span>${message}</span>
+                <span class="toast-close" onclick="this.parentElement.remove()">&times;</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+
         function updateStatus(bookingId, newStatus) {
             if (!confirm(`Are you sure you want to mark this booking as ${newStatus}?`)) return;
+            
+            // Show loading state on button
+            const buttons = document.querySelectorAll(`button[onclick*="${bookingId}"]`);
+            buttons.forEach(btn => {
+                if (btn.onclick && btn.onclick.toString().includes(bookingId)) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                }
+            });
             
             fetch(`/api/bookings/${bookingId}/status`, {
                 method: 'POST',
@@ -632,18 +736,35 @@
                 },
                 body: JSON.stringify({ status: newStatus })
             })
-            .then(response => response.json())
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                }
+                return data;
+            })
             .then(data => {
                 if (data.status === 'success') {
-                    alert(`✅ Booking marked as ${newStatus}!`);
-                    location.reload();
+                    showToast(`✅ Booking marked as ${newStatus}!`, 'success');
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    alert('❌ Error: ' + (data.message || 'Unknown error'));
+                    throw new Error(data.message || 'Unknown error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('❌ Failed to update booking');
+                showToast('❌ Failed to update booking: ' + error.message, 'error');
+                // Re-enable buttons
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    if (newStatus === 'confirmed') {
+                        btn.innerHTML = '<i class="fas fa-check"></i> Confirm';
+                    } else if (newStatus === 'cancelled') {
+                        btn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+                    } else if (newStatus === 'completed') {
+                        btn.innerHTML = '<i class="fas fa-check-double"></i> Complete';
+                    }
+                });
             });
         }
 
@@ -660,6 +781,17 @@
                 }
             });
         }
+
+        // Initialize filter from URL parameter if present
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusParam = urlParams.get('status');
+            if (statusParam) {
+                const filterSelect = document.getElementById('statusFilter');
+                filterSelect.value = statusParam;
+                filterByStatus();
+            }
+        });
     </script>
 </body>
 </html>

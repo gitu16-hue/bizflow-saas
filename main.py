@@ -1662,42 +1662,82 @@ async def update_booking_status(
         user = get_user(request, db)
         if not user:
             print("🔴 User not authenticated")
-            return JSONResponse(status_code=401, content={"status": "error", "message": "Not authenticated"})
+            return JSONResponse(
+                status_code=401, 
+                content={"status": "error", "message": "Not authenticated"}
+            )
         
         print(f"🟢 User authenticated: {user.id}")
         
+        # Verify booking exists and belongs to this user
         booking = db.query(Booking).filter(
             Booking.id == booking_id,
             Booking.business_id == user.id
         ).first()
         
         if not booking:
-            print(f"🔴 Booking {booking_id} not found")
-            return JSONResponse(status_code=404, content={"status": "error", "message": "Booking not found"})
+            print(f"🔴 Booking {booking_id} not found for user {user.id}")
+            return JSONResponse(
+                status_code=404, 
+                content={"status": "error", "message": "Booking not found"}
+            )
         
         print(f"🟢 Booking found: {booking.id}, current status: {booking.status}")
         
-        data = await request.json()
+        # Parse request body
+        try:
+            data = await request.json()
+        except:
+            data = {}
+        
         new_status = data.get('status')
         print(f"🟡 New status requested: {new_status}")
         
+        # Validate status
         valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
         if new_status not in valid_statuses:
             print(f"🔴 Invalid status: {new_status}")
-            return JSONResponse(status_code=400, content={"status": "error", "message": "Invalid status"})
+            return JSONResponse(
+                status_code=400, 
+                content={"status": "error", "message": f"Invalid status. Must be one of: {valid_statuses}"}
+            )
         
+        # Update status
+        old_status = booking.status
         booking.status = new_status
         db.commit()
         
-        print(f"✅ Booking {booking_id} status updated to {new_status}")
+        print(f"✅ Booking {booking_id} status updated from {old_status} to {new_status}")
         
-        return {"status": "success", "message": f"Booking {new_status}"}
+        # Log audit
+        try:
+            log_audit(user.id, f"booking_{new_status}", {
+                "booking_id": booking_id,
+                "customer": booking.name,
+                "old_status": old_status,
+                "new_status": new_status
+            }, db)
+        except:
+            pass  # Audit logging failed but booking update succeeded
+        
+        return {
+            "status": "success", 
+            "message": f"Booking marked as {new_status}",
+            "booking": {
+                "id": booking.id,
+                "old_status": old_status,
+                "new_status": new_status
+            }
+        }
         
     except Exception as e:
-        print(f"🔴 Error: {str(e)}")
+        print(f"🔴 Error in update_booking_status: {str(e)}")
         import traceback
         traceback.print_exc()
-        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+        return JSONResponse(
+            status_code=500, 
+            content={"status": "error", "message": f"Server error: {str(e)}"}
+        )
 
 @app.get("/debug/booking/{booking_id}")
 @login_required
