@@ -1,6 +1,6 @@
 # =====================================================
 # BIZFLOW AI - ENTERPRISE SAAS PLATFORM
-# VERSION 11.0 - PRODUCTION READY
+# VERSION 12.0 - PRODUCTION READY
 # =====================================================
 
 import asyncio
@@ -24,15 +24,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # FastAPI & Related
-from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, Cookie
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
+from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 
 # Starlette
@@ -41,7 +39,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 # Security
 from passlib.hash import bcrypt
-import bcrypt as bcrypt_lib
 
 # Database
 from database import SessionLocal, engine
@@ -55,13 +52,11 @@ from sendgrid.helpers.mail import Mail
 import razorpay
 
 # Utilities
-import pytz
-import aiofiles
 import csv
 from io import StringIO
 from twilio.twiml.messaging_response import MessagingResponse
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from sqlalchemy import text
+from sqlalchemy import text, desc
 from sqlalchemy.orm import Session
 
 # Rate limiting
@@ -76,7 +71,7 @@ from slowapi.errors import RateLimitExceeded
 class Settings:
     """Application settings with validation"""
     APP_NAME = "BizFlow AI"
-    APP_VERSION = "11.0"
+    APP_VERSION = "12.0"
     ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
     DEBUG = ENVIRONMENT == "development"
     BASE_URL = os.getenv("BASE_URL", "https://bizflow-saas.onrender.com")
@@ -218,28 +213,11 @@ async def lifespan(app: FastAPI):
     
     # Create database tables
     try:
-        # Import all models to ensure they're registered
-        from models import Business, Booking, Payment, AuditLog, Conversation
-        
-        # Create all tables
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Database tables verified/created")
-        
-        # Verify conversations table specifically
-        from sqlalchemy import inspect
-        inspector = inspect(engine)
-        tables = inspector.get_table_names()
-        logger.info(f"📊 Database tables: {tables}")
-        
-        if "conversations" in tables:
-            logger.info("✅ Conversations table exists")
-        else:
-            logger.warning("⚠️ Conversations table not found!")
-            
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {str(e)}")
-        # Don't raise - let the app try to continue
-        # raise
+        raise
     
     yield
     
@@ -332,8 +310,11 @@ app.add_middleware(PerformanceMiddleware)
 # =====================================================
 
 templates = Jinja2Templates(directory="templates")
-# TEMPORARILY DISABLE CACHING FOR TESTING
-templates.env.cache = None  # Force disable caching
+# Enable caching in production for better performance
+if settings.ENVIRONMENT == "production":
+    templates.env.cache_size = 50  # Cache up to 50 templates
+else:
+    templates.env.cache = None  # Disable caching in development
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -367,16 +348,13 @@ def admin_required(func):
     """Decorator to require admin privileges"""
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        # Check session
         business_id = request.session.get("business_id")
         if not business_id:
             request.session["next"] = request.url.path
             return RedirectResponse("/login", 302)
         
-        # Get database session
         db = next(get_db())
         try:
-            # Get user from database
             user = db.query(Business).get(business_id)
             if not user or not user.is_admin:
                 return RedirectResponse("/dashboard", 302)
@@ -518,7 +496,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def health_check(request: Request, db: Session = Depends(get_db)):
     """Health check endpoint with detailed status"""
     try:
-        # Test database
         db.execute(text("SELECT 1")).first()
         db_status = "healthy"
     except Exception as e:
@@ -533,8 +510,7 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
             "database": db_status,
             "razorpay": "configured" if razorpay_client else "not configured",
             "sendgrid": "configured" if settings.SENDGRID_API_KEY else "not configured"
-        },
-        "uptime": time.time() - start_time if 'start_time' in globals() else None
+        }
     }
 
 # =====================================================
@@ -1074,58 +1050,6 @@ Reply with number 👇
         """
         try:
             text = text.lower().strip()
-            original_text = text
-            
-            # First, try the existing patterns for standard formats
-            patterns = [
-                r'(\d{1,2})[/-](\d{1,2})\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
-                r'(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
-                r'tomorrow\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
-                r'today\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)',
-                r'next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+([a-z\s]+)'
-            ]
-            
-            for pattern in patterns:
-                match = re.search(pattern, text)
-                if match:
-                    groups = match.groups()
-                    
-                    # Handle different patterns
-                    if len(groups) == 6:  # Full date pattern
-                        day, month, hour, minute, ampm, name = groups
-                        month_num = WhatsAppBot._month_to_number(month)
-                        date = f"{day.zfill(2)}-{month_num}-{datetime.now().year}"
-                    elif len(groups) == 4:  # Today/tomorrow pattern
-                        hour, minute, ampm, name = groups
-                        date = (datetime.now() + timedelta(days=1 if 'tomorrow' in text else 0)).strftime('%d-%m-%Y')
-                    elif len(groups) == 5:  # Next weekday pattern
-                        weekday, hour, minute, ampm, name = groups
-                        days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-                        target_day = days.index(weekday)
-                        current_day = datetime.now().weekday()
-                        days_ahead = target_day - current_day
-                        if days_ahead <= 0:
-                            days_ahead += 7
-                        date = (datetime.now() + timedelta(days=days_ahead)).strftime('%d-%m-%Y')
-                    else:
-                        continue
-                    
-                    # Format time
-                    hour = int(hour)
-                    if ampm and ampm.lower() == 'pm' and hour < 12:
-                        hour += 12
-                    elif ampm and ampm.lower() == 'am' and hour == 12:
-                        hour = 0
-                    
-                    time = f"{hour:02d}:{minute or '00'}"
-                    
-                    return {
-                        "date": date,
-                        "time": time,
-                        "name": name.strip().title()
-                    }
-            
-            # ========== ENHANCED NLP PARSING ==========
             
             # Handle formats like "16march 7 pm jayant singh" (no space between day and month)
             
@@ -1147,9 +1071,7 @@ Reply with number 👇
                 reverse_date = re.search(r'(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)\s+(\d{1,2})(?:st|nd|rd|th)?', text)
                 if reverse_date:
                     month_text, day = reverse_date.groups()
-                    date_match = (None, day, month_text)  # Fake match object
-                    # Reconstruct as if it were day-month format
-                    text_for_processing = f"{day} {month_text} " + text[reverse_date.end():]
+                    date_match = (None, day, month_text)
                 else:
                     return None
             else:
@@ -1180,7 +1102,6 @@ Reply with number 👇
                 r'(\d{1,2})\s*(?::(\d{2}))?\s*(am|pm)',
                 r'(\d{1,2})\s*(am|pm)',
                 r'(\d{1,2}):(\d{2})\s*(am|pm)',
-                r'(\d{1,2})\s*o\'?clock\s*(am|pm)?'
             ]
             
             time_match = None
@@ -1188,40 +1109,34 @@ Reply with number 👇
             minute = '00'
             ampm = None
             
-            # Try to find time in the text
             for tp in time_patterns:
                 time_match = re.search(tp, text)
                 if time_match:
                     groups = time_match.groups()
-                    if len(groups) == 2:  # e.g., "7pm", "7 pm"
+                    if len(groups) == 2:
                         hour, ampm = groups[0], groups[1]
-                    elif len(groups) == 3 and groups[1] is None:  # e.g., "7 pm" captured as 3 groups
+                    elif len(groups) == 3 and groups[1] is None:
                         hour, _, ampm = groups
-                    elif len(groups) == 3 and groups[1] is not None:  # e.g., "7:30pm"
+                    elif len(groups) == 3 and groups[1] is not None:
                         hour, minute, ampm = groups
                     break
             
             if not time_match:
                 return None
             
-            # Step 3: Extract name - everything after the time
+            # Step 3: Extract name
             time_end = time_match.end()
             name = text[time_end:].strip()
             
-            # If name is empty, try to get everything after the date
             if not name and date_match:
                 if isinstance(date_match, tuple):
-                    # Handle reverse date case
                     name = text[date_match[2]:].strip() if len(date_match) > 2 else ""
                 else:
                     name = text[date_match.end():].strip()
                 
-                # Remove any remaining time text
                 name = re.sub(r'\d{1,2}\s*(?::\d{2})?\s*(am|pm)?', '', name).strip()
             
-            # Clean up name - remove extra spaces and capitalize properly
             if name:
-                # Remove any leftover time indicators
                 name = re.sub(r'\b(am|pm)\b', '', name, flags=re.IGNORECASE).strip()
                 name = re.sub(r'\s+', ' ', name).strip()
                 name = name.title()
@@ -1235,7 +1150,6 @@ Reply with number 👇
             elif ampm and ampm.lower() == 'am' and hour == 12:
                 hour = 0
             
-            # Ensure minute is two digits
             minute = minute.zfill(2) if minute else '00'
             time = f"{hour:02d}:{minute}"
             
@@ -1243,20 +1157,16 @@ Reply with number 👇
             year = datetime.now().year
             date_str = f"{day.zfill(2)}-{month}-{year}"
             
-            # Validate date (check if it's in the future, adjust year if needed)
+            # Validate date
             try:
                 booking_date = datetime.strptime(date_str, '%d-%m-%Y')
                 today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
                 
-                # If booking date is in the past, assume next year
                 if booking_date < today:
-                    # Check if it's within the next 30 days (maybe they meant next month)
                     if (today - booking_date).days < 30:
-                        # They probably meant next year
                         next_year = year + 1
                         date_str = f"{day.zfill(2)}-{month}-{next_year}"
             except:
-                # If date parsing fails, keep as is
                 pass
             
             return {
@@ -1271,7 +1181,7 @@ Reply with number 👇
     
     @staticmethod
     def _month_to_number(month: str) -> str:
-        """Convert month name to number (supports full and abbreviated names)"""
+        """Convert month name to number"""
         months = {
             'jan': '01', 'january': '01',
             'feb': '02', 'february': '02',
@@ -1407,7 +1317,7 @@ Type 'menu' for main menu 👋
     
     @staticmethod
     def _get_services(business) -> str:
-        """Get services based on industry with rich formatting"""
+        """Get services based on industry"""
         industry = business.business_type.lower()
         
         services_map = {
@@ -1500,7 +1410,6 @@ async def conversations_page(request: Request, db: Session = Depends(get_db)):
         logger.error(f"Conversations page error: {str(e)}")
         return RedirectResponse("/dashboard", 302)
 
-
 @app.get("/conversations/{conversation_id}", response_class=HTMLResponse)
 @login_required
 async def conversation_detail(
@@ -1535,107 +1444,6 @@ async def conversation_detail(
         logger.error(f"Conversation detail error: {str(e)}")
         return RedirectResponse("/conversations", 302)
 
-@app.get("/debug/database-tables")
-async def debug_database_tables(db: Session = Depends(get_db)):
-    """Check if all tables exist in the database"""
-    try:
-        from sqlalchemy import inspect
-        inspector = inspect(db.bind)
-        tables = inspector.get_table_names()
-        
-        # Check for conversations table specifically
-        conv_table_exists = "conversations" in tables
-        
-        # If table doesn't exist, try to create it
-        if not conv_table_exists:
-            from models import Conversation
-            Base.metadata.create_all(bind=engine, tables=[Conversation.__table__])
-            logger.info("✅ Created conversations table")
-            tables = inspector.get_table_names()
-            conv_table_exists = "conversations" in tables
-        
-        return {
-            "all_tables": tables,
-            "conversations_table_exists": conv_table_exists,
-            "businesses_table_exists": "businesses" in tables,
-            "bookings_table_exists": "bookings" in tables,
-            "payments_table_exists": "payments" in tables,
-            "audit_logs_table_exists": "audit_logs" in tables
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-
-@app.get("/debug/routes")
-async def debug_routes():
-    """List all registered routes"""
-    routes = []
-    for route in app.routes:
-        routes.append({
-            "path": route.path,
-            "name": route.name if hasattr(route, 'name') else None,
-            "methods": list(route.methods) if hasattr(route, 'methods') else None,
-            "endpoint": str(route.endpoint) if hasattr(route, 'endpoint') else None
-        })
-    
-    # Specifically check if /conversations is in routes
-    conversations_route = next((r for r in routes if r["path"] == "/conversations"), None)
-    
-    return {
-        "total_routes": len(routes),
-        "conversations_route_found": conversations_route is not None,
-        "conversations_route_details": conversations_route,
-        "all_routes": routes[:20]  # First 20 routes for brevity
-    }
-
-@app.get("/conversations-test")
-async def conversations_test(request: Request, db: Session = Depends(get_db)):
-    """Test endpoint for conversations"""
-    try:
-        # Check login
-        user_id = request.session.get("business_id")
-        
-        # Check database connection
-        db_status = "ok"
-        try:
-            db.execute(text("SELECT 1")).first()
-        except Exception as e:
-            db_status = f"error: {str(e)}"
-        
-        # Check if user exists
-        user = None
-        if user_id:
-            user = db.query(Business).get(user_id)
-        
-        # Try to query conversations
-        conversations = []
-        conv_error = None
-        if user:
-            try:
-                conversations = db.query(Conversation).filter(
-                    Conversation.business_id == user.id
-                ).all()
-            except Exception as e:
-                conv_error = str(e)
-        
-        return {
-            "status": "ok",
-            "session_exists": bool(request.session),
-            "business_id_in_session": user_id,
-            "user_found": bool(user),
-            "user_id": user.id if user else None,
-            "database_status": db_status,
-            "conversations_count": len(conversations),
-            "conversations_error": conv_error,
-            "template_exists": os.path.exists("templates/conversations.html")
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
@@ -1715,7 +1523,6 @@ class EmailService:
             return False
         
         try:
-            # Load email template
             template = EmailService._get_template(template_name, context or {})
             
             message = Mail(
@@ -1836,75 +1643,52 @@ class EmailService:
         }
         return templates.get(name, "<h1>Notification</h1><p>{}</p>".format(context))
 
+# =====================================================
+# BOOKINGS API
+# =====================================================
+
 @app.post("/api/bookings/{booking_id}/status")
+@login_required
 async def update_booking_status(
     booking_id: int, 
     request: Request, 
     db: Session = Depends(get_db)
 ):
-    """Update booking status - simplified version"""
+    """Update booking status"""
     try:
-        print(f"🔵 Updating booking {booking_id}")
-        
-        # Check if user is logged in
-        user_id = request.session.get("business_id")
-        if not user_id:
-            print("🔴 User not logged in")
+        user = get_user(request, db)
+        if not user:
             return JSONResponse(
                 status_code=401, 
                 content={"status": "error", "message": "Not authenticated"}
             )
         
-        # Get user from database
-        user = db.query(Business).get(user_id)
-        if not user:
-            print("🔴 User not found")
-            return JSONResponse(
-                status_code=401, 
-                content={"status": "error", "message": "User not found"}
-            )
-        
-        print(f"🟢 User: {user.id} - {user.name}")
-        
-        # Find the booking
         booking = db.query(Booking).filter(
             Booking.id == booking_id,
             Booking.business_id == user.id
         ).first()
         
         if not booking:
-            print(f"🔴 Booking {booking_id} not found")
             return JSONResponse(
                 status_code=404, 
                 content={"status": "error", "message": "Booking not found"}
             )
         
-        print(f"🟢 Found booking: {booking.id} - Status: {booking.status}")
+        data = await request.json()
+        new_status = data.get('status')
         
-        # Get the new status from request body
-        try:
-            data = await request.json()
-            new_status = data.get('status')
-        except:
-            data = {}
-            new_status = data.get('status')
-        
-        print(f"🟡 New status: {new_status}")
-        
-        # Validate status
         valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
         if new_status not in valid_statuses:
             return JSONResponse(
                 status_code=400, 
-                content={"status": "error", "message": f"Invalid status. Must be one of: {valid_statuses}"}
+                content={"status": "error", "message": f"Invalid status"}
             )
         
-        # Update status
         old_status = booking.status
         booking.status = new_status
         db.commit()
         
-        print(f"✅ Updated from {old_status} to {new_status}")
+        logger.info(f"Booking {booking_id} status updated: {old_status} -> {new_status}")
         
         return {
             "status": "success", 
@@ -1917,98 +1701,39 @@ async def update_booking_status(
         }
         
     except Exception as e:
-        print(f"🔴 Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Booking status update error: {str(e)}")
         return JSONResponse(
             status_code=500, 
             content={"status": "error", "message": str(e)}
         )
 
-@app.get("/debug/booking/{booking_id}")
+@app.post("/api/bookings/{booking_id}/cancel")
 @login_required
-async def debug_booking(booking_id: int, request: Request, db: Session = Depends(get_db)):
-    """Debug a specific booking"""
-    user = get_user(request, db)
-    if not user:
-        return {"error": "Not logged in"}
-    
-    booking = db.query(Booking).filter(
-        Booking.id == booking_id,
-        Booking.business_id == user.id
-    ).first()
-    
-    if not booking:
-        return {"error": "Booking not found"}
-    
-    return {
-        "booking": {
-            "id": booking.id,
-            "name": booking.name,
-            "status": booking.status,
-            "date": booking.booking_date,
-            "time": booking.booking_time
-        },
-        "user_id": user.id
-    }
-
-@app.get("/test-booking-api/{booking_id}")
-@login_required
-async def test_booking_api(booking_id: int, request: Request, db: Session = Depends(get_db)):
-    """Test endpoint to check booking API functionality"""
+async def cancel_booking(booking_id: int, request: Request, db: Session = Depends(get_db)):
+    """Cancel a booking"""
     try:
         user = get_user(request, db)
         if not user:
-            return {"error": "Not logged in"}
+            return JSONResponse(status_code=401, content={"error": "Unauthorized"})
         
-        # Try to find the booking
-        booking = db.query(Booking).filter(
-            Booking.id == booking_id,
-            Booking.business_id == user.id
-        ).first()
+        booking = db.query(Booking)\
+            .filter(Booking.id == booking_id, Booking.business_id == user.id)\
+            .first()
         
         if not booking:
-            return {
-                "success": False,
-                "error": "Booking not found",
-                "user_id": user.id,
-                "booking_id": booking_id
-            }
+            return JSONResponse(status_code=404, content={"error": "Booking not found"})
         
-        # Try to update it
-        old_status = booking.status
-        booking.status = "confirmed"  # Test update
+        booking.status = "cancelled"
         db.commit()
         
-        result = {
-            "success": True,
-            "message": f"Booking {booking_id} updated from {old_status} to confirmed",
-            "booking": {
-                "id": booking.id,
-                "name": booking.name,
-                "old_status": old_status,
-                "new_status": booking.status
-            }
-        }
+        logger.info(f"Booking {booking_id} cancelled by user {user.id}")
         
-        # Revert back
-        booking.status = old_status
-        db.commit()
-        
-        return result
+        return {"status": "success"}
         
     except Exception as e:
-        import traceback
-        return {
-            "success": False,
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
+        logger.error(f"Cancel booking error: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": "Failed to cancel booking"})
 
-@app.get("/test-ping")
-async def test_ping():
-    """Simple test endpoint"""
-    return {"status": "ok", "message": "API is working"}
 # =====================================================
 # PAYMENT ROUTES
 # =====================================================
@@ -2022,7 +1747,6 @@ async def billing_page(request: Request, db: Session = Depends(get_db)):
         if not user:
             return RedirectResponse("/login", 302)
         
-        # Get payment history
         payments = db.query(Payment)\
             .filter(Payment.business_id == user.id)\
             .order_by(Payment.created_at.desc())\
@@ -2041,7 +1765,6 @@ async def billing_page(request: Request, db: Session = Depends(get_db)):
         )
     except Exception as e:
         logger.error(f"Billing page error: {str(e)}")
-        logger.error(traceback.format_exc())
         return templates.TemplateResponse(
             "500.html",
             {"request": request, "error": "An error occurred loading the billing page"},
@@ -2055,7 +1778,6 @@ async def create_order(request: Request, db: Session = Depends(get_db)):
     """Create Razorpay order"""
     try:
         if not razorpay_client:
-            logger.error("Razorpay client not initialized")
             return JSONResponse(
                 status_code=503,
                 content={"error": "Payment service temporarily unavailable"}
@@ -2077,9 +1799,8 @@ async def create_order(request: Request, db: Session = Depends(get_db)):
                 content={"error": "Invalid plan selected"}
             )
         
-        amount = PLANS[plan]["price"] * 100  # Convert to paise
+        amount = PLANS[plan]["price"] * 100
         
-        # Create Razorpay order
         order = razorpay_client.order.create({
             "amount": amount,
             "currency": "INR",
@@ -2105,15 +1826,8 @@ async def create_order(request: Request, db: Session = Depends(get_db)):
             "plan": plan
         }
         
-    except razorpay.errors.BadRequestError as e:
-        logger.error(f"Razorpay error: {str(e)}")
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Payment service error. Please try again."}
-        )
     except Exception as e:
         logger.error(f"Order creation error: {str(e)}")
-        logger.error(traceback.format_exc())
         return JSONResponse(
             status_code=500,
             content={"error": "Failed to create order. Please try again."}
@@ -2125,7 +1839,6 @@ async def payment_success(request: Request, db: Session = Depends(get_db)):
     """Handle successful payment"""
     try:
         if not razorpay_client:
-            logger.error("Razorpay client not initialized")
             return {"status": "error", "message": "Payment service unavailable"}
         
         user = get_user(request, db)
@@ -2134,27 +1847,22 @@ async def payment_success(request: Request, db: Session = Depends(get_db)):
         
         data = await request.json()
         
-        # Verify signature
         razorpay_client.utility.verify_payment_signature(data)
         
-        # Get payment details
         payment_id = data.get('razorpay_payment_id')
         order_id = data.get('razorpay_order_id')
         
-        # Fetch order details
         order = razorpay_client.order.fetch(order_id)
         amount_paid = order['amount']
         notes = order.get('notes', {})
         plan = notes.get('plan', 'pro')
         
-        # Determine plan from amount if not in notes
         if plan not in PLANS:
             if amount_paid == PLANS["starter"]["price"] * 100:
                 plan = "starter"
             else:
                 plan = "pro"
         
-        # Record payment
         payment = Payment(
             business_id=user.id,
             payment_id=payment_id,
@@ -2167,13 +1875,11 @@ async def payment_success(request: Request, db: Session = Depends(get_db)):
         )
         db.add(payment)
         
-        # Upgrade user plan
         user.plan = plan
         user.chat_limit = PLANS[plan]["chats"]
         user.paid_until = datetime.utcnow() + timedelta(days=30)
         db.commit()
         
-        # Log audit
         log_audit(user.id, "payment", {
             "plan": plan,
             "amount": amount_paid / 100,
@@ -2182,7 +1888,6 @@ async def payment_success(request: Request, db: Session = Depends(get_db)):
         
         logger.info(f"✅ Payment success: {payment_id} | User: {user.id} | Plan: {plan}")
         
-        # Send confirmation email (async)
         asyncio.create_task(
             EmailService.send_email(
                 user.admin_email,
@@ -2208,7 +1913,6 @@ async def payment_success(request: Request, db: Session = Depends(get_db)):
         return {"status": "error", "message": "Payment verification failed"}
     except Exception as e:
         logger.error(f"Payment success error: {str(e)}")
-        logger.error(traceback.format_exc())
         return {"status": "error", "message": "An error occurred processing your payment"}
 
 @app.post("/api/razorpay-webhook")
@@ -2218,7 +1922,6 @@ async def razorpay_webhook(request: Request):
         return {"status": "webhook disabled"}
     
     try:
-        # Verify webhook signature
         body = await request.body()
         signature = request.headers.get("x-razorpay-signature")
         
@@ -2232,13 +1935,11 @@ async def razorpay_webhook(request: Request):
             logger.error("Invalid webhook signature")
             return JSONResponse(status_code=400, content={"error": "Invalid signature"})
         
-        # Parse webhook
         data = json.loads(body)
         event = data.get("event")
         
         logger.info(f"📡 Razorpay webhook: {event}")
         
-        # Handle different events asynchronously
         asyncio.create_task(handle_razorpay_webhook_event(data))
         
         return {"status": "received"}
@@ -2255,15 +1956,6 @@ async def handle_razorpay_webhook_event(data: dict):
     if event == "payment.failed":
         payment_id = payload.get("payment", {}).get("entity", {}).get("id")
         logger.warning(f"Payment failed: {payment_id}")
-        # Handle failed payment (e.g., notify user)
-    
-    elif event == "subscription.charged":
-        # Handle recurring payment success
-        pass
-    
-    elif event == "subscription.paused":
-        # Handle subscription paused
-        pass
 
 # =====================================================
 # ADMIN ROUTES
@@ -2274,16 +1966,13 @@ async def handle_razorpay_webhook_event(data: dict):
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
     try:
-        # Get all users
         users = db.query(Business).order_by(Business.created_at.desc()).all()
         
-        # Get stats
         total_users = len(users)
         active_users = len([u for u in users if u.is_active])
         total_revenue = sum([p.amount for p in db.query(Payment).filter(Payment.status == "success").all()])
         total_bookings = db.query(Booking).count()
         
-        # Recent payments
         recent_payments = db.query(Payment).order_by(Payment.created_at.desc()).limit(10).all()
         
         stats = {
@@ -2309,7 +1998,6 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
         
     except Exception as e:
         logger.error(f"Admin dashboard error: {str(e)}")
-        logger.error(traceback.format_exc())
         return RedirectResponse("/dashboard", 302)
 
 @app.post("/admin/toggle-user/{user_id}")
@@ -2324,7 +2012,6 @@ async def toggle_user(user_id: int, request: Request, db: Session = Depends(get_
         user.is_active = not user.is_active
         db.commit()
         
-        # Log audit
         admin = get_user(request, db)
         log_audit(admin.id, "admin_toggle_user", {
             "target_user": user_id,
@@ -2338,67 +2025,6 @@ async def toggle_user(user_id: int, request: Request, db: Session = Depends(get_
     except Exception as e:
         logger.error(f"Toggle user error: {str(e)}")
         return JSONResponse(status_code=500, content={"error": "Failed to update user"})
-
-@app.post("/admin/make-admin/{user_id}")
-@admin_required
-async def make_admin(user_id: int, request: Request, db: Session = Depends(get_db)):
-    """Make user admin"""
-    try:
-        user = db.query(Business).get(user_id)
-        if not user:
-            return JSONResponse(status_code=404, content={"error": "User not found"})
-        
-        user.is_admin = True
-        db.commit()
-        
-        # Log audit
-        admin = get_user(request, db)
-        log_audit(admin.id, "admin_make_admin", {
-            "target_user": user_id
-        }, db)
-        
-        logger.info(f"Admin {admin.id} made user {user_id} an admin")
-        
-        return {"status": "success"}
-        
-    except Exception as e:
-        logger.error(f"Make admin error: {str(e)}")
-        return JSONResponse(status_code=500, content={"error": "Failed to update user"})
-
-@app.delete("/admin/delete-user/{user_id}")
-@admin_required
-async def delete_user(user_id: int, request: Request, db: Session = Depends(get_db)):
-    """Delete user account (soft delete)"""
-    try:
-        user = db.query(Business).get(user_id)
-        if not user:
-            return JSONResponse(status_code=404, content={"error": "User not found"})
-        
-        # Store info before deletion
-        user_email = user.admin_email
-        user_name = user.name
-        
-        # Soft delete - just mark inactive and remove sensitive data
-        user.is_active = False
-        user.admin_email = f"deleted_{user.id}@deleted.com"
-        user.whatsapp_number = f"deleted_{user.id}"
-        db.commit()
-        
-        # Log audit
-        admin = get_user(request, db)
-        log_audit(admin.id, "admin_delete_user", {
-            "target_user": user_id,
-            "target_email": user_email,
-            "target_name": user_name
-        }, db)
-        
-        logger.info(f"Admin {admin.id} deleted user {user_id}")
-        
-        return {"status": "success"}
-        
-    except Exception as e:
-        logger.error(f"Delete user error: {str(e)}")
-        return JSONResponse(status_code=500, content={"error": "Failed to delete user"})
 
 # =====================================================
 # USER ROUTES
@@ -2477,7 +2103,6 @@ async def bookings_page(request: Request, db: Session = Depends(get_db)):
         if not user:
             return RedirectResponse("/login", 302)
         
-        # Get all bookings
         bookings = db.query(Booking)\
             .filter(Booking.business_id == user.id)\
             .order_by(Booking.created_at.desc())\
@@ -2488,15 +2113,11 @@ async def bookings_page(request: Request, db: Session = Depends(get_db)):
             {
                 "request": request,
                 "business": user,
-                "bookings": bookings,
-                "cache_buster": datetime.now().timestamp()  # Add cache buster
+                "bookings": bookings
             }
         )
         
-        # Add no-cache headers
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
         
         return response
         
@@ -2504,98 +2125,20 @@ async def bookings_page(request: Request, db: Session = Depends(get_db)):
         logger.error(f"Bookings page error: {str(e)}")
         return RedirectResponse("/dashboard", 302)
 
-@app.post("/api/bookings/{booking_id}/cancel")
-@login_required
-async def cancel_booking(booking_id: int, request: Request, db: Session = Depends(get_db)):
-    """Cancel a booking"""
-    try:
-        user = get_user(request, db)
-        if not user:
-            return JSONResponse(status_code=401, content={"error": "Unauthorized"})
-        
-        booking = db.query(Booking)\
-            .filter(Booking.id == booking_id, Booking.business_id == user.id)\
-            .first()
-        
-        if not booking:
-            return JSONResponse(status_code=404, content={"error": "Booking not found"})
-        
-        booking.status = "cancelled"
-        db.commit()
-        
-        return {"status": "success"}
-        
-    except Exception as e:
-        logger.error(f"Cancel booking error: {str(e)}")
-        return JSONResponse(status_code=500, content={"error": "Failed to cancel booking"})
-
-@app.get("/debug/template-diagnostic")
-async def template_diagnostic():
-    """Complete diagnostic of template system"""
-    import os
-    import sys
-    from pathlib import Path
-    
-    results = {
-        "working_directory": os.getcwd(),
-        "python_path": sys.path,
-        "templates_dir_exists": os.path.exists("templates"),
-        "templates_dir_path": str(Path("templates").absolute()) if os.path.exists("templates") else None,
-        "files_in_templates": [],
-        "template_content": {},
-        "jinja_config": {}
-    }
-    
-    # List all files in templates
-    if os.path.exists("templates"):
-        for file in os.listdir("templates"):
-            if file.endswith('.html'):
-                file_path = os.path.join("templates", file)
-                file_size = os.path.getsize(file_path)
-                results["files_in_templates"].append({
-                    "name": file,
-                    "size": file_size,
-                    "path": str(Path(file_path).absolute())
-                })
-                
-                # For bookings.html, get content preview
-                if file == "bookings.html":
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        results["template_content"]["bookings"] = {
-                            "size": len(content),
-                            "has_confirm_buttons": 'btn-confirm' in content,
-                            "has_cancel_buttons": 'btn-cancel' in content,
-                            "preview": content[:500]
-                        }
-    
-    # Check Jinja2 configuration
-    try:
-        results["jinja_config"] = {
-            "templates_object_exists": 'templates' in globals() or 'templates' in locals(),
-            "cache_setting": str(templates.env.cache) if 'templates' in dir() else "unknown"
-        }
-    except:
-        results["jinja_config"] = {"error": "Could not access templates object"}
-    
-    return results
-
 @app.get("/manage-bookings", response_class=HTMLResponse)
 @login_required
 async def manage_bookings(request: Request, db: Session = Depends(get_db)):
-    """New bookings management page with confirm/cancel buttons"""
+    """Bookings management page with confirm/cancel buttons"""
     try:
         user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
-        # Get all bookings
         bookings = db.query(Booking)\
             .filter(Booking.business_id == user.id)\
             .order_by(Booking.created_at.desc())\
             .all()
         
-        # Calculate stats
         total = len(bookings)
         pending = len([b for b in bookings if b.status == "pending"])
         confirmed = len([b for b in bookings if b.status == "confirmed"])
@@ -2619,39 +2162,6 @@ async def manage_bookings(request: Request, db: Session = Depends(get_db)):
         logger.error(f"Manage bookings error: {str(e)}")
         return RedirectResponse("/dashboard", 302)
 
-
-@app.get("/debug/booking-api-test")
-async def debug_booking_api(request: Request, db: Session = Depends(get_db)):
-    """Test endpoint to check booking API functionality"""
-    try:
-        user = get_user(request, db)
-        if not user:
-            return {"error": "Not logged in"}
-        
-        # Get all bookings for this user
-        bookings = db.query(Booking).filter(Booking.business_id == user.id).all()
-        
-        return {
-            "user_id": user.id,
-            "user_name": user.name,
-            "total_bookings": len(bookings),
-            "bookings": [
-                {
-                    "id": b.id,
-                    "name": b.name,
-                    "status": b.status,
-                    "date": b.booking_date,
-                    "time": b.booking_time
-                }
-                for b in bookings
-            ],
-            "api_endpoint": "/api/bookings/{id}/status",
-            "method": "POST",
-            "expected_payload": {"status": "confirmed|cancelled|completed"}
-        }
-    except Exception as e:
-        return {"error": str(e), "traceback": traceback.format_exc()}
-
 # =====================================================
 # EXPORT ROUTES
 # =====================================================
@@ -2665,14 +2175,11 @@ async def export_bookings(request: Request, db: Session = Depends(get_db)):
         if not user:
             return RedirectResponse("/login", 302)
         
-        # Create CSV in memory
         output = StringIO()
         writer = csv.writer(output)
         
-        # Write header
         writer.writerow(['ID', 'Name', 'Phone', 'Email', 'Date', 'Time', 'Status', 'Created At'])
         
-        # Write data
         bookings = db.query(Booking)\
             .filter(Booking.business_id == user.id)\
             .order_by(Booking.created_at.desc())\
@@ -2690,7 +2197,6 @@ async def export_bookings(request: Request, db: Session = Depends(get_db)):
                 b.created_at.strftime('%Y-%m-%d %H:%M:%S')
             ])
         
-        # Return as downloadable file
         output.seek(0)
         filename = f"bookings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         
@@ -2754,6 +2260,7 @@ async def contact(request: Request):
 
 @app.get("/ping")
 async def ping():
+    """Simple ping endpoint for uptime monitoring"""
     return {"ping": "pong", "time": datetime.utcnow().isoformat()}
 
 # =====================================================
@@ -2762,10 +2269,10 @@ async def ping():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 10000))  # Change from 8080 to 10000
+    port = int(os.getenv("PORT", 10000))
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",  # This is correct - listens on all interfaces
+        host="0.0.0.0",
         port=port,
         reload=settings.DEBUG,
         log_level="debug" if settings.DEBUG else "info",
