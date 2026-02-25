@@ -1650,12 +1650,28 @@ class EmailService:
 @app.post("/api/bookings/{booking_id}/status")
 @login_required
 async def update_booking_status(
-    booking_id: int, 
-    request: Request, 
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Update booking status"""
     try:
+        # Get booking_id from path
+        booking_id = request.path_params.get("booking_id")
+        if not booking_id:
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Booking ID required"}
+            )
+        
+        # Convert to int
+        try:
+            booking_id = int(booking_id)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Invalid booking ID"}
+            )
+        
         user = get_user(request, db)
         if not user:
             return JSONResponse(
@@ -1709,9 +1725,28 @@ async def update_booking_status(
 
 @app.post("/api/bookings/{booking_id}/cancel")
 @login_required
-async def cancel_booking(booking_id: int, request: Request, db: Session = Depends(get_db)):
+async def cancel_booking(
+    request: Request, 
+    db: Session = Depends(get_db)
+):
     """Cancel a booking"""
     try:
+        # Get booking_id from path
+        booking_id = request.path_params.get("booking_id")
+        if not booking_id:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Booking ID required"}
+            )
+        
+        try:
+            booking_id = int(booking_id)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Invalid booking ID"}
+            )
+        
         user = get_user(request, db)
         if not user:
             return JSONResponse(status_code=401, content={"error": "Unauthorized"})
