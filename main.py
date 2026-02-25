@@ -214,16 +214,32 @@ async def lifespan(app: FastAPI):
     logger.info(f"🔗 Base URL: {settings.BASE_URL}")
     logger.info(f"💳 Razorpay: {'✅ Configured' if razorpay_client else '❌ Not configured'}")
     logger.info(f"📧 SendGrid: {'✅ Configured' if settings.SENDGRID_API_KEY else '❌ Not configured'}")
-    logger.info(f"📊 Rate Limiting: {'✅ Enabled' if settings.REDIS_URL else '⚠️ Using memory storage'}")
     logger.info("=" * 60)
     
     # Create database tables
     try:
+        # Import all models to ensure they're registered
+        from models import Business, Booking, Payment, AuditLog, Conversation
+        
+        # Create all tables
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Database tables verified/created")
+        
+        # Verify conversations table specifically
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        logger.info(f"📊 Database tables: {tables}")
+        
+        if "conversations" in tables:
+            logger.info("✅ Conversations table exists")
+        else:
+            logger.warning("⚠️ Conversations table not found!")
+            
     except Exception as e:
         logger.error(f"❌ Database initialization failed: {str(e)}")
-        raise
+        # Don't raise - let the app try to continue
+        # raise
     
     yield
     
@@ -1453,6 +1469,173 @@ For urgent inquiries, please call during business hours.
         
         return pricing_map.get(industry, "💰 *Pricing*\n\nBasic consultation: ₹500\nPremium services: Starting at ₹1000\n\nCheck our website for detailed pricing and packages.")
 
+# =====================================================
+# CONVERSATIONS PAGE
+# =====================================================
+
+@app.get("/conversations", response_class=HTMLResponse)
+@login_required
+async def conversations_page(request: Request, db: Session = Depends(get_db)):
+    """View all WhatsApp conversations"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Get all conversations for this business
+        conversations = db.query(Conversation)\
+            .filter(Conversation.business_id == user.id)\
+            .order_by(Conversation.updated_at.desc())\
+            .all()
+        
+        return templates.TemplateResponse(
+            "conversations.html",
+            {
+                "request": request,
+                "business": user,
+                "conversations": conversations
+            }
+        )
+    except Exception as e:
+        logger.error(f"Conversations page error: {str(e)}")
+        return RedirectResponse("/dashboard", 302)
+
+
+@app.get("/conversations/{conversation_id}", response_class=HTMLResponse)
+@login_required
+async def conversation_detail(
+    conversation_id: int, 
+    request: Request, 
+    db: Session = Depends(get_db)
+):
+    """View a specific conversation"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Get the conversation
+        conversation = db.query(Conversation).filter(
+            Conversation.id == conversation_id,
+            Conversation.business_id == user.id
+        ).first()
+        
+        if not conversation:
+            return RedirectResponse("/conversations", 302)
+        
+        return templates.TemplateResponse(
+            "conversation_detail.html",
+            {
+                "request": request,
+                "business": user,
+                "conversation": conversation
+            }
+        )
+    except Exception as e:
+        logger.error(f"Conversation detail error: {str(e)}")
+        return RedirectResponse("/conversations", 302)
+
+@app.get("/debug/database-tables")
+async def debug_database_tables(db: Session = Depends(get_db)):
+    """Check if all tables exist in the database"""
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(db.bind)
+        tables = inspector.get_table_names()
+        
+        # Check for conversations table specifically
+        conv_table_exists = "conversations" in tables
+        
+        # If table doesn't exist, try to create it
+        if not conv_table_exists:
+            from models import Conversation
+            Base.metadata.create_all(bind=engine, tables=[Conversation.__table__])
+            logger.info("✅ Created conversations table")
+            tables = inspector.get_table_names()
+            conv_table_exists = "conversations" in tables
+        
+        return {
+            "all_tables": tables,
+            "conversations_table_exists": conv_table_exists,
+            "businesses_table_exists": "businesses" in tables,
+            "bookings_table_exists": "bookings" in tables,
+            "payments_table_exists": "payments" in tables,
+            "audit_logs_table_exists": "audit_logs" in tables
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+@app.get("/debug/routes")
+async def debug_routes():
+    """List all registered routes"""
+    routes = []
+    for route in app.routes:
+        routes.append({
+            "path": route.path,
+            "name": route.name if hasattr(route, 'name') else None,
+            "methods": list(route.methods) if hasattr(route, 'methods') else None,
+            "endpoint": str(route.endpoint) if hasattr(route, 'endpoint') else None
+        })
+    
+    # Specifically check if /conversations is in routes
+    conversations_route = next((r for r in routes if r["path"] == "/conversations"), None)
+    
+    return {
+        "total_routes": len(routes),
+        "conversations_route_found": conversations_route is not None,
+        "conversations_route_details": conversations_route,
+        "all_routes": routes[:20]  # First 20 routes for brevity
+    }
+
+@app.get("/conversations-test")
+async def conversations_test(request: Request, db: Session = Depends(get_db)):
+    """Test endpoint for conversations"""
+    try:
+        # Check login
+        user_id = request.session.get("business_id")
+        
+        # Check database connection
+        db_status = "ok"
+        try:
+            db.execute(text("SELECT 1")).first()
+        except Exception as e:
+            db_status = f"error: {str(e)}"
+        
+        # Check if user exists
+        user = None
+        if user_id:
+            user = db.query(Business).get(user_id)
+        
+        # Try to query conversations
+        conversations = []
+        conv_error = None
+        if user:
+            try:
+                conversations = db.query(Conversation).filter(
+                    Conversation.business_id == user.id
+                ).all()
+            except Exception as e:
+                conv_error = str(e)
+        
+        return {
+            "status": "ok",
+            "session_exists": bool(request.session),
+            "business_id_in_session": user_id,
+            "user_found": bool(user),
+            "user_id": user.id if user else None,
+            "database_status": db_status,
+            "conversations_count": len(conversations),
+            "conversations_error": conv_error,
+            "template_exists": os.path.exists("templates/conversations.html")
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
