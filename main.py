@@ -317,6 +317,19 @@ def get_indian_time():
     ist_now = utc_now.astimezone(ist)
     return ist_now
 
+def get_template_context(request: Request, additional_context: dict = None):
+    """Get base template context with common variables"""
+    context = {
+        "request": request,
+        "now": datetime.utcnow(),
+        "year": datetime.utcnow().year,
+        "is_logged": is_logged(request)
+    }
+    if additional_context:
+        context.update(additional_context)
+    return context
+
+
 # =====================================================
 # TEMPLATES & STATIC FILES
 # =====================================================
@@ -1457,7 +1470,8 @@ async def conversation_detail(
             {
                 "request": request,
                 "business": user,
-                "conversation": conversation
+                "conversation": conversation,
+                "now": datetime.utcnow()
             }
         )
     except Exception as e:
@@ -1815,7 +1829,8 @@ async def billing_page(request: Request, db: Session = Depends(get_db)):
                 "payments": payments,
                 "razorpay_key": settings.RAZORPAY_KEY,
                 "plans": PLANS,
-                "current_plan": user.plan
+                "current_plan": user.plan,
+                "now": datetime.utcnow()
             }
         )
     except Exception as e:
@@ -2021,13 +2036,20 @@ async def handle_razorpay_webhook_event(data: dict):
 async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
     try:
+        # Get current time
+        from datetime import datetime
+        now_utc = datetime.utcnow()
+        
+        # Get all users
         users = db.query(Business).order_by(Business.created_at.desc()).all()
         
+        # Get stats
         total_users = len(users)
         active_users = len([u for u in users if u.is_active])
         total_revenue = sum([p.amount for p in db.query(Payment).filter(Payment.status == "success").all()])
         total_bookings = db.query(Booking).count()
         
+        # Recent payments
         recent_payments = db.query(Payment).order_by(Payment.created_at.desc()).limit(10).all()
         
         stats = {
@@ -2042,17 +2064,19 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
         }
         
         return templates.TemplateResponse(
-            "admin_dashboard.html",
+            "admin_dashboard.html",  # or "admin.html" depending on your template name
             {
                 "request": request,
                 "users": users,
                 "stats": stats,
-                "recent_payments": recent_payments
+                "recent_payments": recent_payments,
+                "now": now_utc  # ← ADD THIS LINE
             }
         )
         
     except Exception as e:
         logger.error(f"Admin dashboard error: {str(e)}")
+        logger.error(traceback.format_exc())
         return RedirectResponse("/dashboard", 302)
 
 @app.post("/admin/toggle-user/{user_id}")
