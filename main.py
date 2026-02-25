@@ -2183,17 +2183,22 @@ async def bookings_page(request: Request, db: Session = Depends(get_db)):
 @app.get("/manage-bookings", response_class=HTMLResponse)
 @login_required
 async def manage_bookings(request: Request, db: Session = Depends(get_db)):
-    """Bookings management page with confirm/cancel buttons"""
+    """New bookings management page with confirm/cancel buttons"""
     try:
         user = get_user(request, db)
         if not user:
             return RedirectResponse("/login", 302)
         
+        # Get current time in Indian timezone
+        now_ist = get_indian_time()  # Use your timezone function
+        
+        # Get all bookings
         bookings = db.query(Booking)\
             .filter(Booking.business_id == user.id)\
             .order_by(Booking.created_at.desc())\
             .all()
         
+        # Calculate stats
         total = len(bookings)
         pending = len([b for b in bookings if b.status == "pending"])
         confirmed = len([b for b in bookings if b.status == "confirmed"])
@@ -2205,6 +2210,7 @@ async def manage_bookings(request: Request, db: Session = Depends(get_db)):
                 "request": request,
                 "business": user,
                 "bookings": bookings,
+                "now": now_ist,  # ← THIS IS THE IMPORTANT LINE
                 "stats": {
                     "total": total,
                     "pending": pending,
