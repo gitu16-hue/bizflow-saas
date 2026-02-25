@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversations - {{ business.name }} | BizFlow AI</title>
     
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <style>
         * {
@@ -15,141 +22,707 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
             --primary-light: #60a5fa;
+            --secondary: #f97316;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --dark: #0f172a;
             --gray-50: #f8fafc;
             --gray-100: #f1f5f9;
             --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
             --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
             --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
         }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--gray-100);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: var(--gray-900);
-            line-height: 1.5;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite;
+        }
+
+        .circle1 {
+            width: 600px;
+            height: 600px;
+            top: -300px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .circle2 {
+            width: 400px;
+            height: 400px;
+            bottom: -200px;
+            left: -100px;
+            animation-delay: 5s;
+        }
+
+        .circle3 {
+            width: 300px;
+            height: 300px;
+            top: 30%;
+            left: 20%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* App Layout */
         .app {
             display: flex;
             min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
+
+        /* Modern Sidebar */
         .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, var(--gray-900) 0%, #0b1120 100%);
-            color: white;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
             padding: 2rem 1.5rem;
             position: fixed;
             height: 100vh;
+            overflow-y: auto;
+            animation: slideIn 0.5s ease;
+            box-shadow: var(--shadow-xl);
         }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         .sidebar-logo {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
             margin-bottom: 2.5rem;
             padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 2px solid var(--gray-200);
         }
+
         .logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 0.5rem;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 700;
+            color: white;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
         }
+
+        .logo-icon:hover {
+            transform: rotate(10deg) scale(1.1);
+        }
+
         .logo-text {
-            font-size: 1.25rem;
-            font-weight: 700;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
         .logo-text span {
-            color: var(--primary-light);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--gray-50), white);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
         .nav-menu {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
+
         .nav-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--gray-300);
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            color: var(--gray-600);
             text-decoration: none;
-            border-radius: 0.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .nav-item:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
         .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
+            color: var(--primary);
+            transform: translateX(5px);
         }
+
         .nav-item.active {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
+            box-shadow: var(--shadow-lg);
         }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-item span {
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .nav-item.active .badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--gray-200);
+            margin: 1.5rem 0;
+        }
+
         .nav-item.logout {
-            margin-top: 2rem;
+            color: var(--danger);
+            margin-top: 1rem;
+        }
+
+        .nav-item.logout:hover {
+            background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
         }
+
+        /* Main Content */
         .main {
             flex: 1;
-            margin-left: 280px;
+            margin-left: 320px;
             padding: 2rem;
+            animation: fadeIn 0.5s ease;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Top Bar */
         .top-bar {
-            background: white;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideDown 0.5s ease;
         }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         .page-title h1 {
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 700;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
         }
+
         .page-title p {
-            color: var(--gray-600);
-            font-size: 0.875rem;
+            color: var(--gray-500);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .avatar {
-            width: 40px;
-            height: 40px;
+
+        .stats-badge {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            background: var(--gray-100);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-item i {
+            color: var(--primary);
+        }
+
+        /* Search and Filter Bar */
+        .filter-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-filter {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-filter:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Conversations Grid */
+        .conversations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .conversation-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .conversation-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .conversation-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .conversation-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 50%;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
         }
-        .table-section {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+        .conversation-card:hover .customer-avatar {
+            transform: rotate(5deg) scale(1.1);
+        }
+
+        .customer-info {
+            flex: 1;
+        }
+
+        .customer-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--gray-900);
+        }
+
+        .customer-phone {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            margin-bottom: 1.25rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 12px;
+        }
+
+        .last-message {
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            margin-bottom: 0.75rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+        }
+
+        .timestamp {
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-new {
+            background: rgba(245, 158, 11, 0.15);
+            color: #b45309;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(37, 99, 235, 0.15);
+            color: #1e40af;
+            border: 1px solid rgba(37, 99, 235, 0.3);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .message-count {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .btn-view {
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+
+        .btn-view:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Table View (Alternative) */
+        .table-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         .table-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--gray-200);
-            background: var(--gray-50);
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
         .table-header h2 {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-toggle button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
+
         th {
             text-align: left;
             padding: 1rem 1.5rem;
@@ -158,162 +731,619 @@
             font-weight: 600;
             font-size: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
             border-bottom: 1px solid var(--gray-200);
         }
+
         td {
             padding: 1rem 1.5rem;
             border-bottom: 1px solid var(--gray-200);
             color: var(--gray-700);
+            font-size: 0.95rem;
         }
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
+
+        tr {
+            transition: all 0.3s ease;
         }
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
+
+        tr:hover {
+            background: rgba(37, 99, 235, 0.05);
         }
-        .status-confirmed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .status-cancelled {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .status-completed {
-            background: #dbeafe;
-            color: #1e40af;
-        }
+
         .action-btn {
             border: none;
             padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
+            border-radius: 8px;
             font-size: 0.875rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .btn-confirm {
-            background: var(--success);
-            color: white;
-        }
-        .btn-confirm:hover {
-            background: #059669;
-        }
-        .btn-cancel {
-            background: var(--danger);
-            color: white;
-        }
-        .btn-cancel:hover {
-            background: #dc2626;
-        }
-        .btn-complete {
+
+        .btn-view-table {
             background: var(--primary);
             color: white;
         }
-        .btn-complete:hover {
+
+        .btn-view-table:hover {
             background: var(--primary-dark);
+            transform: translateY(-2px);
         }
+
+        /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 3rem !important;
-            color: var(--gray-600);
+            padding: 4rem 2rem !important;
+        }
+
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 3rem;
+            color: var(--gray-400);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--gray-800);
+        }
+
+        .empty-state p {
+            color: var(--gray-500);
+            max-width: 400px;
+            margin: 0 auto 2rem;
+        }
+
+        .btn-start {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .conversation-card:nth-child(1) { animation-delay: 0.1s; }
+        .conversation-card:nth-child(2) { animation-delay: 0.2s; }
+        .conversation-card:nth-child(3) { animation-delay: 0.3s; }
+        .conversation-card:nth-child(4) { animation-delay: 0.4s; }
+        .conversation-card:nth-child(5) { animation-delay: 0.5s; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+            .main {
+                margin-left: 280px;
+            }
+            .conversations-grid {
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            .filter-bar {
+                flex-direction: column;
+            }
+            .search-box {
+                width: 100%;
+            }
+            .filter-group {
+                width: 100%;
+            }
+            .filter-select {
+                flex: 1;
+            }
+            .conversations-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-circle circle1"></div>
+        <div class="bg-circle circle2"></div>
+        <div class="bg-circle circle3"></div>
+    </div>
+
     <div class="app">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-logo">
-                <div class="logo-icon">B</div>
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
                 <div class="logo-text">BizFlow<span>AI</span></div>
             </div>
+
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {{ business.name[0] }}{% if business.name.split()|length > 1 %}{{ business.name.split()[1][0] }}{% endif %}
+                </div>
+                <div class="user-info">
+                    <h4>{{ business.name }}</h4>
+                    <p><i class="fas fa-circle" style="color: var(--success); font-size: 0.5rem;"></i> Online</p>
+                </div>
+            </div>
+
             <nav class="nav-menu">
-                <a href="/" class="nav-item"><i class="fas fa-home"></i> Home</a>
-                <a href="/dashboard" class="nav-item"><i class="fas fa-chart-pie"></i> Dashboard</a>
-                <a href="/billing" class="nav-item"><i class="fas fa-credit-card"></i> Billing</a>
-                <a href="/conversations" class="nav-item active"><i class="fas fa-message"></i> Conversations</a>
-                <a href="/bookings" class="nav-item"><i class="fas fa-calendar"></i> Bookings</a>
-                <a href="/settings" class="nav-item"><i class="fas fa-gear"></i> Settings</a>
-                <a href="/logout" class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/dashboard" class="nav-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/billing" class="nav-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing</span>
+                    {% if business.plan == 'trial' %}
+                    <span class="badge">Trial</span>
+                    {% endif %}
+                </a>
+                <a href="/conversations" class="nav-item active">
+                    <i class="fas fa-comments"></i>
+                    <span>Conversations</span>
+                    {% if conversations|length > 0 %}
+                    <span class="badge">{{ conversations|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="/manage-bookings" class="nav-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Bookings</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/logout" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
             </nav>
+
+            <div style="margin-top: 2rem; padding: 1rem; background: rgba(37, 99, 235, 0.1); border-radius: 12px;">
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin-bottom: 0.5rem;">CHAT USAGE</p>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.875rem;">{{ business.chat_used }}/{{ business.chat_limit }}</span>
+                    <span style="font-size: 0.875rem;">{{ (business.chat_used / business.chat_limit * 100)|round|int if business.chat_limit > 0 else 0 }}%</span>
+                </div>
+                <div style="height: 6px; background: var(--gray-200); border-radius: 10px; overflow: hidden;">
+                    <div style="width: {{ (business.chat_used / business.chat_limit * 100)|round|int if business.chat_limit > 0 else 0 }}%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 10px;"></div>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main">
+            <!-- Top Bar -->
             <div class="top-bar">
                 <div class="page-title">
                     <h1>Conversations</h1>
-                    <p>Chat history with your customers</p>
+                    <p><i class="fas fa-comments"></i> Chat history with your customers</p>
                 </div>
-                <div class="avatar">
-                    {{ business.name[0] }}
+                <div class="stats-badge">
+                    <div class="stat-item">
+                        <i class="fas fa-message"></i>
+                        <span>Total: {{ conversations|length }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span>New: {{ conversations|selectattr('stage', 'equalto', 'New')|list|length }}</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Conversations List -->
-            <div class="table-section">
-                <div class="table-header">
-                    <h2><i class="fas fa-message" style="margin-right: 0.5rem;"></i> Recent Conversations</h2>
+            <!-- Search and Filter Bar -->
+            <div class="filter-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name or phone..." onkeyup="filterConversations()">
                 </div>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Phone</th>
-                                <th>Last Message</th>
-                                <th>Status</th>
-                                <th>Last Updated</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if conversations %}
-                                {% for conv in conversations %}
-                                <tr>
-                                    <td><strong>{{ conv.customer_name or 'Unknown' }}</strong></td>
-                                    <td>{{ conv.phone }}</td>
-                                    <td>{{ conv.last_message or 'No messages' }}</td>
-                                    <td>
-                                        <span class="status-badge status-pending">
-                                            {{ conv.stage or 'New' }}
-                                        </span>
-                                    </td>
-                                    <td>{{ conv.updated_at.strftime('%d %b %Y, %I:%M %p') }}</td>
-                                    <td>
-                                        <button class="action-btn btn-confirm" onclick="viewConversation({{ conv.id }})">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="6" class="empty-state">
-                                        <i class="fas fa-message" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                                        <p>No conversations yet. Your first customer message will appear here.</p>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                <div class="filter-group">
+                    <select class="filter-select" id="statusFilter" onchange="filterConversations()">
+                        <option value="all">All Status</option>
+                        <option value="New">New</option>
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                    <select class="filter-select" id="dateFilter" onchange="filterConversations()">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                    <button class="btn-filter" onclick="refreshConversations()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
                 </div>
             </div>
+
+            <!-- View Toggle and Conversations -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h2>
+                        <i class="fas fa-comments" style="color: var(--primary);"></i>
+                        Recent Conversations
+                    </h2>
+                    <div class="view-toggle">
+                        <button class="active" onclick="toggleView('grid')" id="gridViewBtn">
+                            <i class="fas fa-grid-2"></i>
+                        </button>
+                        <button onclick="toggleView('table')" id="tableViewBtn">
+                            <i class="fas fa-table"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid View (Default) -->
+                <div id="gridView">
+                    {% if conversations %}
+                    <div class="conversations-grid" style="padding: 1.5rem;">
+                        {% for conv in conversations %}
+                        <div class="conversation-card" data-name="{{ conv.customer_name or 'Unknown' }}" data-phone="{{ conv.phone }}" data-status="{{ conv.stage or 'New' }}" data-date="{{ conv.updated_at.strftime('%Y-%m-%d') }}">
+                            <div class="card-header">
+                                <div class="customer-avatar">
+                                    {% if conv.customer_name %}
+                                        {{ conv.customer_name[0] }}{% if conv.customer_name.split()|length > 1 %}{{ conv.customer_name.split()[1][0] }}{% endif %}
+                                    {% else %}
+                                        <i class="fas fa-user"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="customer-info">
+                                    <div class="customer-name">{{ conv.customer_name or 'Unknown Customer' }}</div>
+                                    <div class="customer-phone">
+                                        <i class="fas fa-phone-alt"></i>
+                                        {{ conv.phone }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="last-message">
+                                    "{{ conv.last_message or 'No messages yet' }}"
+                                </div>
+                                <div class="message-meta">
+                                    <span class="timestamp">
+                                        <i class="far fa-clock"></i>
+                                        {{ conv.updated_at.strftime('%d %b %Y, %I:%M %p') }}
+                                    </span>
+                                    <span class="status-badge status-{{ conv.stage|lower or 'new' }}">
+                                        {{ conv.stage or 'New' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="message-count">
+                                    <i class="fas fa-comment-dots"></i>
+                                    <span>{{ conv.messages|length if conv.messages else 0 }} messages</span>
+                                </div>
+                                <button class="btn-view" onclick="viewConversation({{ conv.id }})">
+                                    <span>View Chat</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>No Conversations Yet</h3>
+                        <p>Your first customer message will appear here. Share your WhatsApp number to start receiving messages.</p>
+                        <button class="btn-start" onclick="window.location.href='/settings'">
+                            <i class="fas fa-whatsapp"></i>
+                            <span>Configure WhatsApp</span>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Table View (Hidden by Default) -->
+                <div id="tableView" style="display: none;">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Phone</th>
+                                    <th>Last Message</th>
+                                    <th>Status</th>
+                                    <th>Last Updated</th>
+                                    <th>Messages</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if conversations %}
+                                    {% for conv in conversations %}
+                                    <tr data-name="{{ conv.customer_name or 'Unknown' }}" data-phone="{{ conv.phone }}" data-status="{{ conv.stage or 'New' }}" data-date="{{ conv.updated_at.strftime('%Y-%m-%d') }}">
+                                        <td><strong>{{ conv.customer_name or 'Unknown' }}</strong></td>
+                                        <td>{{ conv.phone }}</td>
+                                        <td>{{ conv.last_message or 'No messages' }}</td>
+                                        <td>
+                                            <span class="status-badge status-{{ conv.stage|lower or 'new' }}">
+                                                {{ conv.stage or 'New' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ conv.updated_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                                        <td>{{ conv.messages|length if conv.messages else 0 }}</td>
+                                        <td>
+                                            <button class="action-btn btn-view-table" onclick="viewConversation({{ conv.id }})">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="empty-state">
+                                            <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                            <p>No conversations yet. Your first customer message will appear here.</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination (if needed) -->
+            {% if conversations|length > 10 %}
+            <div class="pagination">
+                <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">4</button>
+                <button class="page-btn">5</button>
+                <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            {% endif %}
         </main>
     </div>
 
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()" style="display: none; position: fixed; top: 20px; left: 20px; z-index: 1001; background: var(--primary); color: white; border: none; width: 50px; height: 50px; border-radius: 10px; font-size: 1.5rem; cursor: pointer;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        function viewConversation(id) {
-            window.location.href = `/conversations/${id}`;
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Mobile menu
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
         }
+
+        // Show mobile menu button on small screens
+        if (window.innerWidth <= 768) {
+            document.querySelector('.mobile-menu-toggle').style.display = 'block';
+        }
+
+        // View toggle
+        let currentView = 'grid';
+
+        function toggleView(view) {
+            currentView = view;
+            const gridView = document.getElementById('gridView');
+            const tableView = document.getElementById('tableView');
+            const gridBtn = document.getElementById('gridViewBtn');
+            const tableBtn = document.getElementById('tableViewBtn');
+
+            if (view === 'grid') {
+                gridView.style.display = 'block';
+                tableView.style.display = 'none';
+                gridBtn.classList.add('active');
+                tableBtn.classList.remove('active');
+            } else {
+                gridView.style.display = 'none';
+                tableView.style.display = 'block';
+                tableBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+            }
+        }
+
+        // Filter conversations
+        function filterConversations() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            // Filter grid view
+            const gridCards = document.querySelectorAll('#gridView .conversation-card');
+            gridCards.forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                const phone = card.dataset.phone;
+                const status = card.dataset.status;
+                const date = card.dataset.date;
+
+                let matchesSearch = name.includes(searchTerm) || phone.includes(searchTerm);
+                let matchesStatus = statusFilter === 'all' || status === statusFilter;
+                let matchesDate = filterByDate(date, dateFilter);
+
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Filter table view
+            const tableRows = document.querySelectorAll('#tableView tbody tr');
+            tableRows.forEach(row => {
+                const name = row.dataset.name.toLowerCase();
+                const phone = row.dataset.phone;
+                const status = row.dataset.status;
+                const date = row.dataset.date;
+
+                let matchesSearch = name.includes(searchTerm) || phone.includes(searchTerm);
+                let matchesStatus = statusFilter === 'all' || status === statusFilter;
+                let matchesDate = filterByDate(date, dateFilter);
+
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function filterByDate(dateStr, filter) {
+            if (filter === 'all') return true;
+
+            const date = new Date(dateStr);
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+            switch(filter) {
+                case 'today':
+                    return date.toDateString() === today.toDateString();
+                case 'week':
+                    return date >= weekAgo;
+                case 'month':
+                    return date >= monthAgo;
+                default:
+                    return true;
+            }
+        }
+
+        function viewConversation(id) {
+            // Add loading animation
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                window.location.href = `/conversations/${id}`;
+            }, 300);
+        }
+
+        function refreshConversations() {
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }
+
+        // Initialize with welcome animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add entrance animation to cards
+            const cards = document.querySelectorAll('.conversation-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                document.querySelector('.mobile-menu-toggle').style.display = 'block';
+            } else {
+                document.querySelector('.mobile-menu-toggle').style.display = 'none';
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
     </script>
 </body>
 </html>

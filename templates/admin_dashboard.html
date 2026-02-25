@@ -1,878 +1,1199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Admin Dashboard | BizFlow AI - Enterprise Control Panel</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel — BizFlow AI</title>
     
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <style>
-        /* ================= RESET & VARIABLES ================= */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --primary-light: #60a5fa;
-            --secondary: #f97316;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-            --radius-sm: 0.375rem;
-            --radius: 0.5rem;
-            --radius-md: 0.75rem;
-            --radius-lg: 1rem;
-            --radius-xl: 1.5rem;
-        }
-
+        
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--gray-100);
-            color: var(--gray-900);
-            line-height: 1.5;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1c2c 0%, #2a2f4b 100%);
             min-height: 100vh;
+            color: #e0e0e0;
+            padding: 30px;
         }
-
-        /* ================= LAYOUT ================= */
-        .app {
-            display: flex;
-            min-height: 100vh;
+        
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-
-        /* ================= SIDEBAR ================= */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, var(--gray-900) 0%, #0b1120 100%);
-            color: white;
-            padding: 2rem 1.5rem;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-            z-index: 50;
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
         }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 2.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
         }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 700;
+        
+        /* Main Container */
+        .admin-container {
+            max-width: 1600px;
+            margin: 0 auto;
         }
-
-        .logo-text {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .logo-text span {
-            color: var(--primary-light);
-            font-weight: 300;
-        }
-
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--gray-300);
-            text-decoration: none;
-            border-radius: var(--radius);
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .nav-item i {
-            width: 24px;
-            font-size: 1.25rem;
-        }
-
-        .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .nav-item.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow-md);
-        }
-
-        .nav-item.logout {
-            margin-top: 2rem;
-            color: var(--danger);
-        }
-
-        .nav-item.logout:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        /* ================= MAIN CONTENT ================= */
-        .main {
-            flex: 1;
-            margin-left: 280px;
-            padding: 2rem;
-        }
-
-        /* ================= TOP BAR ================= */
-        .top-bar {
+        
+        /* Header */
+        .admin-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            background: white;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideDown 0.5s ease;
         }
-
-        .page-title h1 {
-            font-size: 1.5rem;
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .header-title h1 {
+            font-size: 28px;
             font-weight: 700;
-            color: var(--gray-900);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .header-title p {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        .header-actions {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            gap: 15px;
         }
-
-        .page-title h1 i {
-            color: var(--primary);
-        }
-
-        .page-title p {
-            color: var(--gray-500);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-
-        .admin-badge {
-            background: linear-gradient(135deg, var(--warning), #fbbf24);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 100px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .admin-badge i {
-            font-size: 1rem;
-        }
-
-        /* ================= STATS GRID ================= */
+        
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
         }
-
+        
         .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
             transition: all 0.3s ease;
-            border: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
         }
-
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-light);
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 20px 30px -10px rgba(102, 126, 234, 0.3);
         }
-
-        .stat-info h3 {
-            color: var(--gray-500);
-            font-size: 0.875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-info h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--gray-900);
-        }
-
+        
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: var(--radius);
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 20px;
+            color: white;
+            margin-bottom: 15px;
         }
-
-        .stat-icon.primary { background: #dbeafe; color: var(--primary); }
-        .stat-icon.success { background: #d1fae5; color: var(--success); }
-        .stat-icon.warning { background: #fed7aa; color: var(--warning); }
-        .stat-icon.danger { background: #fee2e2; color: var(--danger); }
-
-        /* ================= TOOLBAR ================= */
-        .toolbar {
+        
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .stat-trend {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        
+        /* Charts Row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            animation: fadeIn 0.5s ease 0.5s both;
+        }
+        
+        .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+            margin-bottom: 20px;
         }
-
-        .toolbar h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--gray-800);
+        
+        .chart-header h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
         }
-
-        .search-wrapper {
+        
+        .chart-header i {
+            color: #667eea;
+            font-size: 24px;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease 0.6s both;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .action-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 30px -10px rgba(102, 126, 234, 0.5);
+        }
+        
+        .action-btn i {
+            font-size: 28px;
+        }
+        
+        /* Users Table */
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease 0.7s both;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .table-header h2 {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .table-controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .search-box {
             position: relative;
-            min-width: 300px;
         }
-
-        .search-icon {
+        
+        .search-box i {
             position: absolute;
-            left: 1rem;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--gray-400);
+            color: #666;
         }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.75rem;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s ease;
-            background: white;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        .export-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.25rem;
-            background: white;
-            color: var(--primary);
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .export-btn:hover {
-            border-color: var(--primary);
-            background: var(--primary);
+        
+        .search-box input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 15px 10px 40px;
             color: white;
+            font-size: 14px;
+            width: 250px;
         }
-
-        /* ================= TABLE SECTION ================= */
-        .table-section {
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--gray-200);
-            overflow: hidden;
+        
+        .search-box input::placeholder {
+            color: #666;
         }
-
-        .table-responsive {
-            overflow-x: auto;
+        
+        .filter-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
         }
-
-        table {
+        
+        .filter-select option {
+            background: #2a2f4b;
+        }
+        
+        /* Modern Table */
+        .modern-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1000px;
         }
-
-        th {
+        
+        .modern-table th {
             text-align: left;
-            padding: 1rem 1.5rem;
-            background: var(--gray-50);
-            color: var(--gray-600);
-            font-weight: 600;
-            font-size: 0.75rem;
+            padding: 15px;
+            color: #a0a0a0;
+            font-weight: 500;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--gray-200);
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--gray-200);
-            color: var(--gray-700);
-            font-size: 0.875rem;
+        
+        .modern-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            font-size: 14px;
         }
-
-        tr:hover td {
-            background: var(--gray-50);
+        
+        .modern-table tbody tr {
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-
-        /* Badges */
+        
+        .modern-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* User Avatar */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Status Badges */
         .badge {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 100px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            gap: 0.25rem;
+            gap: 5px;
         }
-
+        
         .badge-active {
-            background: #d1fae5;
-            color: #065f46;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
-
+        
         .badge-inactive {
-            background: #fee2e2;
-            color: #991b1b;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
-
-        .badge-admin {
-            background: #fed7aa;
-            color: #92400e;
-        }
-
-        .badge-pro {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-starter {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
+        
         .badge-trial {
-            background: #f1f5f9;
-            color: #475569;
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
-
+        
+        .badge-pro {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .badge-enterprise {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
         /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            gap: 8px;
         }
-
-        .btn-action {
+        
+        .action-btn-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             border: none;
-            padding: 0.5rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a0a0a0;
             cursor: pointer;
-            display: inline-flex;
+            transition: all 0.3s ease;
+            display: flex;
             align-items: center;
-            gap: 0.25rem;
-            transition: all 0.2s ease;
+            justify-content: center;
         }
-
-        .btn-suspend {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .btn-suspend:hover {
-            background: #dc2626;
+        
+        .action-btn-small:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            transform: translateY(-2px);
         }
-
-        .btn-activate {
-            background: #d1fae5;
-            color: #065f46;
+        
+        .action-btn-small.delete:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         }
-
-        .btn-activate:hover {
-            background: #059669;
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            color: #a0a0a0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .page-btn:hover,
+        .page-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-color: transparent;
         }
-
-        .btn-admin {
-            background: #fed7aa;
-            color: #92400e;
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
-
-        .btn-admin:hover {
-            background: #d97706;
-            color: white;
+        
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
         }
-
-        .btn-delete {
-            background: #fee2e2;
-            color: #991b1b;
+        
+        .modal-content {
+            background: #2a2f4b;
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.3s ease;
         }
-
-        .btn-delete:hover {
-            background: #dc2626;
-            color: white;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem !important;
-            color: var(--gray-500);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        /* ================= RESPONSIVE ================= */
-        @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
             }
-            .main {
-                margin-left: 0;
+            to {
+                transform: translateY(0);
+                opacity: 1;
             }
         }
-
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: white;
+            font-size: 20px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            margin-bottom: 30px;
+        }
+        
+        .modal-body p {
+            color: #a0a0a0;
+            margin-bottom: 10px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #2a2f4b;
+            border-left: 4px solid #667eea;
+            border-radius: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         @media (max-width: 768px) {
-            .main {
-                padding: 1rem;
+            body {
+                padding: 15px;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
             }
             
             .stats-grid {
                 grid-template-columns: 1fr;
             }
             
-            .toolbar {
+            .table-header {
                 flex-direction: column;
-                align-items: stretch;
+                gap: 15px;
             }
             
-            .search-wrapper {
-                min-width: auto;
+            .table-controls {
+                width: 100%;
+                flex-direction: column;
             }
             
-            .export-btn {
-                justify-content: center;
+            .search-box input {
+                width: 100%;
+            }
+            
+            .modern-table {
+                display: block;
+                overflow-x: auto;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app">
-        <!-- ================= SIDEBAR ================= -->
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <div class="logo-icon">B</div>
-                <div class="logo-text">BizFlow<span>AI</span></div>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header" data-aos="fade-down">
+            <div class="header-title">
+                <h1><i class="fas fa-shield-alt"></i> Admin Control Panel</h1>
+                <p><i class="far fa-clock"></i> {{ now.strftime('%B %d, %Y %H:%M') }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="/dashboard" class="action-btn-small" style="width: auto; padding: 10px 20px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <button class="action-btn-small" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="action-btn-small" onclick="showNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge pulse" style="position: absolute; top: -5px; right: -5px; padding: 4px 6px;">3</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value">{{ stats.total_users }}</div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 12% this month
+                </div>
             </div>
             
-            <nav class="nav-menu">
-                <a href="/" class="nav-item">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="/dashboard" class="nav-item">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="/billing" class="nav-item">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Billing</span>
-                </a>
-                <a href="/admin" class="nav-item active">
-                    <i class="fas fa-shield"></i>
-                    <span>Admin Panel</span>
-                </a>
-                <a href="/settings" class="nav-item">
-                    <i class="fas fa-gear"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="/logout" class="nav-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </nav>
-        </aside>
-
-        <!-- ================= MAIN CONTENT ================= -->
-        <main class="main">
-            <!-- Top Bar -->
-            <div class="top-bar">
-                <div class="page-title">
-                    <h1>
-                        <i class="fas fa-shield-alt"></i>
-                        Admin Panel
-                    </h1>
-                    <p>Manage all businesses and users</p>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-icon">
+                    <i class="fas fa-user-check"></i>
                 </div>
-                <div class="admin-badge">
-                    <i class="fas fa-crown"></i>
-                    Super Admin
+                <div class="stat-label">Active Users</div>
+                <div class="stat-value">{{ stats.active_users }}</div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> {{ (stats.active_users/stats.total_users*100)|round|int }}% active
                 </div>
             </div>
-
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Total Businesses</h3>
-                        <h2>{{ total_users }}</h2>
-                    </div>
-                    <div class="stat-icon primary">
-                        <i class="fas fa-building"></i>
-                    </div>
+            
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Active</h3>
-                        <h2>{{ active_users }}</h2>
-                    </div>
-                    <div class="stat-icon success">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Inactive</h3>
-                        <h2>{{ stats.inactive_users }}</h2>
-                    </div>
-                    <div class="stat-icon danger">
-                        <i class="fas fa-ban"></i>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Admins</h3>
-                        <h2>{{ users|selectattr("is_admin")|list|length }}</h2>
-                    </div>
-                    <div class="stat-icon warning">
-                        <i class="fas fa-crown"></i>
-                    </div>
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value">₹{{ "{:,.0f}".format(stats.total_revenue) }}</div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 23% vs last month
                 </div>
             </div>
-
-            <!-- Toolbar -->
-            <div class="toolbar">
-                <h2><i class="fas fa-users" style="margin-right: 0.5rem;"></i> All Businesses</h2>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <div class="search-wrapper">
-                        <i class="fas fa-search search-icon"></i>
-                        <input 
-                            type="text" 
-                            id="searchInput"
-                            class="search-input" 
-                            placeholder="Search by name or email..."
-                            onkeyup="filterTable()"
-                        >
+            
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-label">Total Bookings</div>
+                <div class="stat-value">{{ stats.total_bookings }}</div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> +{{ (stats.total_bookings/stats.total_users*stats.total_users/30)|round|int }} today
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <div class="chart-card" data-aos="fade-right">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-pie"></i> User Distribution</h3>
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+                <canvas id="userChart" style="height: 300px;"></canvas>
+            </div>
+            
+            <div class="chart-card" data-aos="fade-left">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Revenue Trend</h3>
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+                <canvas id="revenueChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="quick-actions" data-aos="fade-up">
+            <h3 style="color: white; margin-bottom: 20px;">
+                <i class="fas fa-bolt"></i> Quick Actions
+            </h3>
+            <div class="actions-grid">
+                <a href="#" class="action-btn" onclick="showAddUserModal()">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Add User</span>
+                </a>
+                <a href="#" class="action-btn" onclick="exportData()">
+                    <i class="fas fa-file-export"></i>
+                    <span>Export Data</span>
+                </a>
+                <a href="#" class="action-btn" onclick="showSettings()">
+                    <i class="fas fa-cog"></i>
+                    <span>System Settings</span>
+                </a>
+                <a href="#" class="action-btn" onclick="viewLogs()">
+                    <i class="fas fa-history"></i>
+                    <span>Audit Logs</span>
+                </a>
+                <a href="#" class="action-btn" onclick="sendNotification()">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Broadcast</span>
+                </a>
+                <a href="#" class="action-btn" onclick="backupSystem()">
+                    <i class="fas fa-database"></i>
+                    <span>Backup</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Users Table -->
+        <div class="table-container" data-aos="fade-up">
+            <div class="table-header">
+                <h2><i class="fas fa-users-cog"></i> User Management</h2>
+                <div class="table-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search users..." onkeyup="filterTable()">
                     </div>
-                    <button class="export-btn" onclick="exportCSV()">
-                        <i class="fas fa-download"></i>
-                        Export CSV
-                    </button>
+                    <select class="filter-select" id="planFilter" onchange="filterTable()">
+                        <option value="all">All Plans</option>
+                        <option value="trial">Trial</option>
+                        <option value="pro">Pro</option>
+                        <option value="enterprise">Enterprise</option>
+                    </select>
+                    <select class="filter-select" id="statusFilter" onchange="filterTable()">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
                 </div>
             </div>
-
-            <!-- Table Section -->
-            <div class="table-section">
-                <div class="table-responsive">
-                    <table id="userTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Business</th>
-                                <th>Email</th>
-                                <th>Plan</th>
-                                <th>Status</th>
-                                <th>Role</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for u in users %}
-                            <tr>
-                                <td><strong>#{{ u.id }}</strong></td>
-                                <td>
-                                    <div style="font-weight: 600;">{{ u.name }}</div>
-                                    <div style="font-size: 0.75rem; color: var(--gray-500);">{{ u.business_type|title }}</div>
-                                </td>
-                                <td>{{ u.admin_email }}</td>
-                                <td>
-                                    <span class="badge 
-                                        {% if u.plan == 'pro' %}badge-pro
-                                        {% elif u.plan == 'starter' %}badge-starter
-                                        {% else %}badge-trial{% endif %}">
-                                        {{ u.plan|upper }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if u.is_active %}
-                                        <span class="badge badge-active">
-                                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
-                                            Active
-                                        </span>
-                                    {% else %}
-                                        <span class="badge badge-inactive">
-                                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
-                                            Suspended
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if u.is_admin %}
-                                        <span class="badge badge-admin">
-                                            <i class="fas fa-crown"></i>
-                                            Admin
-                                        </span>
-                                    {% else %}
-                                        <span style="color: var(--gray-400);">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        {% if u.is_active %}
-                                        <button 
-                                            class="btn-action btn-suspend"
-                                            onclick="toggleUser({{ u.id }})"
-                                            title="Suspend Business"
-                                        >
-                                            <i class="fas fa-ban"></i>
-                                            Suspend
-                                        </button>
-                                        {% else %}
-                                        <button 
-                                            class="btn-action btn-activate"
-                                            onclick="toggleUser({{ u.id }})"
-                                            title="Activate Business"
-                                        >
-                                            <i class="fas fa-check"></i>
-                                            Activate
-                                        </button>
-                                        {% endif %}
-
-                                        {% if not u.is_admin %}
-                                        <button 
-                                            class="btn-action btn-admin"
-                                            onclick="makeAdmin({{ u.id }})"
-                                            title="Make Admin"
-                                        >
-                                            <i class="fas fa-crown"></i>
-                                            Admin
-                                        </button>
-                                        {% endif %}
-
-                                        <button 
-                                            class="btn-action btn-delete"
-                                            onclick="deleteUser({{ u.id }})"
-                                            title="Delete Business"
-                                        >
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="7" class="empty-state">
-                                    <i class="fas fa-users-slash"></i>
-                                    <p>No businesses found</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            
+            <table class="modern-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                        <th>Usage</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr data-user-id="{{ u.id }}" data-plan="{{ u.plan }}" data-status="{{ 'active' if u.is_active else 'inactive' }}">
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ u.name[0] }}{{ u.name.split()[-1][0] if u.name.split()|length > 1 else '' }}
+                                </div>
+                                <div>
+                                    <strong>{{ u.name }}</strong><br>
+                                    <span style="color: #a0a0a0; font-size: 12px;">ID: {{ u.id }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ u.admin_email }}</td>
+                        <td>
+                            <span class="badge badge-{{ u.plan }}">
+                                <i class="fas fa-{{ 'crown' if u.plan == 'pro' else 'rocket' if u.plan == 'starter' else 'building' }}"></i>
+                                {{ u.plan|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'active' if u.is_active else 'inactive' }}">
+                                <i class="fas fa-{{ 'check-circle' if u.is_active else 'times-circle' }}"></i>
+                                {{ 'Active' if u.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span>{{ u.chat_used }} / {{ u.chat_limit }}</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ (u.chat_used / u.chat_limit * 100)|round|int if u.chat_limit > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ u.created_at.strftime("%d %b %Y") }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn-small" onclick="viewUser({{ u.id }})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn-small" onclick="editUser({{ u.id }})" title="Edit User">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn-small" onclick="toggleUser({{ u.id }}, {{ 'true' if u.is_active else 'false' }})" title="{{ 'Suspend' if u.is_active else 'Activate' }}">
+                                    <i class="fas fa-{{ 'ban' if u.is_active else 'check-circle' }}"></i>
+                                </button>
+                                <button class="action-btn-small delete" onclick="deleteUser({{ u.id }})" title="Delete User">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">4</button>
+                <button class="page-btn">5</button>
+                <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
             </div>
-        </main>
+        </div>
     </div>
-
+    
+    <!-- User Detail Modal -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-circle"></i> User Details</h3>
+                <button class="close-modal" onclick="closeModal('userModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="userModalBody">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn-small" onclick="closeModal('userModal')">Close</button>
+                <button class="action-btn-small" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;" onclick="editUserFromModal()">Edit User</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Confirm Delete</h3>
+                <button class="close-modal" onclick="closeModal('deleteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this user?</p>
+                <p style="color: #ef4444; font-size: 14px;">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn-small" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="action-btn-small delete" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;" onclick="confirmDelete()">Delete User</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast"></div>
+    
     <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Search/Filter function
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+        
+        // Sample data for charts (replace with actual data from backend)
+        const userChart = new Chart(document.getElementById('userChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pro Users', 'Trial Users', 'Enterprise Users'],
+                datasets: [{
+                    data: [
+                        {{ stats.pro_users }},
+                        {{ stats.trial_users }},
+                        {{ stats.enterprise_users }}
+                    ],
+                    backgroundColor: [
+                        '#667eea',
+                        '#f59e0b',
+                        '#8b5cf6'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#a0a0a0'
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+        
+        const revenueChart = new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: [45000, 52000, 48000, 61000, 68000, 75000],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#a0a0a0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#a0a0a0'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Table filtering
         function filterTable() {
-            let input = document.getElementById("searchInput");
-            let filter = input.value.toLowerCase();
-            let rows = document.querySelectorAll("#userTable tbody tr");
-
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const planFilter = document.getElementById('planFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('#usersTable tbody tr');
+            
             rows.forEach(row => {
-                let name = row.cells[1]?.innerText.toLowerCase() || "";
-                let email = row.cells[2]?.innerText.toLowerCase() || "";
+                const name = row.querySelector('.user-info strong').textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                const plan = row.dataset.plan;
+                const status = row.dataset.status;
                 
-                if (name.includes(filter) || email.includes(filter)) {
-                    row.style.display = "";
+                const matchesSearch = name.includes(searchInput) || email.includes(searchInput);
+                const matchesPlan = planFilter === 'all' || plan === planFilter;
+                const matchesStatus = statusFilter === 'all' || status === statusFilter;
+                
+                if (matchesSearch && matchesPlan && matchesStatus) {
+                    row.style.display = '';
                 } else {
-                    row.style.display = "none";
+                    row.style.display = 'none';
                 }
             });
         }
-
-        // Toggle user active status
-        function toggleUser(id) {
-            if (!confirm("⚠️ Are you sure you want to change this business's status?")) return;
-            
-            fetch(`/admin/toggle-user/${id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(r => r.json())
-            .then(d => {
-                if (d.status === "success") {
-                    location.reload();
-                } else {
-                    alert("❌ Error: " + (d.message || "Could not update status"));
-                }
-            })
-            .catch(e => {
-                alert("❌ Network error. Please try again.");
-            });
+        
+        // User actions
+        let selectedUserId = null;
+        
+        function viewUser(id) {
+            selectedUserId = id;
+            // Fetch user details via AJAX
+            fetch(`/admin/user/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modalBody = document.getElementById('userModalBody');
+                    modalBody.innerHTML = `
+                        <p><strong>Name:</strong> ${data.name}</p>
+                        <p><strong>Email:</strong> ${data.email}</p>
+                        <p><strong>Phone:</strong> ${data.phone}</p>
+                        <p><strong>Plan:</strong> ${data.plan}</p>
+                        <p><strong>Joined:</strong> ${data.joined}</p>
+                        <p><strong>Last Login:</strong> ${data.last_login}</p>
+                    `;
+                    document.getElementById('userModal').classList.add('show');
+                });
         }
-
-        // Make user admin
-        function makeAdmin(id) {
-            if (!confirm("👑 Make this user an admin? They will have full access.")) return;
-            
-            fetch(`/admin/make-admin/${id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(r => r.json())
-            .then(d => {
-                if (d.status === "success") {
-                    location.reload();
-                } else {
-                    alert("❌ Error: " + (d.message || "Could not update role"));
-                }
-            })
-            .catch(e => {
-                alert("❌ Network error. Please try again.");
-            });
+        
+        function editUser(id) {
+            selectedUserId = id;
+            showToast('Edit feature coming soon!', 'info');
         }
-
-        // Delete user
-        function deleteUser(id) {
-            if (!confirm("⚠️⚠️⚠️\n\nWARNING: This will permanently delete this business and ALL their data!\n\nThis action CANNOT be undone.")) return;
-            
-            if (!confirm("Type 'DELETE' to confirm:")) return;
-            
-            fetch(`/admin/delete-user/${id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(r => r.json())
-            .then(d => {
-                if (d.status === "success") {
-                    location.reload();
-                } else {
-                    alert("❌ Error: " + (d.message || "Could not delete user"));
-                }
-            })
-            .catch(e => {
-                alert("❌ Network error. Please try again.");
-            });
-        }
-
-        // Export to CSV
-        function exportCSV() {
-            let csv = [];
-            let rows = document.querySelectorAll("#userTable tr");
-            
-            rows.forEach(row => {
-                let rowData = [];
-                let cols = row.querySelectorAll("td, th");
-                cols.forEach((col, index) => {
-                    // Skip actions column (last column) for clean export
-                    if (index < cols.length - 1) {
-                        rowData.push(col.innerText.trim());
+        
+        function toggleUser(id, currentStatus) {
+            const action = currentStatus ? 'suspend' : 'activate';
+            if (confirm(`Are you sure you want to ${action} this user?`)) {
+                fetch(`/admin/toggle-user/${id}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast(`User ${action}d successfully!`, 'success');
+                        setTimeout(() => location.reload(), 1500);
                     }
                 });
-                csv.push(rowData.join(","));
-            });
-            
-            let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
-            let downloadLink = document.createElement("a");
-            downloadLink.download = "bizflow_users.csv";
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            }
         }
-
-        // Debounce search for better performance
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(filterTable, 300);
+        
+        function deleteUser(id) {
+            selectedUserId = id;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+        
+        function confirmDelete() {
+            fetch(`/admin/delete-user/${selectedUserId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('User deleted successfully!', 'success');
+                    closeModal('deleteModal');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            });
+        }
+        
+        // Modal functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+        
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.className = `toast show ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Quick actions
+        function showAddUserModal() {
+            showToast('Add user feature coming soon!', 'info');
+        }
+        
+        function exportData() {
+            showToast('Exporting data...', 'info');
+            setTimeout(() => {
+                window.location.href = '/export/users';
+            }, 1500);
+        }
+        
+        function showSettings() {
+            showToast('Settings panel coming soon!', 'info');
+        }
+        
+        function viewLogs() {
+            showToast('Loading audit logs...', 'info');
+            setTimeout(() => {
+                window.location.href = '/admin/logs';
+            }, 1500);
+        }
+        
+        function sendNotification() {
+            showToast('Broadcast feature coming soon!', 'info');
+        }
+        
+        function backupSystem() {
+            showToast('Creating backup...', 'info');
+            setTimeout(() => {
+                showToast('Backup completed!', 'success');
+            }, 2000);
+        }
+        
+        function refreshData() {
+            showToast('Refreshing data...', 'info');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+        
+        function showNotifications() {
+            showToast('You have 3 unread notifications', 'info');
+        }
+        
+        // Handle escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.show').forEach(modal => {
+                    modal.classList.remove('show');
+                });
+            }
+        });
+        
+        // Click outside modal to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+        
+        // Row click handler
+        document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (!e.target.closest('button')) {
+                    const userId = this.dataset.userId;
+                    viewUser(userId);
+                }
+            });
+        });
+        
+        // Welcome toast
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                showToast('Welcome to Admin Panel', 'success');
+            }, 500);
         });
     </script>
 </body>

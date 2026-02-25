@@ -1,33 +1,947 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>About Us | BizFlow AI</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{font-family:Arial,sans-serif;background:#f8fafc;padding:40px;color:#222}
-.container{max-width:800px;margin:auto;background:white;padding:30px;border-radius:10px}
-h1{color:#2563eb}
-</style>
+    <title>About Us | BizFlow AI - Enterprise WhatsApp Automation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- AOS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.1s ease;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+        
+        .cursor-grow {
+            transform: translate(-50%, -50%) scale(1.5);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Modern Container */
+        .modern-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: 0;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            text-align: center;
+            padding: 80px 40px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInDown 1s ease;
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            color: #4a5568;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+        
+        /* Floating Elements */
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .floating-icon {
+            position: absolute;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.2);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        .icon-1 { top: 10%; left: 10%; animation-delay: 0s; }
+        .icon-2 { top: 20%; right: 15%; animation-delay: 1s; }
+        .icon-3 { bottom: 15%; left: 20%; animation-delay: 2s; }
+        .icon-4 { bottom: 25%; right: 10%; animation-delay: 1.5s; }
+        
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            animation: countUp 2s ease-out;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Mission/Vision Cards */
+        .mission-vision-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 60px 0;
+        }
+        
+        .mv-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mv-card::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            opacity: 0.1;
+            transition: all 0.5s ease;
+        }
+        
+        .mv-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 40px -15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .mv-card:hover::before {
+            transform: scale(3);
+            opacity: 0.05;
+        }
+        
+        .mv-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+            margin-bottom: 25px;
+        }
+        
+        .mv-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+        
+        .mv-text {
+            color: #718096;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        
+        /* Team Section */
+        .team-section {
+            margin: 80px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 50px;
+            color: #2d3748;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .team-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 40px -15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .team-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            transition: all 0.5s ease;
+        }
+        
+        .team-card:hover .team-image {
+            transform: scale(1.1);
+        }
+        
+        .team-info {
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .team-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #2d3748;
+        }
+        
+        .team-role {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .team-social {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .team-social a {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .team-social a:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding: 50px 0;
+            margin: 60px 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        .timeline-content {
+            width: 45%;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .timeline-year {
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Contact Section */
+        .contact-section {
+            background: white;
+            border-radius: 30px;
+            padding: 60px;
+            margin-top: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 50px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contact-info {
+            padding-right: 40px;
+        }
+        
+        .contact-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        
+        .contact-detail {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-detail:hover {
+            transform: translateX(10px);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .contact-detail:hover i,
+        .contact-detail:hover span {
+            color: white;
+        }
+        
+        .contact-detail i {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .contact-form {
+            background: #f7fafc;
+            padding: 40px;
+            border-radius: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .submit-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Back to Home Button */
+        .back-home {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+            animation: pulse 2s infinite;
+        }
+        
+        .back-home:hover {
+            transform: scale(1.1);
+            box-shadow: 0 20px 30px -10px rgba(102, 126, 234, 0.6);
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        /* Loading Animation */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loader-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .loader-spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 40px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .mission-vision-grid,
+            .team-grid,
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline::before {
+                left: 20px;
+            }
+            
+            .timeline-item {
+                flex-direction: column;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 50px);
+                margin-left: 50px;
+            }
+            
+            .timeline-item:nth-child(even) {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<div class="container">
-
-<h1>About BizFlow AI</h1>
-
-<p>BizFlow AI is a SaaS platform providing WhatsApp automation, booking management, and CRM solutions for Indian businesses.</p>
-
-<h3>Our Mission</h3>
-<p>To help small businesses grow using automation and AI.</p>
-
-<h3>Our Vision</h3>
-<p>Making digital tools accessible to every entrepreneur.</p>
-
-<h3>Contact</h3>
-<p>Email: support@bizflow.ai</p>
-
-</div>
-
+    <!-- Loading Animation -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <h2 style="font-size: 24px; margin-bottom: 10px;">Welcome to BizFlow AI</h2>
+            <p style="opacity: 0.9;">Loading amazing experience...</p>
+        </div>
+    </div>
+    
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <i class="fas fa-robot floating-icon icon-1"></i>
+        <i class="fas fa-comments floating-icon icon-2"></i>
+        <i class="fas fa-chart-line floating-icon icon-3"></i>
+        <i class="fas fa-cloud floating-icon icon-4"></i>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="modern-container">
+        <!-- Hero Section -->
+        <div class="glass-card" data-aos="fade-up">
+            <div class="hero-section">
+                <h1 class="hero-title">About BizFlow AI</h1>
+                <p class="hero-subtitle">
+                    Revolutionizing Indian businesses with AI-powered WhatsApp automation and smart CRM solutions
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; animation: fadeInUp 1s ease 0.4s both;">
+                    <a href="/" class="btn-modern btn-primary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="/contact" class="btn-modern btn-secondary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-envelope"></i> Contact
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div class="stats-grid" data-aos="fade-up" data-aos-delay="200">
+            <div class="stat-item" data-aos="zoom-in" data-aos-delay="300">
+                <div class="stat-number" id="stat1">10K+</div>
+                <div class="stat-label">Businesses</div>
+            </div>
+            <div class="stat-item" data-aos="zoom-in" data-aos-delay="400">
+                <div class="stat-number" id="stat2">50K+</div>
+                <div class="stat-label">Conversations</div>
+            </div>
+            <div class="stat-item" data-aos="zoom-in" data-aos-delay="500">
+                <div class="stat-number" id="stat3">98%</div>
+                <div class="stat-label">Satisfaction</div>
+            </div>
+            <div class="stat-item" data-aos="zoom-in" data-aos-delay="600">
+                <div class="stat-number" id="stat4">24/7</div>
+                <div class="stat-label">Support</div>
+            </div>
+        </div>
+        
+        <!-- Mission & Vision -->
+        <div class="mission-vision-grid">
+            <div class="mv-card" data-aos="fade-right">
+                <div class="mv-icon">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3 class="mv-title">Our Mission</h3>
+                <p class="mv-text">
+                    To empower small and medium Indian businesses with cutting-edge AI automation tools that simplify customer communication, streamline operations, and drive growth. We believe technology should be accessible to every entrepreneur.
+                </p>
+            </div>
+            
+            <div class="mv-card" data-aos="fade-left">
+                <div class="mv-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3 class="mv-title">Our Vision</h3>
+                <p class="mv-text">
+                    To become India's most trusted business automation platform, making digital transformation accessible to every entrepreneur. We envision a future where every business, regardless of size, can leverage AI to compete globally.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Timeline -->
+        <h2 class="section-title" data-aos="fade-up">Our Journey</h2>
+        <div class="timeline">
+            <div class="timeline-item" data-aos="fade-right">
+                <div class="timeline-content">
+                    <span class="timeline-year">2024</span>
+                    <h3 style="font-size: 20px; margin-bottom: 10px;">The Beginning</h3>
+                    <p style="color: #718096;">BizFlow AI was founded with a vision to revolutionize WhatsApp business communication in India.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item" data-aos="fade-left">
+                <div class="timeline-content">
+                    <span class="timeline-year">2025</span>
+                    <h3 style="font-size: 20px; margin-bottom: 10px;">Rapid Growth</h3>
+                    <p style="color: #718096;">Onboarded 1000+ businesses, launched AI-powered booking system and analytics dashboard.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item" data-aos="fade-right">
+                <div class="timeline-content">
+                    <span class="timeline-year">2026</span>
+                    <h3 style="font-size: 20px; margin-bottom: 10px;">Enterprise Ready</h3>
+                    <p style="color: #718096;">Launched enterprise features, CRM integration, and achieved 99.9% uptime with advanced security.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Team Section -->
+        <h2 class="section-title" data-aos="fade-up">Meet Our Team</h2>
+        <div class="team-grid">
+            <div class="team-card" data-aos="fade-up" data-aos-delay="100">
+                <img src="https://ui-avatars.com/api/?name=Rahul+Sharma&size=300&length=2&background=667eea&color=fff&bold=true" alt="Rahul Sharma" class="team-image">
+                <div class="team-info">
+                    <h3 class="team-name">Rahul Sharma</h3>
+                    <div class="team-role">Founder & CEO</div>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-card" data-aos="fade-up" data-aos-delay="200">
+                <img src="https://ui-avatars.com/api/?name=Priya+Patel&size=300&length=2&background=764ba2&color=fff&bold=true" alt="Priya Patel" class="team-image">
+                <div class="team-info">
+                    <h3 class="team-name">Priya Patel</h3>
+                    <div class="team-role">CTO</div>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-card" data-aos="fade-up" data-aos-delay="300">
+                <img src="https://ui-avatars.com/api/?name=Amit+Kumar&size=300&length=2&background=10b981&color=fff&bold=true" alt="Amit Kumar" class="team-image">
+                <div class="team-info">
+                    <h3 class="team-name">Amit Kumar</h3>
+                    <div class="team-role">Head of Product</div>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Section -->
+        <div class="contact-section" data-aos="fade-up">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3>Get in Touch</h3>
+                    <p style="color: #718096; margin-bottom: 30px;">
+                        Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                    </p>
+                    
+                    <div class="contact-detail">
+                        <i class="fas fa-envelope"></i>
+                        <span>support@bizflowai.online</span>
+                    </div>
+                    
+                    <div class="contact-detail">
+                        <i class="fas fa-phone"></i>
+                        <span>+91 98765 43210</span>
+                    </div>
+                    
+                    <div class="contact-detail">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Mumbai, India</span>
+                    </div>
+                </div>
+                
+                <div class="contact-form">
+                    <h3 style="margin-bottom: 20px;">Send Message</h3>
+                    <form id="contactForm" onsubmit="return handleSubmit(event)">
+                        <div class="form-group">
+                            <input type="text" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea rows="5" placeholder="Your Message" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back to Home Button -->
+    <a href="/" class="back-home" title="Back to Home">
+        <i class="fas fa-home"></i>
+    </a>
+    
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/party-js@latest"></script>
+    
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true,
+            mirror: false
+        });
+        
+        // Hide loader after page load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').classList.add('hidden');
+            }, 500);
+        });
+        
+        // Custom cursor
+        const cursor = document.getElementById('cursor');
+        
+        document.addEventListener('mousemove', function(e) {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+        
+        document.addEventListener('mousedown', function() {
+            cursor.classList.add('cursor-grow');
+        });
+        
+        document.addEventListener('mouseup', function() {
+            cursor.classList.remove('cursor-grow');
+        });
+        
+        // Animate stats counting
+        function animateValue(element, start, end, duration) {
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    element.innerText = end;
+                    clearInterval(timer);
+                } else {
+                    element.innerText = Math.floor(current) + (element.id.includes('3') ? '%' : element.id.includes('4') ? '/7' : '+');
+                }
+            }, 16);
+        }
+        
+        // Check if stats are in viewport
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateValue(document.getElementById('stat1'), 0, 10000, 2000);
+                    animateValue(document.getElementById('stat2'), 0, 50000, 2000);
+                    animateValue(document.getElementById('stat3'), 0, 98, 2000);
+                    animateValue(document.getElementById('stat4'), 0, 24, 2000);
+                    observer.disconnect();
+                }
+            });
+        });
+        
+        observer.observe(document.querySelector('.stats-grid'));
+        
+        // Form submission handler
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            // Show loading state
+            const btn = event.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                
+                // Party effect
+                party.confetti(btn, {
+                    count: 30,
+                    size: 1
+                });
+                
+                // Reset form
+                event.target.reset();
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.style.background = '';
+                }, 3000);
+            }, 2000);
+            
+            return false;
+        }
+        
+        // Add hover effect to cards
+        document.querySelectorAll('.team-card, .mv-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Smooth scroll for timeline
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
 </body>
 </html>
