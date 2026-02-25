@@ -1654,55 +1654,63 @@ class EmailService:
         return templates.get(name, "<h1>Notification</h1><p>{}</p>".format(context))
 
 @app.post("/api/bookings/{booking_id}/status")
-@login_required
 async def update_booking_status(
     booking_id: int, 
     request: Request, 
     db: Session = Depends(get_db)
 ):
-    """Update booking status"""
+    """Update booking status - simplified version"""
     try:
-        print(f"🔵 Received request to update booking {booking_id}")
+        print(f"🔵 Updating booking {booking_id}")
         
-        # Get user from session
-        user = get_user(request, db)
-        if not user:
-            print("🔴 User not authenticated")
+        # Check if user is logged in
+        user_id = request.session.get("business_id")
+        if not user_id:
+            print("🔴 User not logged in")
             return JSONResponse(
                 status_code=401, 
                 content={"status": "error", "message": "Not authenticated"}
             )
         
-        print(f"🟢 User authenticated: {user.id}")
+        # Get user from database
+        user = db.query(Business).get(user_id)
+        if not user:
+            print("🔴 User not found")
+            return JSONResponse(
+                status_code=401, 
+                content={"status": "error", "message": "User not found"}
+            )
         
-        # Verify booking exists and belongs to this user
+        print(f"🟢 User: {user.id} - {user.name}")
+        
+        # Find the booking
         booking = db.query(Booking).filter(
             Booking.id == booking_id,
             Booking.business_id == user.id
         ).first()
         
         if not booking:
-            print(f"🔴 Booking {booking_id} not found for user {user.id}")
+            print(f"🔴 Booking {booking_id} not found")
             return JSONResponse(
                 status_code=404, 
                 content={"status": "error", "message": "Booking not found"}
             )
         
-        print(f"🟢 Booking found: {booking.id}, current status: {booking.status}")
+        print(f"🟢 Found booking: {booking.id} - Status: {booking.status}")
         
-        # Parse request body
+        # Get the new status from request body
         try:
             data = await request.json()
+            new_status = data.get('status')
         except:
             data = {}
+            new_status = data.get('status')
         
-        new_status = data.get('status')
-        print(f"🟡 New status requested: {new_status}")
+        print(f"🟡 New status: {new_status}")
         
         # Validate status
         valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
         if new_status not in valid_statuses:
-            print(f"🔴 Invalid status: {new_status}")
             return JSONResponse(
                 status_code=400, 
                 content={"status": "error", "message": f"Invalid status. Must be one of: {valid_statuses}"}
@@ -1713,18 +1721,7 @@ async def update_booking_status(
         booking.status = new_status
         db.commit()
         
-        print(f"✅ Booking {booking_id} status updated from {old_status} to {new_status}")
-        
-        # Log audit
-        try:
-            log_audit(user.id, f"booking_{new_status}", {
-                "booking_id": booking_id,
-                "customer": booking.name,
-                "old_status": old_status,
-                "new_status": new_status
-            }, db)
-        except:
-            pass  # Audit logging failed but booking update succeeded
+        print(f"✅ Updated from {old_status} to {new_status}")
         
         return {
             "status": "success", 
@@ -1737,12 +1734,12 @@ async def update_booking_status(
         }
         
     except Exception as e:
-        print(f"🔴 Error in update_booking_status: {str(e)}")
+        print(f"🔴 Error: {str(e)}")
         import traceback
         traceback.print_exc()
         return JSONResponse(
             status_code=500, 
-            content={"status": "error", "message": f"Server error: {str(e)}"}
+            content={"status": "error", "message": str(e)}
         )
 
 @app.get("/debug/booking/{booking_id}")

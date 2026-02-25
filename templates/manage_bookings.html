@@ -718,22 +718,15 @@
         }
 
         function updateStatus(bookingId, newStatus) {
-            console.log(`Updating booking ${bookingId} to ${newStatus}`); // Debug log
-        
             if (!confirm(`Are you sure you want to mark this booking as ${newStatus}?`)) return;
-        
-            // Find and disable the specific button that was clicked
+    
+            // Show loading state
             const clickedButton = event.target.closest('button');
             if (clickedButton) {
-                const originalText = clickedButton.innerHTML;
                 clickedButton.disabled = true;
                 clickedButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
-                // Store original text to restore if error occurs
-                clickedButton.dataset.originalText = originalText;
             }
-        
-            // Make the API call
+    
             fetch(`/api/bookings/${bookingId}/status`, {
                 method: 'POST',
                 headers: {
@@ -741,16 +734,7 @@
                 },
                 body: JSON.stringify({ status: newStatus })
             })
-            .then(async response => {
-                console.log('Response status:', response.status); // Debug log
-                const data = await response.json(); 
-                console.log('Response data:', data); // Debug log
-            
-                if (!response.ok) {
-                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
-                }
-                return data;
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     showToast(`✅ Booking marked as ${newStatus}!`, 'success');
@@ -760,16 +744,13 @@
                 }
             })
             .catch(error => {
-                console.error('Error details:', error);
+                console.error('Error:', error);
                 showToast('❌ Failed to update booking: ' + error.message, 'error');
-            
-                // Re-enable the button and restore original text
                 if (clickedButton) {
                     clickedButton.disabled = false;
-                    clickedButton.innerHTML = clickedButton.dataset.originalText || 
-                        (newStatus === 'confirmed' ? '<i class="fas fa-check"></i> Confirm' :
-                         newStatus === 'cancelled' ? '<i class="fas fa-times"></i> Cancel' :
-                         '<i class="fas fa-check-double"></i> Complete');
+                    clickedButton.innerHTML = newStatus === 'confirmed' ? '<i class="fas fa-check"></i> Confirm' :
+                                             newStatus === 'cancelled' ? '<i class="fas fa-times"></i> Cancel' :
+                                             '<i class="fas fa-check-double"></i> Complete';
                 }
             });
         }
