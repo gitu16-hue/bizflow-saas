@@ -2434,6 +2434,38 @@ async def manage_bookings(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse("/dashboard", 302)
 
 
+@app.get("/debug/booking-api-test")
+async def debug_booking_api(request: Request, db: Session = Depends(get_db)):
+    """Test endpoint to check booking API functionality"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return {"error": "Not logged in"}
+        
+        # Get all bookings for this user
+        bookings = db.query(Booking).filter(Booking.business_id == user.id).all()
+        
+        return {
+            "user_id": user.id,
+            "user_name": user.name,
+            "total_bookings": len(bookings),
+            "bookings": [
+                {
+                    "id": b.id,
+                    "name": b.name,
+                    "status": b.status,
+                    "date": b.booking_date,
+                    "time": b.booking_time
+                }
+                for b in bookings
+            ],
+            "api_endpoint": "/api/bookings/{id}/status",
+            "method": "POST",
+            "expected_payload": {"status": "confirmed|cancelled|completed"}
+        }
+    except Exception as e:
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
 # =====================================================
 # EXPORT ROUTES
 # =====================================================
