@@ -5,12 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Bookings - {{ business.name }} | BizFlow AI</title>
     
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- FullCalendar for calendar view -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <style>
-        /* ================= RESET & VARIABLES ================= */
         * {
             margin: 0;
             padding: 0;
@@ -25,6 +37,7 @@
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --info: #3b82f6;
             --dark: #0f172a;
             --gray-50: #f8fafc;
             --gray-100: #f1f5f9;
@@ -37,183 +50,466 @@
             --gray-800: #1e293b;
             --gray-900: #0f172a;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
             --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --shadow-2xl: 0 30px 60px -15px rgb(0 0 0 / 0.3);
             --radius-sm: 0.375rem;
             --radius: 0.5rem;
             --radius-md: 0.75rem;
             --radius-lg: 1rem;
             --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--gray-100);
-            color: var(--gray-900);
-            line-height: 1.5;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            color: var(--gray-900);
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        .shape1 {
+            width: 400px;
+            height: 400px;
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .shape2 {
+            width: 300px;
+            height: 300px;
+            bottom: -150px;
+            left: -50px;
+            animation-delay: 5s;
+        }
+
+        .shape3 {
+            width: 200px;
+            height: 200px;
+            top: 30%;
+            left: 10%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -30px) rotate(90deg); }
+            50% { transform: translate(-30px, 30px) rotate(180deg); }
+            75% { transform: translate(20px, 20px) rotate(270deg); }
         }
 
         /* ================= LAYOUT ================= */
         .app {
             display: flex;
             min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
 
-        /* ================= SIDEBAR ================= */
+        /* ================= MODERN SIDEBAR ================= */
         .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, var(--gray-900) 0%, #0b1120 100%);
-            color: white;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
             padding: 2rem 1.5rem;
             position: fixed;
             height: 100vh;
             overflow-y: auto;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
+            box-shadow: var(--shadow-xl);
+            animation: slideInLeft 0.6s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .sidebar-logo {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
             margin-bottom: 2.5rem;
             padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 2px solid rgba(37, 99, 235, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            animation: slide 2s infinite;
+        }
+
+        @keyframes slide {
+            0% { left: 0; width: 50px; }
+            50% { left: 50%; width: 100px; }
+            100% { left: calc(100% - 50px); width: 50px; }
         }
 
         .logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: var(--radius);
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 700;
+            color: white;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .logo-text {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .logo-text span {
-            color: var(--primary-light);
-            font-weight: 300;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--gray-300);
-            text-decoration: none;
-            border-radius: var(--radius);
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .nav-item i {
-            width: 24px;
-            font-size: 1.25rem;
-        }
-
-        .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .nav-item.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow-md);
-        }
-
-        .nav-item.logout {
-            margin-top: 2rem;
-            color: var(--danger);
-        }
-
-        .nav-item.logout:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        /* ================= MAIN CONTENT ================= */
-        .main {
-            flex: 1;
-            margin-left: 280px;
-            padding: 2rem;
-        }
-
-        /* ================= TOP BAR ================= */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* User Profile Card */
+        .user-profile-card {
+            background: linear-gradient(135deg, var(--gray-50), white);
+            border-radius: 20px;
+            padding: 1.5rem;
             margin-bottom: 2rem;
-            background: white;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .page-title h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--gray-900);
+        .user-profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
         }
 
-        .page-title p {
-            color: var(--gray-500);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-
-        .user-menu {
+        .profile-header {
             display: flex;
             align-items: center;
             gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
-        .avatar {
-            width: 40px;
-            height: 40px;
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 50%;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 600;
-            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .profile-info h4 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-info p {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-weight: 500;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .nav-item:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-item i {
+            width: 24px;
+            font-size: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-item span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .nav-item.active .nav-badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gray-300), transparent);
+            margin: 1.5rem 0;
+        }
+
+        .nav-item.logout {
+            color: var(--danger);
+        }
+
+        .nav-item.logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* ================= MAIN CONTENT ================= */
+        .main {
+            flex: 1;
+            margin-left: 320px;
+            padding: 2rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ================= TOP BAR ================= */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideDown 0.6s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title p {
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .date-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            animation: pulse 2s infinite;
         }
 
         /* ================= STATS GRID ================= */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
             padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--gray-200);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
         }
 
         .stat-title {
@@ -221,33 +517,151 @@
             font-size: 0.875rem;
             font-weight: 600;
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.primary { 
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: var(--primary);
+        }
+        .stat-icon.warning { 
+            background: linear-gradient(135deg, #fed7aa, #fcd34d);
+            color: var(--warning);
+        }
+        .stat-icon.success { 
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: var(--success);
+        }
+        .stat-icon.info { 
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: var(--info);
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
+            color: var(--gray-900);
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-trend {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ================= VIEW TOGGLE ================= */
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem;
+            border-radius: 50px;
+            display: inline-flex;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .view-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .view-btn:hover {
+            background: rgba(37, 99, 235, 0.1);
             color: var(--primary);
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: var(--shadow-lg);
         }
 
         /* ================= FILTER BAR ================= */
         .filter-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
             gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.6s ease 0.5s both;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
         .filter-select {
-            padding: 0.5rem 1rem;
+            padding: 1rem 1.5rem;
             border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
+            border-radius: 12px;
             font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
             background: white;
             cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
         }
 
         .filter-select:focus {
@@ -256,32 +670,60 @@
         }
 
         .btn-export {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: white;
-            color: var(--primary);
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
             text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
         }
 
         .btn-export:hover {
-            border-color: var(--primary);
-            background: var(--primary);
-            color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
         }
 
-        /* ================= TABLE SECTION ================= */
-        .table-section {
+        /* ================= CALENDAR VIEW ================= */
+        .calendar-view {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+            animation: fadeInUp 0.6s ease 0.6s both;
+            display: none;
+        }
+
+        .calendar-view.active {
+            display: block;
+        }
+
+        #calendar {
+            height: 600px;
             background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--gray-200);
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        /* ================= TABLE VIEW ================= */
+        .table-view {
+            animation: fadeInUp 0.6s ease 0.7s both;
+        }
+
+        .table-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
             overflow: hidden;
         }
 
@@ -292,60 +734,127 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px;
+            min-width: 1000px;
         }
 
         th {
             text-align: left;
-            padding: 1rem 1.5rem;
-            background: var(--gray-50);
-            color: var(--gray-600);
+            padding: 1.25rem 1.5rem;
+            background: rgba(37, 99, 235, 0.05);
+            color: var(--gray-700);
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             border-bottom: 1px solid var(--gray-200);
         }
 
         td {
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid var(--gray-200);
             color: var(--gray-700);
-            font-size: 0.875rem;
+            font-size: 0.95rem;
         }
 
-        tr:hover td {
-            background: var(--gray-50);
+        tr {
+            transition: all 0.3s ease;
+            animation: fadeInRow 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        tr:nth-child(1) { animation-delay: 0.1s; }
+        tr:nth-child(2) { animation-delay: 0.2s; }
+        tr:nth-child(3) { animation-delay: 0.3s; }
+        tr:nth-child(4) { animation-delay: 0.4s; }
+        tr:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeInRow {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+            transform: scale(1.01);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Customer Info */
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .customer-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .customer-details {
+            flex: 1;
+        }
+
+        .customer-name {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .customer-phone {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         /* Status Badges */
         .status-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
             font-weight: 600;
+            gap: 0.5rem;
         }
 
         .status-pending {
-            background: #fef3c7;
-            color: #92400e;
+            background: rgba(245, 158, 11, 0.15);
+            color: #b45309;
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
         .status-confirmed {
-            background: #d1fae5;
+            background: rgba(16, 185, 129, 0.15);
             color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .status-cancelled {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.15);
             color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .status-completed {
-            background: #dbeafe;
+            background: rgba(59, 130, 246, 0.15);
             color: #1e40af;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         /* Action Buttons */
@@ -357,110 +866,133 @@
 
         .btn-action {
             border: none;
-            padding: 0.5rem 0.75rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
             font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            transition: all 0.2s ease;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
         }
 
         .btn-confirm {
-            background: #d1fae5;
+            background: rgba(16, 185, 129, 0.15);
             color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .btn-confirm:hover {
             background: #10b981;
             color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn-cancel {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.15);
             color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .btn-cancel:hover {
             background: #ef4444;
             color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn-complete {
-            background: #dbeafe;
+            background: rgba(59, 130, 246, 0.15);
             color: #1e40af;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .btn-complete:hover {
-            background: #2563eb;
+            background: #3b82f6;
             color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
         }
 
+        /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 3rem !important;
-            color: var(--gray-500);
+            padding: 4rem 2rem !important;
         }
 
-        .empty-state i {
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
             font-size: 3rem;
+            color: var(--gray-400);
+            animation: pulse 2s infinite;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 1rem;
-            opacity: 0.5;
+            color: var(--gray-800);
         }
 
-        .back-link {
-            display: inline-block;
-            margin-top: 1.5rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
+        .empty-state p {
+            color: var(--gray-500);
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         /* Toast Notifications */
-        .toast {
+        .toast-container {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius);
+            z-index: 9999;
+        }
+
+        .toast {
             background: white;
-            box-shadow: var(--shadow-lg);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: var(--shadow-xl);
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            max-width: 400px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .toast.show {
+            transform: translateX(0);
         }
 
         .toast.success {
-            border-left: 4px solid var(--success);
-        }
-
-        .toast.error {
-            border-left: 4px solid var(--danger);
-        }
-
-        .toast.info {
-            border-left: 4px solid var(--primary);
-        }
-
-        .toast i {
-            font-size: 1.25rem;
+            border-left-color: var(--success);
         }
 
         .toast.success i {
             color: var(--success);
         }
 
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
         .toast.error i {
             color: var(--danger);
+        }
+
+        .toast.info {
+            border-left-color: var(--primary);
         }
 
         .toast.info i {
@@ -473,25 +1005,169 @@
             color: var(--gray-400);
         }
 
-        .toast-close:hover {
-            color: var(--gray-600);
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
         }
 
-        @keyframes slideIn {
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
             from {
-                transform: translateX(100%);
+                transform: translateY(50px);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
         }
 
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modal.cancel {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .btn-modal.confirm {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-modal.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-2xl);
+            z-index: 100;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+
         /* ================= RESPONSIVE ================= */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 100;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main {
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
         @media (max-width: 768px) {
             .main {
                 padding: 1rem;
+            }
+            
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
             }
             
             .stats-grid {
@@ -503,21 +1179,81 @@
                 align-items: stretch;
             }
             
+            .search-box {
+                width: 100%;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+            
             .btn-export {
+                justify-content: center;
+            }
+            
+            .view-toggle {
+                width: 100%;
                 justify-content: center;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-gradient"></div>
+        <div class="floating-shapes">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+        </div>
+    </div>
+
     <div class="app">
-        <!-- ================= SIDEBAR ================= -->
-        <aside class="sidebar">
+        <!-- ================= MODERN SIDEBAR ================= -->
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-logo">
-                <div class="logo-icon">B</div>
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
                 <div class="logo-text">BizFlow<span>AI</span></div>
             </div>
-            
+
+            <!-- User Profile Card -->
+            <div class="user-profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        {{ business.name[0] }}{% if business.name.split()|length > 1 %}{{ business.name.split()[1][0] }}{% endif %}
+                    </div>
+                    <div class="profile-info">
+                        <h4>{{ business.name }}</h4>
+                        <p>
+                            <span class="online-dot"></span>
+                            Online
+                        </p>
+                    </div>
+                </div>
+                <div class="profile-stats" style="display: flex; justify-content: space-around; margin-top: 1rem;">
+                    <div class="profile-stat" style="text-align: center;">
+                        <div class="value" style="font-weight: 700;">{{ bookings|length }}</div>
+                        <div class="label" style="font-size: 0.7rem; color: var(--gray-500);">Total</div>
+                    </div>
+                    <div class="profile-stat" style="text-align: center;">
+                        <div class="value" style="font-weight: 700;">{{ bookings|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                        <div class="label" style="font-size: 0.7rem; color: var(--gray-500);">Pending</div>
+                    </div>
+                    <div class="profile-stat" style="text-align: center;">
+                        <div class="value" style="font-weight: 700;">{{ bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</div>
+                        <div class="label" style="font-size: 0.7rem; color: var(--gray-500);">Confirmed</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
             <nav class="nav-menu">
                 <a href="/" class="nav-item">
                     <i class="fas fa-home"></i>
@@ -530,17 +1266,23 @@
                 <a href="/billing" class="nav-item">
                     <i class="fas fa-credit-card"></i>
                     <span>Billing</span>
+                    {% if business.plan == 'trial' %}
+                    <span class="nav-badge">Trial</span>
+                    {% endif %}
                 </a>
                 <a href="/conversations" class="nav-item">
-                    <i class="fas fa-message"></i>
+                    <i class="fas fa-comments"></i>
                     <span>Conversations</span>
                 </a>
                 <a href="/manage-bookings" class="nav-item active">
-                    <i class="fas fa-calendar"></i>
-                    <span>Manage Bookings</span>
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Bookings</span>
+                    {% if bookings|selectattr('status', 'equalto', 'pending')|list|length > 0 %}
+                    <span class="nav-badge">{{ bookings|selectattr('status', 'equalto', 'pending')|list|length }}</span>
+                    {% endif %}
                 </a>
                 <a href="/settings" class="nav-item">
-                    <i class="fas fa-gear"></i>
+                    <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
                 
@@ -550,6 +1292,8 @@
                     <span>Admin Panel</span>
                 </a>
                 {% endif %}
+
+                <div class="nav-divider"></div>
                 
                 <a href="/logout" class="nav-item logout">
                     <i class="fas fa-sign-out-alt"></i>
@@ -564,120 +1308,227 @@
             <div class="top-bar">
                 <div class="page-title">
                     <h1>Manage Bookings</h1>
-                    <p>View and manage all customer appointments</p>
+                    <p>
+                        <i class="far fa-calendar-alt"></i>
+                        {{ now.strftime('%A, %B %d, %Y') }}
+                    </p>
                 </div>
-                <div class="user-menu">
-                    <div class="avatar">
-                        {{ business.name[0] }}
-                    </div>
+                <div class="date-badge">
+                    <i class="far fa-clock"></i>
+                    <span id="liveTime">{{ now.strftime('%I:%M %p') }}</span>
+                    <span style="margin-left: 5px; font-size: 0.8rem;">IST</span>
                 </div>
             </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
 
             <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-title">Total Bookings</div>
+                    <div class="stat-header">
+                        <span class="stat-title">Total Bookings</span>
+                        <div class="stat-icon primary">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                    </div>
                     <div class="stat-value">{{ bookings|length }}</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-chart-line"></i>
+                        Lifetime bookings
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Pending</div>
+                    <div class="stat-header">
+                        <span class="stat-title">Pending</span>
+                        <div class="stat-icon warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
                     <div class="stat-value">{{ bookings|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-hourglass-half"></i>
+                        Awaiting confirmation
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Confirmed</div>
+                    <div class="stat-header">
+                        <span class="stat-title">Confirmed</span>
+                        <div class="stat-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
                     <div class="stat-value">{{ bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-calendar-check"></i>
+                        Upcoming appointments
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">Completed</div>
+                    <div class="stat-header">
+                        <span class="stat-title">Completed</span>
+                        <div class="stat-icon info">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                    </div>
                     <div class="stat-value">{{ bookings|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-history"></i>
+                        Past appointments
+                    </div>
                 </div>
+            </div>
+
+            <!-- View Toggle -->
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="switchView('table')" id="tableViewBtn">
+                    <i class="fas fa-table"></i>
+                    <span>Table View</span>
+                </button>
+                <button class="view-btn" onclick="switchView('calendar')" id="calendarViewBtn">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Calendar View</span>
+                </button>
             </div>
 
             <!-- Filter Bar -->
             <div class="filter-bar">
-                <div>
-                    <select id="statusFilter" class="filter-select" onchange="filterByStatus()">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name or phone..." onkeyup="filterBookings()">
+                </div>
+                <div class="filter-group">
+                    <select id="statusFilter" class="filter-select" onchange="filterBookings()">
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
+                    <select id="dateFilter" class="filter-select" onchange="filterBookings()">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="tomorrow">Tomorrow</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                    <a href="/export/bookings" class="btn-export">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </a>
                 </div>
-                <a href="/export/bookings" class="btn-export">
-                    <i class="fas fa-download"></i>
-                    Export CSV
-                </a>
             </div>
 
-            <!-- Bookings Table -->
-            <div class="table-section">
-                <div class="table-responsive">
-                    <table id="bookingsTable">
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Phone</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th>Booked On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if bookings %}
-                                {% for b in bookings %}
-                                <tr data-status="{{ b.status }}">
-                                    <td><strong>{{ b.name }}</strong></td>
-                                    <td>{{ b.phone }}</td>
-                                    <td>{{ b.booking_date }}</td>
-                                    <td>{{ b.booking_time }}</td>
-                                    <td>
-                                        <span class="status-badge 
-                                            {% if b.status == 'confirmed' %}status-confirmed
-                                            {% elif b.status == 'cancelled' %}status-cancelled
-                                            {% elif b.status == 'completed' %}status-completed
-                                            {% else %}status-pending{% endif %}">
-                                            {{ b.status|title }}
-                                        </span>
-                                    </td>
-                                    <td>{{ b.created_at.strftime('%d %b %Y') }}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            {% if b.status == 'pending' %}
-                                            <button class="btn-action btn-confirm" onclick="updateStatus({{ b.id }}, 'confirmed')">
-                                                <i class="fas fa-check"></i> Confirm
-                                            </button>
-                                            <button class="btn-action btn-cancel" onclick="updateStatus({{ b.id }}, 'cancelled')">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                            {% elif b.status == 'confirmed' %}
-                                            <button class="btn-action btn-complete" onclick="updateStatus({{ b.id }}, 'completed')">
-                                                <i class="fas fa-check-double"></i> Complete
-                                            </button>
-                                            <button class="btn-action btn-cancel" onclick="updateStatus({{ b.id }}, 'cancelled')">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                            {% elif b.status == 'completed' %}
-                                            <span style="color: var(--gray-500);"><i class="fas fa-check-circle"></i> Completed</span>
-                                            {% elif b.status == 'cancelled' %}
-                                            <span style="color: var(--gray-500);"><i class="fas fa-times-circle"></i> Cancelled</span>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
+            <!-- Calendar View -->
+            <div class="calendar-view" id="calendarView">
+                <div id="calendar"></div>
+            </div>
+
+            <!-- Table View -->
+            <div class="table-view" id="tableView">
+                <div class="table-section">
+                    <div class="table-responsive">
+                        <table id="bookingsTable">
+                            <thead>
                                 <tr>
-                                    <td colspan="7" class="empty-state">
-                                        <i class="far fa-calendar-xmark"></i>
-                                        <p>No bookings yet. Your first booking will appear here.</p>
-                                    </td>
+                                    <th>Customer</th>
+                                    <th>Contact</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Booked On</th>
+                                    <th>Actions</th>
                                 </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% if bookings %}
+                                    {% for b in bookings %}
+                                    <tr data-status="{{ b.status }}" data-name="{{ b.name }}" data-phone="{{ b.phone }}" data-date="{{ b.booking_date }}">
+                                        <td>
+                                            <div class="customer-info">
+                                                <div class="customer-avatar">
+                                                    {{ b.name[0] }}{% if b.name.split()|length > 1 %}{{ b.name.split()[1][0] }}{% endif %}
+                                                </div>
+                                                <div class="customer-details">
+                                                    <div class="customer-name">{{ b.name }}</div>
+                                                    <div class="customer-phone">
+                                                        <i class="fas fa-phone-alt"></i>
+                                                        {{ b.phone }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                                <span><i class="fas fa-phone"></i> {{ b.phone }}</span>
+                                                {% if b.email %}
+                                                <span style="font-size: 0.8rem; color: var(--gray-500);"><i class="fas fa-envelope"></i> {{ b.email }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ b.booking_date }}</strong>
+                                        </td>
+                                        <td>
+                                            <span style="font-weight: 600;">{{ b.booking_time }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-{{ b.status }}">
+                                                <i class="fas fa-{% if b.status == 'pending' %}clock{% elif b.status == 'confirmed' %}check-circle{% elif b.status == 'completed' %}check-double{% else %}times-circle{% endif %}"></i>
+                                                {{ b.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span>{{ b.created_at.strftime('%d %b %Y') }}</span>
+                                                <span style="font-size: 0.8rem; color: var(--gray-500);">{{ b.created_at.strftime('%I:%M %p') }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                {% if b.status == 'pending' %}
+                                                <button class="btn-action btn-confirm" onclick="updateStatus({{ b.id }}, 'confirmed')">
+                                                    <i class="fas fa-check"></i> Confirm
+                                                </button>
+                                                <button class="btn-action btn-cancel" onclick="updateStatus({{ b.id }}, 'cancelled')">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </button>
+                                                {% elif b.status == 'confirmed' %}
+                                                <button class="btn-action btn-complete" onclick="updateStatus({{ b.id }}, 'completed')">
+                                                    <i class="fas fa-check-double"></i> Complete
+                                                </button>
+                                                <button class="btn-action btn-cancel" onclick="updateStatus({{ b.id }}, 'cancelled')">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </button>
+                                                {% elif b.status == 'completed' %}
+                                                <span style="color: var(--gray-500); display: flex; align-items: center; gap: 0.5rem;">
+                                                    <i class="fas fa-check-circle" style="color: var(--success);"></i> Completed
+                                                </span>
+                                                {% elif b.status == 'cancelled' %}
+                                                <span style="color: var(--gray-500); display: flex; align-items: center; gap: 0.5rem;">
+                                                    <i class="fas fa-times-circle" style="color: var(--danger);"></i> Cancelled
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="empty-state">
+                                            <div class="empty-icon">
+                                                <i class="fas fa-calendar-times"></i>
+                                            </div>
+                                            <h3>No Bookings Yet</h3>
+                                            <p>Your first customer booking will appear here. Share your WhatsApp number to start receiving bookings.</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -687,46 +1538,201 @@
         </main>
     </div>
 
-    <!-- Toast Notification Container -->
-    <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> Confirm Action</h3>
+                <span class="toast-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalMessage">
+                Are you sure you want to cancel this booking?
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal cancel" onclick="closeModal()">No, Keep It</button>
+                <button class="btn-modal confirm" id="confirmAction">Yes, Proceed</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    
     <script>
-        // Toast notification function
-        function showToast(message, type = 'info') {
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // Live time update
+        function updateLiveTime() {
+            const now = new Date();
+            const options = {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'Asia/Kolkata'
+            };
+            const timeString = now.toLocaleTimeString('en-US', options);
+            const timeElement = document.getElementById('liveTime');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+        setInterval(updateLiveTime, 1000);
+        updateLiveTime();
+
+        // Sidebar toggle for mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // View switching
+        let currentView = 'table';
+
+        function switchView(view) {
+            currentView = view;
+            const tableView = document.getElementById('tableView');
+            const calendarView = document.getElementById('calendarView');
+            const tableBtn = document.getElementById('tableViewBtn');
+            const calendarBtn = document.getElementById('calendarViewBtn');
+
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                calendarView.style.display = 'none';
+                tableBtn.classList.add('active');
+                calendarBtn.classList.remove('active');
+            } else {
+                tableView.style.display = 'none';
+                calendarView.style.display = 'block';
+                calendarBtn.classList.add('active');
+                tableBtn.classList.remove('active');
+                
+                // Initialize calendar if not already done
+                if (!window.calendarInitialized) {
+                    initializeCalendar();
+                    window.calendarInitialized = true;
+                }
+            }
+        }
+
+        // Initialize calendar
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            const bookings = [
+                {% for b in bookings %}
+                {
+                    id: {{ b.id }},
+                    title: '{{ b.name }} - {{ b.booking_time }}',
+                    start: '{{ b.booking_date }}T{{ b.booking_time }}:00',
+                    status: '{{ b.status }}',
+                    phone: '{{ b.phone }}',
+                    extendedProps: {
+                        status: '{{ b.status }}'
+                    }
+                },
+                {% endfor %}
+            ];
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                themeSystem: 'standard',
+                events: bookings,
+                eventColor: '#2563eb',
+                eventDidMount: function(info) {
+                    // Set different colors based on status
+                    if (info.event.extendedProps.status === 'confirmed') {
+                        info.el.style.backgroundColor = '#10b981';
+                        info.el.style.borderColor = '#059669';
+                    } else if (info.event.extendedProps.status === 'pending') {
+                        info.el.style.backgroundColor = '#f59e0b';
+                        info.el.style.borderColor = '#d97706';
+                    } else if (info.event.extendedProps.status === 'cancelled') {
+                        info.el.style.backgroundColor = '#ef4444';
+                        info.el.style.borderColor = '#dc2626';
+                    } else if (info.event.extendedProps.status === 'completed') {
+                        info.el.style.backgroundColor = '#3b82f6';
+                        info.el.style.borderColor = '#2563eb';
+                    }
+                },
+                eventClick: function(info) {
+                    showToast(`Booking: ${info.event.title}`, 'info');
+                }
+            });
+
+            calendar.render();
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-        
+            
             let icon = 'info-circle';
             if (type === 'success') icon = 'check-circle';
             if (type === 'error') icon = 'exclamation-circle';
-        
+            
             toast.innerHTML = `
                 <i class="fas fa-${icon}"></i>
                 <span>${message}</span>
                 <span class="toast-close" onclick="this.parentElement.remove()">&times;</span>
             `;
-        
+            
             container.appendChild(toast);
-        
-            // Auto remove after 5 seconds
+            
             setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.remove();
-                }
-            }, 5000);
+                toast.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
+        // Update booking status
+        let pendingUpdate = null;
+
         function updateStatus(bookingId, newStatus) {
-            if (!confirm(`Are you sure you want to mark this booking as ${newStatus}?`)) return;
-    
-            // Show loading state
-            const clickedButton = event.target.closest('button');
-            if (clickedButton) {
-                clickedButton.disabled = true;
-                clickedButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            }
-    
+            const actionText = newStatus === 'confirmed' ? 'confirm' : 
+                              newStatus === 'cancelled' ? 'cancel' : 'complete';
+            
+            document.getElementById('modalMessage').innerHTML = 
+                `Are you sure you want to <strong>${actionText}</strong> this booking?`;
+            
+            pendingUpdate = { bookingId, newStatus };
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            pendingUpdate = null;
+        }
+
+        document.getElementById('confirmAction').addEventListener('click', function() {
+            if (!pendingUpdate) return;
+            
+            const { bookingId, newStatus } = pendingUpdate;
+            closeModal();
+            
+            // Find and disable the clicked button
+            const buttons = document.querySelectorAll(`[onclick*="updateStatus(${bookingId}"]`);
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            });
+
             fetch(`/api/bookings/${bookingId}/status`, {
                 method: 'POST',
                 headers: {
@@ -746,22 +1752,38 @@
             .catch(error => {
                 console.error('Error:', error);
                 showToast('❌ Failed to update booking: ' + error.message, 'error');
-                if (clickedButton) {
-                    clickedButton.disabled = false;
-                    clickedButton.innerHTML = newStatus === 'confirmed' ? '<i class="fas fa-check"></i> Confirm' :
-                                             newStatus === 'cancelled' ? '<i class="fas fa-times"></i> Cancel' :
-                                             '<i class="fas fa-check-double"></i> Complete';
-                }
+                // Re-enable buttons
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    if (newStatus === 'confirmed') btn.innerHTML = '<i class="fas fa-check"></i> Confirm';
+                    else if (newStatus === 'cancelled') btn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+                    else btn.innerHTML = '<i class="fas fa-check-double"></i> Complete';
+                });
             });
-        }
+        });
 
-        function filterByStatus() {
-            const filter = document.getElementById('statusFilter').value.toLowerCase();
+        // Filter bookings
+        function filterBookings() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
             const rows = document.querySelectorAll('#bookingsTable tbody tr');
-        
+            const today = new Date().toISOString().split('T')[0];
+            
             rows.forEach(row => {
-                const status = row.getAttribute('data-status').toLowerCase();
-                if (filter === 'all' || status === filter) {
+                if (row.classList.contains('empty-state-row')) return;
+                
+                const name = row.dataset.name?.toLowerCase() || '';
+                const phone = row.dataset.phone || '';
+                const status = row.dataset.status;
+                const date = row.dataset.date;
+                
+                const matchesSearch = name.includes(searchTerm) || phone.includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' || status === statusFilter;
+                const matchesDate = filterByDate(date, dateFilter);
+                
+                if (matchesSearch && matchesStatus && matchesDate) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -769,23 +1791,70 @@
             });
         }
 
-        // Initialize filter from URL parameter if present
+        function filterByDate(dateStr, filter) {
+            if (filter === 'all') return true;
+            
+            const date = new Date(dateStr);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            
+            switch(filter) {
+                case 'today':
+                    return date.toDateString() === today.toDateString();
+                case 'tomorrow':
+                    return date.toDateString() === tomorrow.toDateString();
+                case 'week':
+                    return date >= weekAgo && date <= today;
+                case 'month':
+                    return date >= monthAgo && date <= today;
+                default:
+                    return true;
+            }
+        }
+
+        // Initialize filter from URL parameter
         window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const statusParam = urlParams.get('status');
             if (statusParam) {
-                const filterSelect = document.getElementById('statusFilter');
-                filterSelect.value = statusParam;
-                filterByStatus();
+                document.getElementById('statusFilter').value = statusParam;
+                filterBookings();
             }
-        
-            // Add click event listeners to all action buttons
-            document.querySelectorAll('.btn-action').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // The onclick attribute already calls updateStatus, so this is just backup
-                });
-            });
+            
+            const highlightId = urlParams.get('highlight');
+            if (highlightId) {
+                setTimeout(() => {
+                    const row = document.querySelector(`[data-booking-id="${highlightId}"]`);
+                    if (row) {
+                        row.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+                        row.style.transition = 'background-color 1s';
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => {
+                            row.style.backgroundColor = '';
+                        }, 3000);
+                    }
+                }, 500);
+            }
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Click outside to close modal
+        document.querySelector('.modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
         });
     </script>
 </body>
