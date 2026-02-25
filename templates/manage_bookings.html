@@ -720,14 +720,12 @@
         function updateStatus(bookingId, newStatus) {
             if (!confirm(`Are you sure you want to mark this booking as ${newStatus}?`)) return;
             
-            // Show loading state on button
-            const buttons = document.querySelectorAll(`button[onclick*="${bookingId}"]`);
-            buttons.forEach(btn => {
-                if (btn.onclick && btn.onclick.toString().includes(bookingId)) {
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                }
-            });
+            // Find and disable the specific button that was clicked
+            const clickedButton = event.target.closest('button');
+            if (clickedButton) {
+                clickedButton.disabled = true;
+                clickedButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            }
             
             fetch(`/api/bookings/${bookingId}/status`, {
                 method: 'POST',
@@ -754,17 +752,17 @@
             .catch(error => {
                 console.error('Error:', error);
                 showToast('❌ Failed to update booking: ' + error.message, 'error');
-                // Re-enable buttons
-                buttons.forEach(btn => {
-                    btn.disabled = false;
+                // Re-enable the button
+                if (clickedButton) {
+                    clickedButton.disabled = false;
                     if (newStatus === 'confirmed') {
-                        btn.innerHTML = '<i class="fas fa-check"></i> Confirm';
+                        clickedButton.innerHTML = '<i class="fas fa-check"></i> Confirm';
                     } else if (newStatus === 'cancelled') {
-                        btn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+                        clickedButton.innerHTML = '<i class="fas fa-times"></i> Cancel';
                     } else if (newStatus === 'completed') {
-                        btn.innerHTML = '<i class="fas fa-check-double"></i> Complete';
+                        clickedButton.innerHTML = '<i class="fas fa-check-double"></i> Complete';
                     }
-                });
+                }
             });
         }
 
