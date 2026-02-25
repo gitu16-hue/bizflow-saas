@@ -1467,9 +1467,10 @@
                         {{ now.strftime('%A, %B %d, %Y') }}
                     </p>
                 </div>
-                <div class="date-badge">
+                <div class="date-badge" id="liveTime">
                     <i class="far fa-clock"></i>
-                    {{ now.strftime('%I:%M %p') }}
+                    <span id="timeDisplay">{{ formatted_time if formatted_time else now.strftime('%I:%M %p') }}</span>
+                    <span style="margin-left: 5px; font-size: 0.8rem; opacity: 0.7;">IST</span>
                 </div>
             </div>
 
@@ -1953,3 +1954,40 @@
     </script>
 </body>
 </html>
+<script>
+    // Live time update with correct timezone
+    function updateLiveTime() {
+        const now = new Date();
+        const options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+        const timeString = now.toLocaleTimeString('en-US', options);
+        document.getElementById('timeDisplay').textContent = timeString;
+    }
+    
+    // Update every second
+    setInterval(updateLiveTime, 1000);
+    updateLiveTime(); // Initial call
+    
+    // Also show full date with correct timezone
+    function updateFullDate() {
+        const now = new Date();
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+        const dateString = now.toLocaleDateString('en-US', options);
+        const dateElement = document.querySelector('.greeting p');
+        if (dateElement) {
+            dateElement.innerHTML = `<i class="far fa-calendar-alt"></i> ${dateString}`;
+        }
+    }
+    
+    updateFullDate();
+</script>

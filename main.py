@@ -18,6 +18,8 @@ import hashlib
 import re
 from functools import wraps
 import time
+import pytz
+from datetime import datetime
 
 # Third-party imports
 from dotenv import load_dotenv
@@ -237,6 +239,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
+
 # =====================================================
 # MIDDLEWARE SETUP
 # =====================================================
@@ -304,6 +308,14 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(PerformanceMiddleware)
+
+def get_indian_time():
+    """Get current time in Indian timezone"""
+    ist = pytz.timezone('Asia/Kolkata')
+    utc_now = datetime.utcnow()
+    utc_now = utc_now.replace(tzinfo=pytz.utc)
+    ist_now = utc_now.astimezone(ist)
+    return ist_now
 
 # =====================================================
 # TEMPLATES & STATIC FILES
@@ -754,6 +766,14 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         if not user:
             request.session.clear()
             return RedirectResponse("/login", 302)
+
+        # Get current time in Indian timezone
+        now_ist = get_indian_time()
+   
+        # Format date for display
+        formatted_date = now_ist.strftime('%A, %B %d, %Y')
+        formatted_time = now_ist.strftime('%I:%M %p')
+        
         
         # Check trial expiry
         if user.plan == "trial" and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
