@@ -350,19 +350,24 @@ def login_required(func):
 def admin_required(func):
     """Decorator to require admin privileges"""
     @wraps(func)
-    async def wrapper(request: Request, db: Session = Depends(get_db), *args, **kwargs):
+    async def wrapper(request: Request, *args, **kwargs):
         # Check session
         business_id = request.session.get("business_id")
         if not business_id:
             request.session["next"] = request.url.path
             return RedirectResponse("/login", 302)
         
-        # Get user from database
-        user = db.query(Business).get(business_id)
-        if not user or not user.is_admin:
-            return RedirectResponse("/dashboard", 302)
+        # Get database session
+        db = next(get_db())
+        try:
+            # Get user from database
+            user = db.query(Business).get(business_id)
+            if not user or not user.is_admin:
+                return RedirectResponse("/dashboard", 302)
+        finally:
+            db.close()
         
-        return await func(request, db, *args, **kwargs)
+        return await func(request, *args, **kwargs)
     return wrapper
 
 def rate_limit(limit: str):
@@ -1659,6 +1664,7 @@ async def update_booking_status(
     try:
         print(f"🔵 Received request to update booking {booking_id}")
         
+        # Get user from session
         user = get_user(request, db)
         if not user:
             print("🔴 User not authenticated")
