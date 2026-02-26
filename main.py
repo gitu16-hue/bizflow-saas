@@ -1873,7 +1873,7 @@ Reply with number 👇
     @staticmethod
     def _handle_booking(message: str, phone: str, business, db, intent: Dict = None) -> str:
         """Handle booking process with advanced NLP and robust error handling"""
-        
+    
         try:
             # Check for cancellation
             cancel_phrases = ['cancel', 'back', 'exit', 'go back', 'never mind', 'forget it', 'stop']
@@ -1881,25 +1881,25 @@ Reply with number 👇
                 business.flow_state = "menu"
                 db.commit()
                 return "❌ Booking cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
-            
+        
             # Parse booking with advanced NLP
             booking_data = WhatsAppBot.parse_booking(message)
-            
+        
             if not booking_data:
-                # Try to help user by identifying what's missing
+                # Help user with missing information
                 has_numbers = bool(re.search(r'\d', message))
                 has_time = bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm)?', message.lower()))
                 has_date = bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message.lower() for day in WhatsAppBot.DAY_MAP.keys())
-                
+            
                 helpful_message = "❌ *Could not understand your booking*\n\n"
-                
+            
                 if not has_date and not has_time:
                     helpful_message += "📅 Please include both *date* and *time*.\n\n"
                 elif not has_date:
                     helpful_message += "📅 Please include the *date*.\n\n"
                 elif not has_time:
                     helpful_message += "⏰ Please include the *time*.\n\n"
-                
+            
                 helpful_message += (
                     "✨ *Try these formats:*\n"
                     "• tomorrow 5pm Yashika\n"
@@ -1908,9 +1908,9 @@ Reply with number 👇
                     "• 27/02 6:30pm Rahul\n\n"
                     "Type 'cancel' to go back"
                 )
-                
-                return helpful_message
             
+                return helpful_message
+        
             # Check for double booking
             existing = db.query(Booking).filter(
                 Booking.business_id == business.id,
@@ -1918,22 +1918,22 @@ Reply with number 👇
                 Booking.booking_time == booking_data['time'],
                 Booking.status.in_(['pending', 'confirmed'])
             ).first()
-            
+        
             if existing:
-                # Suggest alternative times
                 alternative_times = WhatsAppBot._suggest_alternative_times(business, booking_data['date'], db)
-                return f"""
-❌ *Time Slot Unavailable*
+                return f""" 
+    ❌ *Time Slot Unavailable*
 
-Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
+    Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
+  
+    {alternative_times}
 
-{alternative_times}
-
-Please choose another time or type 'cancel' to go back.
-"""
-            
-            # Create booking with transaction safety
+    Please choose another time or type 'cancel' to go back.
+    """
+        
+            # ===== FIXED ORDER: Create booking FIRST, then update business =====
             try:
+                # 1. Create the booking first
                 booking = Booking(
                     business_id=business.id,
                     name=booking_data['name'],
@@ -1943,47 +1943,45 @@ Please choose another time or type 'cancel' to go back.
                     status='pending'
                 )
                 db.add(booking)
-                db.flush()  # Assign ID without committing
-                
-                # Update business stats
+                db.flush()  # Get the booking ID without committing
+            
+                # 2. Only after booking is created, update business stats
                 business.flow_state = "menu"
                 business.chat_used = (business.chat_used or 0) + 1
-                
-                # Commit all changes
+            
+                # 3. Commit everything together
                 db.commit()
-                
+            
             except Exception as e:
                 db.rollback()
-                # Ensure flow state is reset even if booking fails
-                business.flow_state = "menu"
-                db.commit()
+                # Don't change business stats if booking failed
                 return "⚠️ There was an issue creating your booking. Please try again.\n\n" + WhatsAppBot.get_industry_menu(business)
-            
-            # Format response nicely
+        
+            # Format response
             try:
                 booking_date_obj = datetime.strptime(booking_data['date'], '%d-%m-%Y')
                 formatted_date = booking_date_obj.strftime('%A, %d %B %Y')
             except:
                 formatted_date = booking_data['date']
-            
+        
             return f"""
-✅ *Booking Confirmed!*
+    ✅ *Booking Confirmed!*
 
-👤 *Name:* {booking_data['name']}
-📅 *Date:* {formatted_date}
-⏰ *Time:* {booking_data['time']}
-📱 *Phone:* {phone}
+    👤 *Name:* {booking_data['name']}
+    📅 *Date:* {formatted_date}
+    ⏰ *Time:* {booking_data['time']}
+    📱 *Phone:* {phone}
 
-✨ *What's next?*
-• You'll receive a reminder before your appointment
-• To reschedule, just start a new chat
-• Questions? Type 'contact' to reach us
+    ✨ *What's next?*
+    • You'll receive a reminder before your appointment
+    • To reschedule, just start a new chat
+    • Questions? Type 'contact' to reach us
 
-Type *'menu'* for main menu 👋
-"""
+    Type *'menu'* for main menu 👋
+    """
             
         except Exception as e:
-            # Ultimate error recovery
+            # Ultimate fallback
             try:
                 business.flow_state = "menu"
                 db.commit()
