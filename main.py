@@ -1293,6 +1293,112 @@ class WhatsAppBot:
         return phone
     
     @staticmethod
+    def get_industry_menu(business) -> str:
+        """Get dynamic menu based on industry with emoji support"""
+        menus = {
+            "restaurant": """
+👋 Welcome to *{name}* 🍽️
+
+1️⃣ Book a Table
+2️⃣ View Menu
+3️⃣ Location & Hours
+4️⃣ Special Offers
+5️⃣ Contact Us
+6️⃣ Exit
+
+Reply with number 👇
+""",
+            "clinic": """
+👋 Welcome to *{name}* 🏥
+
+1️⃣ Book Appointment
+2️⃣ Doctor Availability
+3️⃣ Fees & Insurance
+4️⃣ Location
+5️⃣ Emergency Contact
+6️⃣ Exit
+
+Reply with number 👇
+""",
+            "salon": """
+👋 Welcome to *{name}* 💇
+
+1️⃣ Book Appointment
+2️⃣ Services & Prices
+3️⃣ Our Stylists
+4️⃣ Location
+5️⃣ Special Offers
+6️⃣ Exit
+
+Reply with number 👇
+""",
+            "gym": """
+👋 Welcome to *{name}* 💪
+
+1️⃣ Book Session
+2️⃣ Membership Plans
+3️⃣ Class Schedule
+4️⃣ Trainer Info
+5️⃣ Location
+6️⃣ Exit
+
+Reply with number 👇
+""",
+            "realestate": """
+👋 Welcome to *{name}* 🏠
+
+1️⃣ Schedule Visit
+2️⃣ Property Listings
+3️⃣ EMI Calculator
+4️⃣ Contact Agent
+5️⃣ Location
+6️⃣ Exit
+
+Reply with number 👇
+""",
+            "education": """
+👋 Welcome to *{name}* 📚
+
+1️⃣ Book Demo Class
+2️⃣ Courses Offered
+3️⃣ Fee Structure
+4️⃣ Location
+5️⃣ Contact Counselor
+6️⃣ Exit
+
+Reply with number 👇
+""",
+            "automotive": """
+👋 Welcome to *{name}* 🚗
+
+1️⃣ Book Service
+2️⃣ Service Packages
+3️⃣ Pickup/Drop
+4️⃣ Location
+5️⃣ Contact Mechanic
+6️⃣ Exit
+
+Reply with number 👇
+"""
+        }
+        
+        industry = business.business_type.lower()
+        menu = menus.get(industry, """
+👋 Welcome to *{name}* 🚀
+
+1️⃣ Book Appointment
+2️⃣ Our Services
+3️⃣ Location
+4️⃣ Contact Us
+5️⃣ Pricing
+6️⃣ Exit
+
+Reply with number 👇
+""")
+        
+        return menu.format(name=business.name)
+    
+    @staticmethod
     def correct_typos(text: str) -> str:
         """Correct common typos and variations in text"""
         text = text.lower().strip()
@@ -1341,18 +1447,7 @@ class WhatsAppBot:
     def parse_booking(text: str) -> Optional[Dict]:
         """
         Advanced natural language booking parser with AI capabilities
-        Handles complex formats and variations:
-        - "16march 7 pm jayant singh"
-        - "16 mar 7pm John"
-        - "March 16 7:30 PM Jane Doe"
-        - "tomorrow 3pm Rahul"
-        - "next Monday 10am Priya"
-        - "tomorrow 5pm Yashika"
-        - "upcoming Monday 7 pm Yashika"
-        - "this friday 8pm"
-        - "day after tomorrow 2pm"
-        - "27/02 6:30pm"
-        - "27th feb at 7:30 pm"
+        Handles complex formats and variations
         """
         try:
             # Step 0: Preprocess text
@@ -2093,6 +2188,7 @@ Type *'menu'* for main menu 👋
 
 *Special discounts available!* 🎉
 """)
+
 # =====================================================
 # CONVERSATIONS PAGE
 # =====================================================
