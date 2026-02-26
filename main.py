@@ -575,9 +575,17 @@ async def login_page(request: Request):
         return RedirectResponse("/dashboard", 302)
     
     error = request.session.pop("login_error", None)
+    
+    # Get email from query parameters for pre-fill
+    email_prefill = request.query_params.get("email", "")
+    
     return templates.TemplateResponse(
         "login.html",
-        {"request": request, "error": error}
+        {
+            "request": request, 
+            "error": error,
+            "email_prefill": email_prefill  # ← Add this line
+        }
     )
 
 @app.post("/login")
