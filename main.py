@@ -19,7 +19,6 @@ import re
 from functools import wraps
 import time
 import pytz
-from datetime import datetime
 
 # Third-party imports
 from dotenv import load_dotenv
@@ -66,63 +65,9 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-
 # OAuth imports
 from authlib.integrations.starlette_client import OAuth
 from starlette.config import Config
-from starlette.middleware.sessions import SessionMiddleware
-import secrets
-import string
-
-# OAuth Configuration
-class OAuthConfig:
-    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-    GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
-    GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-    
-    @classmethod
-    def is_configured(cls):
-        return all([
-            cls.GOOGLE_CLIENT_ID and cls.GOOGLE_CLIENT_SECRET,
-            cls.GITHUB_CLIENT_ID and cls.GITHUB_CLIENT_SECRET
-        ])
-
-# Initialize OAuth
-starlette_config = Config(environ=os.environ)
-oauth = OAuth(starlette_config)
-
-settings = Settings()
-settings.validate()
-
-# Configure Google OAuth
-if OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET:
-    oauth.register(
-        name='google',
-        client_id=OAuthConfig.GOOGLE_CLIENT_ID,
-        client_secret=OAuthConfig.GOOGLE_CLIENT_SECRET,
-        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-        client_kwargs={
-            'scope': 'openid email profile',
-            'redirect_uri': f"{settings.BASE_URL}/auth/google"
-        }
-    )
-    logger.info("✅ Google OAuth configured")
-
-# Configure GitHub OAuth
-if OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET:
-    oauth.register(
-        name='github',
-        client_id=OAuthConfig.GITHUB_CLIENT_ID,
-        client_secret=OAuthConfig.GITHUB_CLIENT_SECRET,
-        access_token_url='https://github.com/login/oauth/access_token',
-        authorize_url='https://github.com/login/oauth/authorize',
-        client_kwargs={
-            'scope': 'user:email',
-            'redirect_uri': f"{settings.BASE_URL}/auth/github"
-        }
-    )
-    logger.info("✅ GitHub OAuth configured")
 
 # =====================================================
 # ENVIRONMENT & CONFIGURATION
@@ -175,6 +120,54 @@ class Settings:
 # Initialize settings
 settings = Settings()
 settings.validate()
+
+# =====================================================
+# OAUTH CONFIGURATION
+# =====================================================
+
+class OAuthConfig:
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+    GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+    GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+    
+    @classmethod
+    def is_configured(cls):
+        return all([
+            cls.GOOGLE_CLIENT_ID and cls.GOOGLE_CLIENT_SECRET,
+            cls.GITHUB_CLIENT_ID and cls.GITHUB_CLIENT_SECRET
+        ])
+
+# Initialize OAuth
+starlette_config = Config(environ=os.environ)
+oauth = OAuth(starlette_config)
+
+# Configure Google OAuth
+if OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET:
+    oauth.register(
+        name='google',
+        client_id=OAuthConfig.GOOGLE_CLIENT_ID,
+        client_secret=OAuthConfig.GOOGLE_CLIENT_SECRET,
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'openid email profile',
+            'redirect_uri': f"{settings.BASE_URL}/auth/google"
+        }
+    )
+
+# Configure GitHub OAuth
+if OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET:
+    oauth.register(
+        name='github',
+        client_id=OAuthConfig.GITHUB_CLIENT_ID,
+        client_secret=OAuthConfig.GITHUB_CLIENT_SECRET,
+        access_token_url='https://github.com/login/oauth/access_token',
+        authorize_url='https://github.com/login/oauth/authorize',
+        client_kwargs={
+            'scope': 'user:email',
+            'redirect_uri': f"{settings.BASE_URL}/auth/github"
+        }
+    )
 
 # =====================================================
 # LOGGING CONFIGURATION
@@ -269,6 +262,18 @@ async def lifespan(app: FastAPI):
     logger.info(f"🔗 Base URL: {settings.BASE_URL}")
     logger.info(f"💳 Razorpay: {'✅ Configured' if razorpay_client else '❌ Not configured'}")
     logger.info(f"📧 SendGrid: {'✅ Configured' if settings.SENDGRID_API_KEY else '❌ Not configured'}")
+    
+    # Log OAuth status
+    if OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET:
+        logger.info("✅ Google OAuth configured")
+    else:
+        logger.warning("⚠️ Google OAuth not configured")
+    
+    if OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET:
+        logger.info("✅ GitHub OAuth configured")
+    else:
+        logger.warning("⚠️ GitHub OAuth not configured")
+    
     logger.info("=" * 60)
     
     # Create database tables
@@ -296,8 +301,6 @@ app = FastAPI(
     openapi_url="/api/openapi.json" if settings.DEBUG else None,
     lifespan=lifespan
 )
-
-
 
 # =====================================================
 # MIDDLEWARE SETUP
@@ -367,6 +370,10 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(PerformanceMiddleware)
 
+# =====================================================
+# HELPER FUNCTIONS
+# =====================================================
+
 def get_indian_time():
     """Get current time in Indian timezone"""
     ist = pytz.timezone('Asia/Kolkata')
@@ -386,7 +393,6 @@ def get_template_context(request: Request, additional_context: dict = None):
     if additional_context:
         context.update(additional_context)
     return context
-
 
 # =====================================================
 # TEMPLATES & STATIC FILES
@@ -592,7 +598,9 @@ async def health_check(request: Request, db: Session = Depends(get_db)):
         "services": {
             "database": db_status,
             "razorpay": "configured" if razorpay_client else "not configured",
-            "sendgrid": "configured" if settings.SENDGRID_API_KEY else "not configured"
+            "sendgrid": "configured" if settings.SENDGRID_API_KEY else "not configured",
+            "google_oauth": "configured" if OAuthConfig.GOOGLE_CLIENT_ID else "not configured",
+            "github_oauth": "configured" if OAuthConfig.GITHUB_CLIENT_ID else "not configured"
         }
     }
 
@@ -645,7 +653,7 @@ async def login_page(request: Request):
         {
             "request": request, 
             "error": error,
-            "email_prefill": email_prefill,  # ← Fixed: was email_prefil
+            "email_prefill": email_prefill,
             "remember_checked": remember_checked
         }
     )
@@ -886,7 +894,6 @@ async def auth_github(request: Request, db: Session = Depends(get_db)):
         logger.error(f"GitHub OAuth callback error: {str(e)}")
         return RedirectResponse("/login?error=oauth_failed", 302)
 
-
 # =====================================================
 # SIGNUP ROUTES
 # =====================================================
@@ -1035,7 +1042,6 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         formatted_date = now_ist.strftime('%A, %B %d, %Y')
         formatted_time = now_ist.strftime('%I:%M %p')
         
-        
         # Check trial expiry
         if user.plan == "trial" and user.trial_ends_at and user.trial_ends_at < datetime.utcnow():
             user.plan = "expired"
@@ -1073,7 +1079,9 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
                 "business": user,
                 "bookings": bookings,
                 "analytics": analytics,
-                "now": datetime.utcnow(),
+                "now": now_ist,
+                "formatted_date": formatted_date,
+                "formatted_time": formatted_time,
                 "trial_days_left": max((user.trial_ends_at - datetime.utcnow()).days, 0) if user.plan == "trial" and user.trial_ends_at else 0,
                 "plans": PLANS
             }
@@ -1684,7 +1692,8 @@ async def conversations_page(request: Request, db: Session = Depends(get_db)):
             {
                 "request": request,
                 "business": user,
-                "conversations": conversations
+                "conversations": conversations,
+                "now": datetime.utcnow()
             }
         )
     except Exception as e:
@@ -2285,7 +2294,6 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin dashboard"""
     try:
         # Get current time
-        from datetime import datetime
         now_utc = datetime.utcnow()
         
         # Get all users
@@ -2312,13 +2320,13 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
         }
         
         return templates.TemplateResponse(
-            "admin_dashboard.html",  # or "admin.html" depending on your template name
+            "admin_dashboard.html",
             {
                 "request": request,
                 "users": users,
                 "stats": stats,
                 "recent_payments": recent_payments,
-                "now": now_utc  # ← ADD THIS LINE
+                "now": now_utc
             }
         )
         
@@ -2370,7 +2378,8 @@ async def settings_page(request: Request, db: Session = Depends(get_db)):
             "settings.html",
             {
                 "request": request,
-                "business": user
+                "business": user,
+                "now": datetime.utcnow()
             }
         )
     except Exception as e:
@@ -2409,7 +2418,8 @@ async def update_settings(
             {
                 "request": request,
                 "business": user,
-                "success": "Settings updated successfully!"
+                "success": "Settings updated successfully!",
+                "now": datetime.utcnow()
             }
         )
         
@@ -2440,7 +2450,8 @@ async def bookings_page(request: Request, db: Session = Depends(get_db)):
             {
                 "request": request,
                 "business": user,
-                "bookings": bookings
+                "bookings": bookings,
+                "now": datetime.utcnow()
             }
         )
         
@@ -2462,7 +2473,7 @@ async def manage_bookings(request: Request, db: Session = Depends(get_db)):
             return RedirectResponse("/login", 302)
         
         # Get current time in Indian timezone
-        now_ist = get_indian_time()  # Use your timezone function
+        now_ist = get_indian_time()
         
         # Get all bookings
         bookings = db.query(Booking)\
@@ -2482,7 +2493,7 @@ async def manage_bookings(request: Request, db: Session = Depends(get_db)):
                 "request": request,
                 "business": user,
                 "bookings": bookings,
-                "now": now_ist,  # ← THIS IS THE IMPORTANT LINE
+                "now": now_ist,
                 "stats": {
                     "total": total,
                     "pending": pending,
@@ -2595,6 +2606,21 @@ async def contact(request: Request):
 async def ping():
     """Simple ping endpoint for uptime monitoring"""
     return {"ping": "pong", "time": datetime.utcnow().isoformat()}
+
+# =====================================================
+# DEBUG ENDPOINT (REMOVE IN PRODUCTION)
+# =====================================================
+
+@app.get("/debug/oauth-config")
+async def debug_oauth_config():
+    """Debug endpoint to check OAuth configuration"""
+    return {
+        "google_configured": bool(OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET),
+        "github_configured": bool(OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET),
+        "google_client_id_prefix": str(OAuthConfig.GOOGLE_CLIENT_ID)[:10] + "..." if OAuthConfig.GOOGLE_CLIENT_ID else None,
+        "github_client_id_prefix": str(OAuthConfig.GITHUB_CLIENT_ID)[:10] + "..." if OAuthConfig.GITHUB_CLIENT_ID else None,
+        "base_url": settings.BASE_URL
+    }
 
 # =====================================================
 # MAIN ENTRY POINT
