@@ -2527,6 +2527,84 @@ async def debug_flow_state(phone: str, db: Session = Depends(get_db)):
         "chat_limit": business.chat_limit,
         "is_active": business.is_active
     }
+
+@app.get("/debug/business/{phone}")
+async def debug_business(phone: str, db: Session = Depends(get_db)):
+    """Detailed business debug info"""
+    try:
+        clean_phone = WhatsAppBot.clean_phone(phone)
+        business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+        
+        if not business:
+            return {"error": "Business not found"}
+        
+        # Test database write
+        test_booking = None
+        write_test = "not tested"
+        try:
+            # Try a test write
+            test_booking = Booking(
+                business_id=business.id,
+                name="TEST_USER",
+                phone=phone,
+                booking_date="01-01-2026",
+                booking_time="12:00",
+                status="pending"
+            )
+            db.add(test_booking)
+            db.flush()
+            db.rollback()  # Rollback immediately
+            write_test = "successful"
+        except Exception as e:
+            write_test = f"failed: {str(e)}"
+        
+        return {
+            "business": {
+                "id": business.id,
+                "name": business.name,
+                "phone": business.whatsapp_number,
+                "flow_state": business.flow_state,
+                "is_active": business.is_active,
+                "chat_used": business.chat_used,
+                "chat_limit": business.chat_limit
+            },
+            "database_write_test": write_test,
+            "current_time": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
+@app.post("/debug/test-booking")
+async def test_create_booking(request: Request, db: Session = Depends(get_db)):
+    """Test creating a booking directly"""
+    try:
+        data = await request.json()
+        phone = data.get("phone")
+        business = db.query(Business).filter(Business.whatsapp_number == phone).first()
+        
+        if not business:
+            return {"error": "Business not found"}
+        
+        booking = Booking(
+            business_id=business.id,
+            name=data.get("name", "Test User"),
+            phone=phone,
+            booking_date=data.get("date", "01-01-2026"),
+            booking_time=data.get("time", "12:00"),
+            status="pending"
+        )
+        db.add(booking)
+        db.commit()
+        
+        return {
+            "success": True,
+            "booking_id": booking.id,
+            "message": "Test booking created"
+        }
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
