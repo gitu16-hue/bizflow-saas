@@ -2391,6 +2391,72 @@ async def debug_oauth_config():
         "base_url": settings.BASE_URL
     }
 
+@app.get("/debug/bookings/{phone}")
+async def debug_bookings(phone: str, db: Session = Depends(get_db)):
+    """Check bookings for a phone number"""
+    clean_phone = WhatsAppBot.clean_phone(phone)
+    business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+    
+    if not business:
+        return {"error": "Business not found"}
+    
+    bookings = db.query(Booking).filter(
+        Booking.business_id == business.id
+    ).order_by(Booking.created_at.desc()).all()
+    
+    return {
+        "business": business.name,
+        "total_bookings": len(bookings),
+        "bookings": [
+            {
+                "id": b.id,
+                "name": b.name,
+                "date": b.booking_date,
+                "time": b.booking_time,
+                "status": b.status,
+                "created_at": str(b.created_at)
+            }
+            for b in bookings
+        ]
+    }
+
+@app.get("/debug/parse/{text:path}")
+async def debug_parse(text: str):
+    """Test the booking parser"""
+    try:
+        result = WhatsAppBot.parse_booking(text)
+        return {
+            "input": text,
+            "parsed": result,
+            "success": result is not None,
+            "current_time": datetime.now().isoformat(),
+            "weekday": datetime.now().weekday()
+        }
+    except Exception as e:
+        return {
+            "input": text,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+@app.get("/debug/check-business/{phone}")
+async def debug_check_business(phone: str, db: Session = Depends(get_db)):
+    """Check if a phone number is registered"""
+    clean_phone = WhatsAppBot.clean_phone(phone)
+    business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+    
+    if business:
+        return {
+            "found": True,
+            "business_id": business.id,
+            "name": business.name,
+            "business_type": business.business_type,
+            "is_active": business.is_active,
+            "plan": business.plan,
+            "flow_state": business.flow_state
+        }
+    else:
+        return {"found": False, "phone": clean_phone}
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
