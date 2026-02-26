@@ -1632,6 +1632,11 @@ Reply with number 👇
                 clean_text = clean_text.replace('tomorrow', '')
             if 'today' in original_text.lower():
                 clean_text = clean_text.replace('today', '')
+
+            # Remove relative time words
+            relative_words = ['next', 'upcoming', 'this', 'coming']
+            for word in relative_words:
+                clean_text = re.sub(r'\b' + word + r'\b', '', clean_text)
             
             # Remove day names
             for day_name in WhatsAppBot.DAY_MAP.keys():
@@ -1658,10 +1663,13 @@ Reply with number 👇
                 if time_match:
                     time_end = time_match.end()
                     potential_name = original_text[time_end:].strip()
+                    # Remove any remaining relative words
+                    for word in relative_words:
+                        potential_name = re.sub(r'\b' + word + r'\b', '', potential_name, flags=re.IGNORECASE)
+                    potential_name = re.sub(r'\s+', ' ', potential_name).strip()
                     if potential_name and len(potential_name) > 1:
                         name = potential_name.title()
                         logger.info(f"👤 Extracted name from after time: {name}")
-            
             # ========== TIME FORMATTING ==========
             
             hour = int(hour)
