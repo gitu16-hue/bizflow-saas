@@ -2603,6 +2603,120 @@ async def test_create_booking(request: Request, db: Session = Depends(get_db)):
         db.rollback()
         return {"error": str(e), "traceback": traceback.format_exc()}
 
+
+@app.post("/debug/create-booking")
+async def debug_create_booking(request: Request, db: Session = Depends(get_db)):
+    """Test creating a booking with exact same logic as WhatsApp bot"""
+    try:
+        data = await request.json()
+        phone = data.get("phone")
+        message = data.get("message", "upcoming monday 5pm Yashika")
+        
+        # Find business
+        clean_phone = WhatsAppBot.clean_phone(phone)
+        business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+        
+        if not business:
+            return {"error": "Business not found"}
+        
+        # Log initial state
+        result = {
+            "business": {
+                "id": business.id,
+                "name": business.name,
+                "flow_state": business.flow_state,
+                "chat_used": business.chat_used
+            },
+            "steps": []
+        }
+        
+        # Step 1: Parse booking
+        booking_data = WhatsAppBot.parse_booking(message)
+        result["steps"].append({
+            "step": "parse_booking",
+            "success": booking_data is not None,
+            "data": booking_data
+        })
+        
+        if not booking_data:
+            return result
+        
+        # Step 2: Check for existing booking
+        existing = db.query(Booking).filter(
+            Booking.business_id == business.id,
+            Booking.booking_date == booking_data['date'],
+            Booking.booking_time == booking_data['time'],
+            Booking.status.in_(['pending', 'confirmed'])
+        ).first()
+        
+        result["steps"].append({
+            "step": "check_existing",
+            "exists": existing is not None,
+            "existing_id": existing.id if existing else None
+        })
+        
+        if existing:
+            return result
+        
+        # Step 3: Create booking
+        try:
+            booking = Booking(
+                business_id=business.id,
+                name=booking_data['name'],
+                phone=phone,
+                booking_date=booking_data['date'],
+                booking_time=booking_data['time'],
+                status='pending'
+            )
+            db.add(booking)
+            db.flush()
+            
+            result["steps"].append({
+                "step": "create_booking",
+                "success": True,
+                "booking_id": booking.id
+            })
+            
+            # Step 4: Update business
+            old_chat_used = business.chat_used
+            business.flow_state = "menu"
+            business.chat_used = (business.chat_used or 0) + 1
+            
+            result["steps"].append({
+                "step": "update_business",
+                "old_chat_used": old_chat_used,
+                "new_chat_used": business.chat_used,
+                "new_flow_state": business.flow_state
+            })
+            
+            # Step 5: Commit
+            db.commit()
+            
+            result["steps"].append({
+                "step": "commit",
+                "success": True
+            })
+            
+            # Final state
+            result["final"] = {
+                "booking_id": booking.id,
+                "business_flow_state": business.flow_state,
+                "business_chat_used": business.chat_used
+            }
+            
+        except Exception as e:
+            db.rollback()
+            result["steps"].append({
+                "step": "error",
+                "error": str(e),
+                "traceback": traceback.format_exc()
+            })
+        
+        return result
+        
+    except Exception as e:
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
