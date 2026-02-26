@@ -1804,8 +1804,22 @@ Type *'menu'* for main menu 👋
     @staticmethod
     def _handle_confirmation(message: str, phone: str, business, db) -> str:
         """Handle confirmation flow for complex bookings"""
-        # Implementation for multi-step confirmation
-        pass
+        # Simple confirmation handler
+        confirm_phrases = ['yes', 'confirm', 'ok', 'sure', 'proceed', 'y']
+        cancel_phrases = ['no', 'cancel', 'never mind', 'stop', 'n']
+    
+        msg_lower = message.lower()
+    
+        if any(phrase in msg_lower for phrase in confirm_phrases):
+            business.flow_state = "menu"
+            db.commit()
+            return "✅ Confirmed! Thank you.\n\n" + WhatsAppBot.get_industry_menu(business)
+        elif any(phrase in msg_lower for phrase in cancel_phrases):
+            business.flow_state = "menu"
+            db.commit()
+            return "❌ Cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
+        else:
+            return "Please reply with 'yes' to confirm or 'no' to cancel."
     
     @staticmethod
     def _suggest_alternative_times(business, date: str, db) -> str:
