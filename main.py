@@ -2256,6 +2256,24 @@ async def conversation_detail(
         logger.error(f"Conversation detail error: {str(e)}")
         return RedirectResponse("/conversations", 302)
 
+@app.post("/webhook/test")
+async def test_webhook(request: Request):
+    """Test webhook endpoint"""
+    try:
+        form = await request.form()
+        logger.info(f"📱 TEST WEBHOOK | Form data: {dict(form)}")
+        return JSONResponse({
+            "status": "received", 
+            "data": dict(form),
+            "message": "Test webhook working!"
+        })
+    except Exception as e:
+        logger.error(f"Test webhook error: {str(e)}")
+        return JSONResponse({
+            "status": "error", 
+            "message": str(e)
+        }, status_code=500)
+
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
@@ -2804,6 +2822,7 @@ async def handle_razorpay_webhook_event(data: dict):
     if event == "payment.failed":
         payment_id = payload.get("payment", {}).get("entity", {}).get("id")
         logger.warning(f"Payment failed: {payment_id}")
+
 
 # =====================================================
 # ADMIN ROUTES
