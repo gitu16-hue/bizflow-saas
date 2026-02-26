@@ -579,13 +579,16 @@ async def login_page(request: Request):
     # Get email from query parameters for pre-fill
     email_prefill = request.query_params.get("email", "")
     
+    # Check if remember should be checked (maybe from a query param)
+    remember_checked = request.query_params.get("remember", "") == "1"
+    
     return templates.TemplateResponse(
         "login.html",
         {
             "request": request, 
             "error": error,
-            "email_prefill": email_prefil,
-            "remember_checked": remember_checked 
+            "email_prefill": email_prefill,  # ← Fixed: was email_prefil
+            "remember_checked": remember_checked
         }
     )
 
