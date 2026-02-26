@@ -1,6 +1,6 @@
 # =====================================================
 # BIZFLOW AI - ENTERPRISE SAAS PLATFORM
-# VERSION 12.0 - PRODUCTION READY
+# VERSION 13.0 - ADVANCED AI POWERED
 # =====================================================
 
 import asyncio
@@ -19,14 +19,15 @@ import re
 from functools import wraps
 import time
 import pytz
+from decimal import Decimal
 
 # Third-party imports
 from dotenv import load_dotenv
 load_dotenv()
 
 # FastAPI & Related
-from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, status, BackgroundTasks
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,7 +58,7 @@ import csv
 from io import StringIO
 from twilio.twiml.messaging_response import MessagingResponse
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from sqlalchemy import text, desc
+from sqlalchemy import text, desc, func
 from sqlalchemy.orm import Session
 
 # Rate limiting
@@ -76,7 +77,7 @@ from starlette.config import Config
 class Settings:
     """Application settings with validation"""
     APP_NAME = "BizFlow AI"
-    APP_VERSION = "12.0"
+    APP_VERSION = "13.0"
     ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
     DEBUG = ENVIRONMENT == "development"
     BASE_URL = os.getenv("BASE_URL", "https://bizflow-saas.onrender.com")
@@ -94,6 +95,11 @@ class Settings:
     RAZORPAY_KEY = os.getenv("RAZORPAY_KEY_ID")
     RAZORPAY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
     RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
+    
+    # Twilio
+    TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+    TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
     
     # Security
     MAX_LOGIN_ATTEMPTS = 5
@@ -133,10 +139,7 @@ class OAuthConfig:
     
     @classmethod
     def is_configured(cls):
-        return all([
-            cls.GOOGLE_CLIENT_ID and cls.GOOGLE_CLIENT_SECRET,
-            cls.GITHUB_CLIENT_ID and cls.GITHUB_CLIENT_SECRET
-        ])
+        return bool(cls.GOOGLE_CLIENT_ID and cls.GOOGLE_CLIENT_SECRET)
 
 # Initialize OAuth
 starlette_config = Config(environ=os.environ)
@@ -394,6 +397,16 @@ def get_template_context(request: Request, additional_context: dict = None):
         context.update(additional_context)
     return context
 
+def format_currency(amount: float) -> str:
+    """Format amount as Indian currency"""
+    return f"₹{amount:,.2f}"
+
+def generate_invoice_number() -> str:
+    """Generate unique invoice number"""
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    random = secrets.token_hex(2).upper()
+    return f"INV-{timestamp}-{random}"
+
 # =====================================================
 # TEMPLATES & STATIC FILES
 # =====================================================
@@ -641,11 +654,12 @@ async def login_page(request: Request):
         return RedirectResponse("/dashboard", 302)
     
     error = request.session.pop("login_error", None)
+    success = request.session.pop("login_success", None)
     
     # Get email from query parameters for pre-fill
     email_prefill = request.query_params.get("email", "")
     
-    # Check if remember should be checked (maybe from a query param)
+    # Check if remember should be checked
     remember_checked = request.query_params.get("remember", "") == "1"
     
     return templates.TemplateResponse(
@@ -653,6 +667,7 @@ async def login_page(request: Request):
         {
             "request": request, 
             "error": error,
+            "success": success,
             "email_prefill": email_prefill,
             "remember_checked": remember_checked
         }
@@ -1059,6 +1074,18 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             .filter(Booking.business_id == user.id)\
             .count()
         
+        pending = db.query(Booking)\
+            .filter(Booking.business_id == user.id, Booking.status == "pending")\
+            .count()
+        
+        confirmed = db.query(Booking)\
+            .filter(Booking.business_id == user.id, Booking.status == "confirmed")\
+            .count()
+        
+        completed = db.query(Booking)\
+            .filter(Booking.business_id == user.id, Booking.status == "completed")\
+            .count()
+        
         cancelled = db.query(Booking)\
             .filter(Booking.business_id == user.id, Booking.status == "cancelled")\
             .count()
@@ -1066,7 +1093,9 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         analytics = {
             "conversations": user.chat_used or 0,
             "bookings": total_bookings,
-            "interested": 0,
+            "pending": pending,
+            "confirmed": confirmed,
+            "completed": completed,
             "cancelled": cancelled,
             "conversion": round((total_bookings / max(user.chat_used, 1)) * 100, 1) if user.chat_used else 0,
             "chat_usage_percent": round((user.chat_used / user.chat_limit) * 100, 1) if user.chat_limit else 0
@@ -1491,9 +1520,10 @@ Reply with number 👇
                 year = target_date.year
             
             # Pattern 2: Next/upcoming day (next monday, upcoming friday)
-            elif any(day_name in text for day_name in WhatsAppBot.DAY_MAP.keys()):
+            # Improved day name detection with word boundaries
+            if not day:
                 for day_name, day_num in WhatsAppBot.DAY_MAP.items():
-                    if day_name in text:
+                    if re.search(r'\b' + day_name + r'\b', text):
                         current_day = datetime.now().weekday()
                         
                         # Check if it's "next", "upcoming", or "this"
@@ -1507,7 +1537,7 @@ Reply with number 👇
                                 days_ahead += 7
                         else:  # Just the day name (assume upcoming)
                             days_ahead = day_num - current_day
-                            if days_ahead < 0:
+                            if days_ahead <= 0:
                                 days_ahead += 7
                         
                         target_date = datetime.now() + timedelta(days=days_ahead)
@@ -1521,13 +1551,15 @@ Reply with number 👇
                 for pattern in WhatsAppBot.DATE_PATTERNS[:3]:  # Month name patterns
                     match = re.search(pattern, text)
                     if match:
-                        if len(match.groups()) == 2:
-                            if match.group(1).isdigit():  # day month format
-                                day_num, month_name = match.groups()
+                        groups = match.groups()
+                        if len(groups) == 2:
+                            # Check if first group is digit (day) or month name
+                            if groups[0].isdigit():
+                                day_num, month_name = groups
                                 day = day_num.zfill(2)
                                 month = WhatsAppBot.MONTH_MAP.get(month_name[:3].lower())
-                            else:  # month day format
-                                month_name, day_num = match.groups()
+                            else:
+                                month_name, day_num = groups
                                 day = day_num.zfill(2)
                                 month = WhatsAppBot.MONTH_MAP.get(month_name[:3].lower())
                         break
@@ -1550,6 +1582,7 @@ Reply with number 👇
                         break
             
             if not day:
+                logger.warning(f"❌ No date detected in text: {text}")
                 return None
             
             # ========== TIME PARSING ==========
@@ -1575,13 +1608,16 @@ Reply with number 👇
                 if numbers:
                     hour = numbers[-1]  # Take the last number as time
                     ampm = None
+                    logger.info(f"⏰ Extracted hour from numbers: {hour}")
             
             if not time_match and not intent.get('has_time'):
                 # No time specified, use default
                 hour = "12"
                 ampm = "pm"
+                logger.info("⏰ No time specified, using default 12pm")
             
             if not hour:
+                logger.warning("❌ No time detected in text")
                 return None
             
             # ========== NAME EXTRACTION ==========
@@ -1616,6 +1652,7 @@ Reply with number 👇
             # If we have a name, use it
             if clean_text and len(clean_text) > 1:
                 name = clean_text.title()
+                logger.info(f"👤 Extracted name: {name}")
             else:
                 # Try to extract name from original text by taking words after time
                 if time_match:
@@ -1623,6 +1660,7 @@ Reply with number 👇
                     potential_name = original_text[time_end:].strip()
                     if potential_name and len(potential_name) > 1:
                         name = potential_name.title()
+                        logger.info(f"👤 Extracted name from after time: {name}")
             
             # ========== TIME FORMATTING ==========
             
@@ -1644,6 +1682,7 @@ Reply with number 👇
             # ========== DATE VALIDATION ==========
             
             date_str = f"{day}-{month}-{year}"
+            logger.info(f"📅 Final date string: {date_str}")
             
             try:
                 booking_date = datetime.strptime(date_str, '%d-%m-%Y')
@@ -1651,22 +1690,19 @@ Reply with number 👇
                 
                 # If booking date is in the past, adjust year
                 if booking_date < today:
-                    # Check if it's within the next 30 days (maybe they meant next month)
+                    logger.info(f"📅 Date {date_str} is in the past, adjusting year")
                     days_diff = (today - booking_date).days
                     if days_diff < 30:
-                        # They probably meant next year
                         next_year = year + 1
                         date_str = f"{day}-{month}-{next_year}"
+                        logger.info(f"📅 Adjusted to: {date_str}")
                     elif days_diff < 365:
-                        # They probably meant this year but date passed
                         next_year = year + 1
                         date_str = f"{day}-{month}-{next_year}"
-            except:
-                # If date parsing fails, try alternative format
-                try:
-                    booking_date = datetime.strptime(f"{year}-{month}-{day}", '%Y-%m-%d')
-                except:
-                    return None
+                        logger.info(f"📅 Adjusted to: {date_str}")
+            except Exception as e:
+                logger.error(f"❌ Date parsing error: {str(e)}")
+                return None
             
             return {
                 "date": date_str,
@@ -1692,6 +1728,8 @@ Reply with number 👇
         
         state = business.flow_state or "start"
         
+        logger.info(f"🤖 Processing message - State: {state}, Intent: {intent['primary_intent']}")
+        
         # Smart reset detection - understands various ways to restart
         reset_phrases = [
             "reset", "restart", "help", "menu", "main menu", "start over",
@@ -1700,6 +1738,7 @@ Reply with number 👇
         ]
         
         if any(phrase in lower_msg for phrase in reset_phrases) or intent['primary_intent'] in ['greeting', 'help']:
+            logger.info("🔄 Reset detected, showing main menu")
             business.flow_state = "menu"
             db.commit()
             return WhatsAppBot.get_industry_menu(business)
@@ -1732,6 +1771,7 @@ Reply with number 👇
         }
         
         # Natural language to option mapping
+        selected_option = None
         if intent:
             if intent['primary_intent'] == 'booking':
                 selected_option = '1'
@@ -1745,20 +1785,15 @@ Reply with number 👇
                 selected_option = '5'
             elif intent['primary_intent'] == 'exit':
                 selected_option = '6'
-            else:
-                # Check if message matches any option
-                for option, keywords in option_mapping.items():
-                    if any(keyword in message for keyword in keywords):
-                        selected_option = option
-                        break
-                else:
-                    selected_option = None
-        else:
-            selected_option = None
+        
+        # If no intent match, check direct option input
+        if not selected_option:
             for option, keywords in option_mapping.items():
                 if any(keyword in message for keyword in keywords):
                     selected_option = option
                     break
+        
+        logger.info(f"📋 Menu selection: {selected_option}")
         
         if selected_option == '1':
             business.flow_state = "booking"
@@ -1805,15 +1840,19 @@ Reply with number 👇
     def _handle_booking(message: str, phone: str, business, db, intent: Dict = None) -> str:
         """Handle booking process with advanced NLP"""
         
+        logger.info(f"🔍 _handle_booking called - Phone: {phone}, Message: {message}")
+        
         # Check for cancellation
         cancel_phrases = ['cancel', 'back', 'exit', 'go back', 'never mind', 'forget it', 'stop']
         if any(phrase in message.lower() for phrase in cancel_phrases):
+            logger.info("❌ Booking cancelled by user")
             business.flow_state = "menu"
             db.commit()
             return "❌ Booking cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
         
         # Parse booking with advanced NLP
         booking_data = WhatsAppBot.parse_booking(message)
+        logger.info(f"📊 Booking data parsed: {booking_data}")
         
         if not booking_data:
             # Try to help user by identifying what's missing
@@ -1842,6 +1881,7 @@ Reply with number 👇
             return helpful_message
         
         # Check for double booking
+        logger.info(f"🔍 Checking for existing booking on {booking_data['date']} at {booking_data['time']}")
         existing = db.query(Booking).filter(
             Booking.business_id == business.id,
             Booking.booking_date == booking_data['date'],
@@ -1850,6 +1890,7 @@ Reply with number 👇
         ).first()
         
         if existing:
+            logger.warning(f"⚠️ Time slot already booked: {booking_data['date']} {booking_data['time']}")
             # Suggest alternative times
             alternative_times = WhatsAppBot._suggest_alternative_times(business, booking_data['date'], db)
             return f"""
@@ -1863,6 +1904,8 @@ Please choose another time or type 'cancel' to go back.
 """
         
         # Create booking
+        logger.info(f"✅ Creating booking for {booking_data['name']} on {booking_data['date']} at {booking_data['time']}")
+        
         booking = Booking(
             business_id=business.id,
             name=booking_data['name'],
@@ -1875,6 +1918,8 @@ Please choose another time or type 'cancel' to go back.
         business.flow_state = "menu"
         business.chat_used = (business.chat_used or 0) + 1
         db.commit()
+        
+        logger.info(f"✅ Booking created successfully with ID: {booking.id}")
         
         # Format response nicely
         booking_date_obj = datetime.strptime(booking_data['date'], '%d-%m-%Y')
@@ -2256,6 +2301,92 @@ async def conversation_detail(
         logger.error(f"Conversation detail error: {str(e)}")
         return RedirectResponse("/conversations", 302)
 
+# =====================================================
+# DEBUG ENDPOINTS
+# =====================================================
+
+@app.get("/debug/parse/{text:path}")
+async def debug_parse(text: str):
+    """Test the booking parser"""
+    try:
+        result = WhatsAppBot.parse_booking(text)
+        return {
+            "input": text,
+            "parsed": result,
+            "success": result is not None,
+            "current_time": datetime.now().isoformat(),
+            "weekday": datetime.now().weekday()
+        }
+    except Exception as e:
+        return {
+            "input": text,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+@app.get("/debug/check-business/{phone}")
+async def debug_check_business(phone: str, db: Session = Depends(get_db)):
+    """Check if a phone number is registered"""
+    clean_phone = WhatsAppBot.clean_phone(phone)
+    business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+    
+    if business:
+        return {
+            "found": True,
+            "business_id": business.id,
+            "name": business.name,
+            "business_type": business.business_type,
+            "is_active": business.is_active,
+            "plan": business.plan,
+            "flow_state": business.flow_state
+        }
+    else:
+        return {"found": False, "phone": clean_phone}
+
+@app.get("/debug/bookings/{phone}")
+async def debug_bookings(phone: str, db: Session = Depends(get_db)):
+    """Check bookings for a phone number"""
+    clean_phone = WhatsAppBot.clean_phone(phone)
+    business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+    
+    if not business:
+        return {"error": "Business not found"}
+    
+    bookings = db.query(Booking).filter(
+        Booking.business_id == business.id
+    ).order_by(Booking.created_at.desc()).all()
+    
+    return {
+        "business": business.name,
+        "total_bookings": len(bookings),
+        "bookings": [
+            {
+                "id": b.id,
+                "name": b.name,
+                "date": b.booking_date,
+                "time": b.booking_time,
+                "status": b.status,
+                "created_at": str(b.created_at)
+            }
+            for b in bookings
+        ]
+    }
+
+@app.get("/debug/oauth-config")
+async def debug_oauth_config():
+    """Debug endpoint to check OAuth configuration"""
+    return {
+        "google_configured": bool(OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET),
+        "github_configured": bool(OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET),
+        "google_client_id_prefix": str(OAuthConfig.GOOGLE_CLIENT_ID)[:10] + "..." if OAuthConfig.GOOGLE_CLIENT_ID else None,
+        "github_client_id_prefix": str(OAuthConfig.GITHUB_CLIENT_ID)[:10] + "..." if OAuthConfig.GITHUB_CLIENT_ID else None,
+        "base_url": settings.BASE_URL
+    }
+
+# =====================================================
+# WHATSAPP WEBHOOK
+# =====================================================
+
 @app.post("/webhook/test")
 async def test_webhook(request: Request):
     """Test webhook endpoint"""
@@ -2273,10 +2404,6 @@ async def test_webhook(request: Request):
             "status": "error", 
             "message": str(e)
         }, status_code=500)
-
-# =====================================================
-# WHATSAPP WEBHOOK
-# =====================================================
 
 @app.post("/webhook/whatsapp")
 @rate_limit("60/minute")
@@ -2823,7 +2950,6 @@ async def handle_razorpay_webhook_event(data: dict):
         payment_id = payload.get("payment", {}).get("entity", {}).get("id")
         logger.warning(f"Payment failed: {payment_id}")
 
-
 # =====================================================
 # ADMIN ROUTES
 # =====================================================
@@ -3146,21 +3272,6 @@ async def contact(request: Request):
 async def ping():
     """Simple ping endpoint for uptime monitoring"""
     return {"ping": "pong", "time": datetime.utcnow().isoformat()}
-
-# =====================================================
-# DEBUG ENDPOINT (REMOVE IN PRODUCTION)
-# =====================================================
-
-@app.get("/debug/oauth-config")
-async def debug_oauth_config():
-    """Debug endpoint to check OAuth configuration"""
-    return {
-        "google_configured": bool(OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET),
-        "github_configured": bool(OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET),
-        "google_client_id_prefix": str(OAuthConfig.GOOGLE_CLIENT_ID)[:10] + "..." if OAuthConfig.GOOGLE_CLIENT_ID else None,
-        "github_client_id_prefix": str(OAuthConfig.GITHUB_CLIENT_ID)[:10] + "..." if OAuthConfig.GITHUB_CLIENT_ID else None,
-        "base_url": settings.BASE_URL
-    }
 
 # =====================================================
 # MAIN ENTRY POINT
