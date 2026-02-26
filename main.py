@@ -1204,264 +1204,381 @@ PLANS = {
 }
 
 # =====================================================
-# WHATSAPP BOT ENGINE - ENHANCED NLP VERSION
+# WHATSAPP BOT ENGINE - ADVANCED AI POWERED VERSION
 # =====================================================
 
 class WhatsAppBot:
-    """Advanced WhatsApp bot with enhanced NLP capabilities"""
+    """Enterprise-grade WhatsApp bot with advanced AI capabilities"""
+    
+    # ==================== CONSTANTS & CONFIGURATION ====================
+    
+    # Common typos and variations mapping
+    TYPOS = {
+        r'\b(tomm?orr?ow|tomorow|tommorrow|2mrw|tmr)\b': 'tomorrow',
+        r'\b(today|2day|2dai)\b': 'today',
+        r'\b(upcomming|comming|up coming|upcomming)\b': 'upcoming',
+        r'\b(nex|nxt|nxt)\b': 'next',
+        r'\b(plese|pls|plz|pleas)\b': 'please',
+        r'\b(thanx|thx|thanku|thnk)\b': 'thanks',
+        r'\b(ok|okay|k|kk|oki)\b': 'ok'
+    }
+    
+    # Month name to number mapping
+    MONTH_MAP = {
+        'jan': '01', 'january': '01',
+        'feb': '02', 'february': '02',
+        'mar': '03', 'march': '03',
+        'apr': '04', 'april': '04',
+        'may': '05',
+        'jun': '06', 'june': '06',
+        'jul': '07', 'july': '07',
+        'aug': '08', 'august': '08',
+        'sep': '09', 'september': '09',
+        'oct': '10', 'october': '10',
+        'nov': '11', 'november': '11',
+        'dec': '12', 'december': '12'
+    }
+    
+    # Day name to number mapping (0 = Monday, 6 = Sunday)
+    DAY_MAP = {
+        'monday': 0, 'mon': 0,
+        'tuesday': 1, 'tue': 1, 'tues': 1,
+        'wednesday': 2, 'wed': 2,
+        'thursday': 3, 'thu': 3, 'thur': 3, 'thurs': 3,
+        'friday': 4, 'fri': 4,
+        'saturday': 5, 'sat': 5,
+        'sunday': 6, 'sun': 6
+    }
+    
+    # Time patterns for regex matching
+    TIME_PATTERNS = [
+        r'(\d{1,2})\s*(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)',
+        r'(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)',
+        r'(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.)',
+        r'(\d{1,2})\s*o\'?clock\s*(am|pm)?',
+        r'(\d{1,2})(?::(\d{2}))?\s*hrs?',
+        r'at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?'
+    ]
+    
+    # Date patterns for regex matching
+    DATE_PATTERNS = [
+        r'(\d{1,2})(?:st|nd|rd|th)?\s*(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)',
+        r'(\d{1,2})(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)',
+        r'(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)\s+(\d{1,2})(?:st|nd|rd|th)?',
+        r'(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?',
+        r'(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?'
+    ]
+    
+    # ==================== CORE METHODS ====================
     
     @staticmethod
     def clean_phone(phone: str) -> str:
-        """Clean and format phone number"""
+        """Clean and format phone number with intelligent formatting"""
         if not phone:
             return ""
-        phone = re.sub(r'[^\d+]', '', phone.replace("whatsapp:", ""))
+        
+        # Remove whatsapp prefix and non-digit characters
+        phone = re.sub(r'[^\d+]', '', phone.replace("whatsapp:", "").replace("whatsapp", ""))
+        
+        # Handle Indian numbers
         if len(phone) == 10:
             phone = "91" + phone
+        elif len(phone) == 11 and phone.startswith('0'):
+            phone = "91" + phone[1:]
+        elif len(phone) == 12 and phone.startswith('91'):
+            pass  # Already correct format
+        elif len(phone) == 13 and phone.startswith('+91'):
+            phone = phone[1:]  # Remove +
+        
         return phone
     
     @staticmethod
-    def get_industry_menu(business) -> str:
-        """Get dynamic menu based on industry with emoji support"""
-        menus = {
-            "restaurant": """
-👋 Welcome to *{name}* 🍽️
-
-1️⃣ Book a Table
-2️⃣ View Menu
-3️⃣ Location & Hours
-4️⃣ Special Offers
-5️⃣ Contact Us
-6️⃣ Exit
-
-Reply with number 👇
-""",
-            "clinic": """
-👋 Welcome to *{name}* 🏥
-
-1️⃣ Book Appointment
-2️⃣ Doctor Availability
-3️⃣ Fees & Insurance
-4️⃣ Location
-5️⃣ Emergency Contact
-6️⃣ Exit
-
-Reply with number 👇
-""",
-            "salon": """
-👋 Welcome to *{name}* 💇
-
-1️⃣ Book Appointment
-2️⃣ Services & Prices
-3️⃣ Our Stylists
-4️⃣ Location
-5️⃣ Special Offers
-6️⃣ Exit
-
-Reply with number 👇
-""",
-            "gym": """
-👋 Welcome to *{name}* 💪
-
-1️⃣ Book Session
-2️⃣ Membership Plans
-3️⃣ Class Schedule
-4️⃣ Trainer Info
-5️⃣ Location
-6️⃣ Exit
-
-Reply with number 👇
-""",
-            "realestate": """
-👋 Welcome to *{name}* 🏠
-
-1️⃣ Schedule Visit
-2️⃣ Property Listings
-3️⃣ EMI Calculator
-4️⃣ Contact Agent
-5️⃣ Location
-6️⃣ Exit
-
-Reply with number 👇
-""",
-            "education": """
-👋 Welcome to *{name}* 📚
-
-1️⃣ Book Demo Class
-2️⃣ Courses Offered
-3️⃣ Fee Structure
-4️⃣ Location
-5️⃣ Contact Counselor
-6️⃣ Exit
-
-Reply with number 👇
-""",
-            "automotive": """
-👋 Welcome to *{name}* 🚗
-
-1️⃣ Book Service
-2️⃣ Service Packages
-3️⃣ Pickup/Drop
-4️⃣ Location
-5️⃣ Contact Mechanic
-6️⃣ Exit
-
-Reply with number 👇
-"""
+    def correct_typos(text: str) -> str:
+        """Correct common typos and variations in text"""
+        text = text.lower().strip()
+        
+        # Apply typo corrections
+        for pattern, replacement in WhatsAppBot.TYPOS.items():
+            text = re.sub(pattern, replacement, text)
+        
+        return text
+    
+    @staticmethod
+    def extract_intent(message: str) -> Dict[str, any]:
+        """Extract user intent using keyword matching and NLP"""
+        message_lower = message.lower()
+        
+        intents = {
+            'greeting': ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'hola', 'namaste'],
+            'booking': ['book', 'booking', 'appointment', 'reserve', 'schedule', 'fix', 'slot'],
+            'services': ['services', 'menu', 'price list', 'what do you offer', 'offerings', 'treatments'],
+            'location': ['location', 'address', 'where', 'directions', 'map', 'reach'],
+            'contact': ['contact', 'phone', 'email', 'reach us', 'support', 'call'],
+            'pricing': ['pricing', 'price', 'cost', 'rates', 'fees', 'charges', 'how much'],
+            'hours': ['hours', 'timings', 'open', 'close', 'working hours', 'business hours'],
+            'cancel': ['cancel', 'abort', 'stop', 'forget', 'never mind', 'ignore'],
+            'help': ['help', 'support', 'assist', 'guide', 'what can you do'],
+            'exit': ['exit', 'bye', 'goodbye', 'quit', 'end', 'close']
         }
         
-        industry = business.business_type.lower()
-        menu = menus.get(industry, """
-👋 Welcome to *{name}* 🚀
-
-1️⃣ Book Appointment
-2️⃣ Our Services
-3️⃣ Location
-4️⃣ Contact Us
-5️⃣ Pricing
-6️⃣ Exit
-
-Reply with number 👇
-""")
+        detected_intents = []
+        for intent, keywords in intents.items():
+            for keyword in keywords:
+                if keyword in message_lower:
+                    detected_intents.append(intent)
+                    break
         
-        return menu.format(name=business.name)
+        return {
+            'primary_intent': detected_intents[0] if detected_intents else 'unknown',
+            'all_intents': detected_intents,
+            'message_length': len(message),
+            'has_numbers': bool(re.search(r'\d', message)),
+            'has_time': bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|hrs?)', message_lower)),
+            'has_date': bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message_lower for day in WhatsAppBot.DAY_MAP.keys())
+        }
     
     @staticmethod
     def parse_booking(text: str) -> Optional[Dict]:
         """
-        Parse natural language booking with enhanced NLP
-        Handles various formats like:
+        Advanced natural language booking parser with AI capabilities
+        Handles complex formats and variations:
         - "16march 7 pm jayant singh"
         - "16 mar 7pm John"
         - "March 16 7:30 PM Jane Doe"
         - "tomorrow 3pm Rahul"
         - "next Monday 10am Priya"
+        - "tomorrow 5pm Yashika"
+        - "upcoming Monday 7 pm Yashika"
+        - "this friday 8pm"
+        - "day after tomorrow 2pm"
+        - "27/02 6:30pm"
+        - "27th feb at 7:30 pm"
         """
         try:
+            # Step 0: Preprocess text
+            original_text = text
             text = text.lower().strip()
             
-            # Handle formats like "16march 7 pm jayant singh" (no space between day and month)
+            # Correct common typos
+            text = WhatsAppBot.correct_typos(text)
             
-            # Step 1: Extract date components
-            # Match patterns like: 16march, 16mar, 16 march, 16th march, 16th mar
-            date_patterns = [
-                r'(\d{1,2})(?:st|nd|rd|th)?\s*(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)',
-                r'(\d{1,2})(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)'
-            ]
+            # Extract intent to understand what user wants
+            intent = WhatsAppBot.extract_intent(text)
             
-            date_match = None
-            for dp in date_patterns:
-                date_match = re.search(dp, text)
-                if date_match:
-                    break
-            
-            if not date_match:
-                # Try reverse format: march 16, March 16th
-                reverse_date = re.search(r'(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|september|oct|october|nov|november|dec|december)\s+(\d{1,2})(?:st|nd|rd|th)?', text)
-                if reverse_date:
-                    month_text, day = reverse_date.groups()
-                    date_match = (None, day, month_text)
-                else:
-                    return None
-            else:
-                day, month_text = date_match.groups()
-            
-            # Convert month text to number
-            month_map = {
-                'jan': '01', 'january': '01',
-                'feb': '02', 'february': '02',
-                'mar': '03', 'march': '03',
-                'apr': '04', 'april': '04',
-                'may': '05',
-                'jun': '06', 'june': '06',
-                'jul': '07', 'july': '07',
-                'aug': '08', 'august': '08',
-                'sep': '09', 'september': '09',
-                'oct': '10', 'october': '10',
-                'nov': '11', 'november': '11',
-                'dec': '12', 'december': '12'
-            }
-            
-            month = month_map.get(month_text[:3].lower())
-            if not month:
-                return None
-            
-            # Step 2: Extract time
-            time_patterns = [
-                r'(\d{1,2})\s*(?::(\d{2}))?\s*(am|pm)',
-                r'(\d{1,2})\s*(am|pm)',
-                r'(\d{1,2}):(\d{2})\s*(am|pm)',
-            ]
-            
-            time_match = None
+            # Initialize variables
+            day = None
+            month = None
+            year = datetime.now().year
             hour = None
             minute = '00'
             ampm = None
+            name = "Guest"
             
-            for tp in time_patterns:
-                time_match = re.search(tp, text)
+            # ========== DATE PARSING ==========
+            
+            # Pattern 1: Relative dates (today, tomorrow, day after tomorrow)
+            if 'day after tomorrow' in text:
+                target_date = datetime.now() + timedelta(days=2)
+                day = target_date.strftime('%d')
+                month = target_date.strftime('%m')
+                year = target_date.year
+                
+            elif 'tomorrow' in text:
+                target_date = datetime.now() + timedelta(days=1)
+                day = target_date.strftime('%d')
+                month = target_date.strftime('%m')
+                year = target_date.year
+                
+            elif 'today' in text:
+                target_date = datetime.now()
+                day = target_date.strftime('%d')
+                month = target_date.strftime('%m')
+                year = target_date.year
+            
+            # Pattern 2: Next/upcoming day (next monday, upcoming friday)
+            elif any(day_name in text for day_name in WhatsAppBot.DAY_MAP.keys()):
+                for day_name, day_num in WhatsAppBot.DAY_MAP.items():
+                    if day_name in text:
+                        current_day = datetime.now().weekday()
+                        
+                        # Check if it's "next", "upcoming", or "this"
+                        if 'next' in text or 'upcoming' in text:
+                            days_ahead = day_num - current_day
+                            if days_ahead <= 0:
+                                days_ahead += 7
+                        elif 'this' in text:
+                            days_ahead = day_num - current_day
+                            if days_ahead < 0:
+                                days_ahead += 7
+                        else:  # Just the day name (assume upcoming)
+                            days_ahead = day_num - current_day
+                            if days_ahead < 0:
+                                days_ahead += 7
+                        
+                        target_date = datetime.now() + timedelta(days=days_ahead)
+                        day = target_date.strftime('%d')
+                        month = target_date.strftime('%m')
+                        year = target_date.year
+                        break
+            
+            # Pattern 3: Numeric dates with month names
+            if not day:
+                for pattern in WhatsAppBot.DATE_PATTERNS[:3]:  # Month name patterns
+                    match = re.search(pattern, text)
+                    if match:
+                        if len(match.groups()) == 2:
+                            if match.group(1).isdigit():  # day month format
+                                day_num, month_name = match.groups()
+                                day = day_num.zfill(2)
+                                month = WhatsAppBot.MONTH_MAP.get(month_name[:3].lower())
+                            else:  # month day format
+                                month_name, day_num = match.groups()
+                                day = day_num.zfill(2)
+                                month = WhatsAppBot.MONTH_MAP.get(month_name[:3].lower())
+                        break
+            
+            # Pattern 4: DD/MM or DD-MM format
+            if not day:
+                for pattern in WhatsAppBot.DATE_PATTERNS[3:]:
+                    match = re.search(pattern, text)
+                    if match:
+                        groups = match.groups()
+                        if len(groups) == 2:  # DD/MM
+                            day_num, month_num = groups
+                            day = day_num.zfill(2)
+                            month = month_num.zfill(2)
+                        elif len(groups) == 3 and groups[2]:  # DD/MM/YYYY
+                            day_num, month_num, year_num = groups
+                            day = day_num.zfill(2)
+                            month = month_num.zfill(2)
+                            year = int(year_num) if len(year_num) == 4 else 2000 + int(year_num)
+                        break
+            
+            if not day:
+                return None
+            
+            # ========== TIME PARSING ==========
+            
+            for pattern in WhatsAppBot.TIME_PATTERNS:
+                time_match = re.search(pattern, text)
                 if time_match:
                     groups = time_match.groups()
-                    if len(groups) == 2:
+                    if len(groups) == 2 and groups[1] and groups[1].replace('.', '').lower() in ['am', 'pm', 'a m', 'p m']:  # "7pm" format
                         hour, ampm = groups[0], groups[1]
-                    elif len(groups) == 3 and groups[1] is None:
+                    elif len(groups) == 2:  # "7" without am/pm
+                        hour = groups[0]
+                        ampm = None
+                    elif len(groups) == 3 and groups[1] is None:  # "7 pm" format
                         hour, _, ampm = groups
-                    elif len(groups) == 3 and groups[1] is not None:
+                    elif len(groups) == 3 and groups[1] is not None:  # "7:30pm" format
                         hour, minute, ampm = groups
                     break
             
-            if not time_match:
+            if not time_match and intent.get('has_time'):
+                # Try to extract any number that might be time
+                numbers = re.findall(r'\b(\d{1,2})\b', text)
+                if numbers:
+                    hour = numbers[-1]  # Take the last number as time
+                    ampm = None
+            
+            if not time_match and not intent.get('has_time'):
+                # No time specified, use default
+                hour = "12"
+                ampm = "pm"
+            
+            if not hour:
                 return None
             
-            # Step 3: Extract name
-            time_end = time_match.end()
-            name = text[time_end:].strip()
+            # ========== NAME EXTRACTION ==========
             
-            if not name and date_match:
-                if isinstance(date_match, tuple):
-                    name = text[date_match[2]:].strip() if len(date_match) > 2 else ""
-                else:
-                    name = text[date_match.end():].strip()
-                
-                name = re.sub(r'\d{1,2}\s*(?::\d{2})?\s*(am|pm)?', '', name).strip()
+            # Remove date and time parts from text to extract name
+            clean_text = text
             
-            if name:
-                name = re.sub(r'\b(am|pm)\b', '', name, flags=re.IGNORECASE).strip()
-                name = re.sub(r'\s+', ' ', name).strip()
-                name = name.title()
+            # Remove date parts
+            if 'day after tomorrow' in original_text.lower():
+                clean_text = clean_text.replace('day after tomorrow', '')
+            if 'tomorrow' in original_text.lower():
+                clean_text = clean_text.replace('tomorrow', '')
+            if 'today' in original_text.lower():
+                clean_text = clean_text.replace('today', '')
+            
+            # Remove day names
+            for day_name in WhatsAppBot.DAY_MAP.keys():
+                clean_text = re.sub(r'\b' + day_name + r'\b', '', clean_text)
+            
+            # Remove time patterns
+            clean_text = re.sub(r'\d{1,2}\s*(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|hrs?)?', '', clean_text)
+            
+            # Remove month names
+            for month_name in WhatsAppBot.MONTH_MAP.keys():
+                clean_text = re.sub(r'\b' + month_name + r'\b', '', clean_text)
+            
+            # Remove common words and clean up
+            clean_text = re.sub(r'\b(at|on|by|for|with|and|the|a|an)\b', '', clean_text)
+            clean_text = re.sub(r'[^\w\s]', '', clean_text)
+            clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+            
+            # If we have a name, use it
+            if clean_text and len(clean_text) > 1:
+                name = clean_text.title()
             else:
-                name = "Guest"
+                # Try to extract name from original text by taking words after time
+                if time_match:
+                    time_end = time_match.end()
+                    potential_name = original_text[time_end:].strip()
+                    if potential_name and len(potential_name) > 1:
+                        name = potential_name.title()
             
-            # Step 4: Format time
+            # ========== TIME FORMATTING ==========
+            
             hour = int(hour)
-            if ampm and ampm.lower() == 'pm' and hour < 12:
-                hour += 12
-            elif ampm and ampm.lower() == 'am' and hour == 12:
-                hour = 0
+            if ampm:
+                ampm = ampm.replace('.', '').lower()
+                if ampm in ['pm', 'p m'] and hour < 12:
+                    hour += 12
+                elif ampm in ['am', 'a m'] and hour == 12:
+                    hour = 0
+            
+            # Validate hour range
+            if hour < 0 or hour > 23:
+                hour = 12  # Default to noon if invalid
             
             minute = minute.zfill(2) if minute else '00'
             time = f"{hour:02d}:{minute}"
             
-            # Step 5: Create date string
-            year = datetime.now().year
-            date_str = f"{day.zfill(2)}-{month}-{year}"
+            # ========== DATE VALIDATION ==========
             
-            # Validate date
+            date_str = f"{day}-{month}-{year}"
+            
             try:
                 booking_date = datetime.strptime(date_str, '%d-%m-%Y')
                 today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
                 
+                # If booking date is in the past, adjust year
                 if booking_date < today:
-                    if (today - booking_date).days < 30:
+                    # Check if it's within the next 30 days (maybe they meant next month)
+                    days_diff = (today - booking_date).days
+                    if days_diff < 30:
+                        # They probably meant next year
                         next_year = year + 1
-                        date_str = f"{day.zfill(2)}-{month}-{next_year}"
+                        date_str = f"{day}-{month}-{next_year}"
+                    elif days_diff < 365:
+                        # They probably meant this year but date passed
+                        next_year = year + 1
+                        date_str = f"{day}-{month}-{next_year}"
             except:
-                pass
+                # If date parsing fails, try alternative format
+                try:
+                    booking_date = datetime.strptime(f"{year}-{month}-{day}", '%Y-%m-%d')
+                except:
+                    return None
             
             return {
                 "date": date_str,
                 "time": time,
-                "name": name
+                "name": name,
+                "original_text": original_text,
+                "confidence": "high" if intent.get('has_date') and intent.get('has_time') else "medium"
             }
             
         except Exception as e:
@@ -1469,99 +1586,165 @@ Reply with number 👇
             return None
     
     @staticmethod
-    def _month_to_number(month: str) -> str:
-        """Convert month name to number"""
-        months = {
-            'jan': '01', 'january': '01',
-            'feb': '02', 'february': '02',
-            'mar': '03', 'march': '03',
-            'apr': '04', 'april': '04',
-            'may': '05',
-            'jun': '06', 'june': '06',
-            'jul': '07', 'july': '07',
-            'aug': '08', 'august': '08',
-            'sep': '09', 'september': '09',
-            'oct': '10', 'october': '10',
-            'nov': '11', 'november': '11',
-            'dec': '12', 'december': '12'
-        }
-        return months.get(month[:3].lower(), '01')
-    
-    @staticmethod
     def process_message(phone: str, message: str, business, db) -> str:
-        """Process incoming WhatsApp message with enhanced NLP"""
+        """Process incoming WhatsApp message with advanced AI"""
         message = message.strip()
         lower_msg = message.lower()
         
+        # First, correct typos and understand intent
+        corrected_msg = WhatsAppBot.correct_typos(message)
+        intent = WhatsAppBot.extract_intent(corrected_msg)
+        
         state = business.flow_state or "start"
         
-        # Reset command - expanded with common greetings
-        if lower_msg in ["reset", "restart", "help", "menu", "hi", "hello", "hey", "start", "hii", "hy"]:
+        # Smart reset detection - understands various ways to restart
+        reset_phrases = [
+            "reset", "restart", "help", "menu", "main menu", "start over",
+            "hi", "hello", "hey", "start", "hii", "hy", "namaste",
+            "go back", "back to menu", "main", "options", "what can you do"
+        ]
+        
+        if any(phrase in lower_msg for phrase in reset_phrases) or intent['primary_intent'] in ['greeting', 'help']:
             business.flow_state = "menu"
             db.commit()
             return WhatsAppBot.get_industry_menu(business)
         
-        # Handle based on state
+        # Handle based on state and intent
         if state == "start" or state == "menu":
-            return WhatsAppBot._handle_menu(message, business, db)
+            return WhatsAppBot._handle_menu(message, business, db, intent)
         elif state == "booking":
-            return WhatsAppBot._handle_booking(message, phone, business, db)
+            return WhatsAppBot._handle_booking(message, phone, business, db, intent)
+        elif state == "confirmation":
+            return WhatsAppBot._handle_confirmation(message, phone, business, db)
         else:
             business.flow_state = "menu"
             db.commit()
             return WhatsAppBot.get_industry_menu(business)
     
     @staticmethod
-    def _handle_menu(message: str, business, db) -> str:
-        """Handle menu selection with support for natural language"""
+    def _handle_menu(message: str, business, db, intent: Dict = None) -> str:
+        """Handle menu selection with AI-powered understanding"""
         message = message.strip().lower()
         
-        # Map natural language to options
-        if message in ['1', 'book', 'booking', 'appointment', 'reserve', 'schedule']:
+        # Intelligent option mapping
+        option_mapping = {
+            '1': ['1', 'one', 'option 1'],
+            '2': ['2', 'two', 'option 2'],
+            '3': ['3', 'three', 'option 3'],
+            '4': ['4', 'four', 'option 4'],
+            '5': ['5', 'five', 'option 5'],
+            '6': ['6', 'six', 'option 6']
+        }
+        
+        # Natural language to option mapping
+        if intent:
+            if intent['primary_intent'] == 'booking':
+                selected_option = '1'
+            elif intent['primary_intent'] == 'services':
+                selected_option = '2'
+            elif intent['primary_intent'] in ['location', 'hours']:
+                selected_option = '3'
+            elif intent['primary_intent'] == 'contact':
+                selected_option = '4'
+            elif intent['primary_intent'] == 'pricing':
+                selected_option = '5'
+            elif intent['primary_intent'] == 'exit':
+                selected_option = '6'
+            else:
+                # Check if message matches any option
+                for option, keywords in option_mapping.items():
+                    if any(keyword in message for keyword in keywords):
+                        selected_option = option
+                        break
+                else:
+                    selected_option = None
+        else:
+            selected_option = None
+            for option, keywords in option_mapping.items():
+                if any(keyword in message for keyword in keywords):
+                    selected_option = option
+                    break
+        
+        if selected_option == '1':
             business.flow_state = "booking"
             db.commit()
             return (
-                "📅 Please provide booking details:\n\n"
-                "Examples:\n"
-                "• 15 Mar 3PM John Doe\n"
-                "• 16 March 7 PM Jayant Singh\n"
-                "• tomorrow 4PM Rahul\n"
-                "• next Monday 10AM Jane Smith\n\n"
-                "Type 'cancel' to go back"
+                "📅 *Booking Details*\n\n"
+                "Please provide your booking information in any format:\n\n"
+                "✨ *Examples:*\n"
+                "• tomorrow 5pm Yashika\n"
+                "• upcoming Monday 7 pm Priya\n"
+                "• 16 Mar 3PM John Doe\n"
+                "• 27/02 6:30pm Rahul\n"
+                "• day after tomorrow 2pm\n\n"
+                "💡 *Tips:*\n"
+                "• Include date, time, and name\n"
+                "• Use natural language\n"
+                "• Type 'cancel' to go back"
             )
-        elif message in ['2', 'services', 'menu', 'price list', 'what do you offer']:
+        elif selected_option == '2':
             return WhatsAppBot._get_services(business)
-        elif message in ['3', 'location', 'address', 'where', 'directions']:
+        elif selected_option == '3':
             return WhatsAppBot._get_location(business)
-        elif message in ['4', 'contact', 'phone', 'email', 'reach us', 'support']:
+        elif selected_option == '4':
             return WhatsAppBot._get_contact(business)
-        elif message in ['5', 'pricing', 'price', 'cost', 'rates', 'fees']:
+        elif selected_option == '5':
             return WhatsAppBot._get_pricing(business)
-        elif message in ['6', 'exit', 'bye', 'goodbye', 'quit', 'end']:
+        elif selected_option == '6':
             business.flow_state = "start"
             db.commit()
-            return "👋 Thank you for visiting! Type 'hi' to start again."
+            return "👋 Thank you for visiting! Type *'hi'* or *'menu'* to start again.\n\nHave a great day! 🌟"
         else:
-            return "❌ Invalid option. Please reply with a number (1-6) or type 'menu' to see options."
+            return (
+                "❌ I didn't understand that.\n\n"
+                "Please reply with a number (1-6) or use natural language like:\n"
+                "• 'book an appointment'\n"
+                "• 'show services'\n"
+                "• 'location'\n"
+                "• 'contact info'\n"
+                "• 'pricing'\n"
+                "• 'exit'"
+            )
     
     @staticmethod
-    def _handle_booking(message: str, phone: str, business, db) -> str:
-        """Handle booking process with enhanced NLP"""
-        if message.lower() in ['cancel', 'back', 'exit', 'go back', 'never mind']:
+    def _handle_booking(message: str, phone: str, business, db, intent: Dict = None) -> str:
+        """Handle booking process with advanced NLP"""
+        
+        # Check for cancellation
+        cancel_phrases = ['cancel', 'back', 'exit', 'go back', 'never mind', 'forget it', 'stop']
+        if any(phrase in message.lower() for phrase in cancel_phrases):
             business.flow_state = "menu"
             db.commit()
             return "❌ Booking cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
         
+        # Parse booking with advanced NLP
         booking_data = WhatsAppBot.parse_booking(message)
+        
         if not booking_data:
-            return (
-                "❌ Could not understand. Please use format like:\n"
-                "• 15 Mar 3PM John Doe\n"
-                "• 16 March 7 PM Jayant Singh\n"
-                "• tomorrow 4PM Rahul\n"
-                "• next Monday 10AM Jane Smith\n\n"
+            # Try to help user by identifying what's missing
+            has_numbers = bool(re.search(r'\d', message))
+            has_time = bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm)?', message.lower()))
+            has_date = bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message.lower() for day in WhatsAppBot.DAY_MAP.keys())
+            
+            helpful_message = "❌ *Could not understand your booking*\n\n"
+            
+            if not has_date and not has_time:
+                helpful_message += "📅 Please include both *date* and *time*.\n\n"
+            elif not has_date:
+                helpful_message += "📅 Please include the *date*.\n\n"
+            elif not has_time:
+                helpful_message += "⏰ Please include the *time*.\n\n"
+            
+            helpful_message += (
+                "✨ *Try these formats:*\n"
+                "• tomorrow 5pm Yashika\n"
+                "• upcoming Monday 7 pm Priya\n"
+                "• 16 Mar 3PM John Doe\n"
+                "• 27/02 6:30pm Rahul\n\n"
                 "Type 'cancel' to go back"
             )
+            
+            return helpful_message
         
         # Check for double booking
         existing = db.query(Booking).filter(
@@ -1572,8 +1755,14 @@ Reply with number 👇
         ).first()
         
         if existing:
+            # Suggest alternative times
+            alternative_times = WhatsAppBot._suggest_alternative_times(business, booking_data['date'], db)
             return f"""
-❌ Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
+❌ *Time Slot Unavailable*
+
+Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
+
+{alternative_times}
 
 Please choose another time or type 'cancel' to go back.
 """
@@ -1592,82 +1781,304 @@ Please choose another time or type 'cancel' to go back.
         business.chat_used = (business.chat_used or 0) + 1
         db.commit()
         
+        # Format response nicely
+        booking_date_obj = datetime.strptime(booking_data['date'], '%d-%m-%Y')
+        formatted_date = booking_date_obj.strftime('%A, %d %B %Y')
+        
         return f"""
-✅ Booking Confirmed!
+✅ *Booking Confirmed!*
 
-👤 {booking_data['name']}
-📅 {booking_data['date']}
-⏰ {booking_data['time']}
+👤 *Name:* {booking_data['name']}
+📅 *Date:* {formatted_date}
+⏰ *Time:* {booking_data['time']}
+📱 *Phone:* {phone}
 
-We'll send you a reminder before your appointment.
+✨ *What's next?*
+• You'll receive a reminder before your appointment
+• To reschedule, just start a new chat
+• Questions? Type 'contact' to reach us
 
-Type 'menu' for main menu 👋
+Type *'menu'* for main menu 👋
 """
     
     @staticmethod
+    def _handle_confirmation(message: str, phone: str, business, db) -> str:
+        """Handle confirmation flow for complex bookings"""
+        # Implementation for multi-step confirmation
+        pass
+    
+    @staticmethod
+    def _suggest_alternative_times(business, date: str, db) -> str:
+        """Suggest alternative available time slots"""
+        # Get all bookings for this date
+        booked_times = db.query(Booking.booking_time).filter(
+            Booking.business_id == business.id,
+            Booking.booking_date == date,
+            Booking.status.in_(['pending', 'confirmed'])
+        ).all()
+        
+        booked_times = [bt[0] for bt in booked_times]
+        
+        # Common time slots
+        all_times = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00']
+        available_times = [t for t in all_times if t not in booked_times]
+        
+        if available_times:
+            suggestion = "💡 *Available times on this date:*\n"
+            for time in available_times[:3]:  # Show only first 3 available
+                suggestion += f"• {time}\n"
+            return suggestion
+        else:
+            return "💡 No other times available on this date. Please try another day."
+    
+    @staticmethod
     def _get_services(business) -> str:
-        """Get services based on industry"""
+        """Get enhanced services with rich formatting"""
         industry = business.business_type.lower()
         
         services_map = {
-            "restaurant": "🍽️ *Our Services*\n\n• Dine-in Experience\n• Takeaway Orders\n• Home Delivery\n• Private Events\n• Catering Services\n• Special Occasion Booking",
-            "salon": "💇 *Our Services*\n\n• Haircut & Styling\n• Hair Coloring\n• Facial Treatments\n• Manicure/Pedicure\n• Massage Therapy\n• Bridal Package",
-            "gym": "💪 *Our Services*\n\n• Personal Training\n• Group Classes\n• Yoga & Meditation\n• CrossFit\n• Nutrition Counseling\n• Weight Management",
-            "clinic": "🏥 *Our Services*\n\n• General Consultation\n• Specialist Visit\n• Health Checkup\n• Vaccination\n• Lab Tests\n• Emergency Care",
-            "realestate": "🏠 *Our Services*\n\n• Property Listings\n• Site Visits\n• Home Loans Assistance\n• Legal Documentation\n• Interior Design\n• Property Management",
-            "education": "📚 *Our Services*\n\n• Demo Classes\n• Course Counseling\n• Study Materials\n• Online Classes\n• Career Guidance\n• Scholarship Info",
-            "automotive": "🚗 *Our Services*\n\n• Regular Service\n• Repair Work\n• Spare Parts\n• Detailing\n• Insurance Claim\n• Roadside Assistance"
+            "restaurant": """
+🍽️ *Our Culinary Experience*
+
+*Main Offerings:*
+• 🍜 Dine-in Experience
+• 🥡 Takeaway Orders
+• 🚚 Home Delivery
+• 🎉 Private Events
+• 🍱 Catering Services
+• 🎂 Special Occasion Booking
+
+*Timings:* Open 7 days a week
+*Special:* Weekend brunch available
+""",
+            "salon": """
+💇 *Premium Salon Services*
+
+*Treatments:*
+• ✂️ Haircut & Styling
+• 🎨 Hair Coloring
+• 💆‍♀️ Facial Treatments
+• 💅 Manicure/Pedicure
+• 💆 Massage Therapy
+• 👰 Bridal Package
+
+*Featured:* Get 20% off on first visit
+""",
+            "gym": """
+💪 *Fitness Center*
+
+*Membership Includes:*
+• 🏋️ Personal Training
+• 🧘 Group Classes
+• 🧘‍♀️ Yoga & Meditation
+• 🔥 CrossFit
+• 🥗 Nutrition Counseling
+• ⚖️ Weight Management
+
+*First session FREE!*
+""",
+            "clinic": """
+🏥 *Medical Services*
+
+*Healthcare:*
+• 👨‍⚕️ General Consultation
+• 🔬 Specialist Visit
+• 📋 Health Checkup
+• 💉 Vaccination
+• 🧪 Lab Tests
+• 🚑 Emergency Care
+
+*Insurance accepted*
+""",
+            "realestate": """
+🏠 *Real Estate Services*
+
+*Solutions:*
+• 📍 Property Listings
+• 🏃 Site Visits
+• 💰 Home Loans Assistance
+• 📄 Legal Documentation
+• 🎨 Interior Design
+• 🏢 Property Management
+
+*Free consultation*
+""",
+            "education": """
+📚 *Educational Services*
+
+*Programs:*
+• 🎯 Demo Classes
+• 📝 Course Counseling
+• 📖 Study Materials
+• 💻 Online Classes
+• 🎓 Career Guidance
+• 💰 Scholarship Info
+
+*Quality education for all*
+""",
+            "automotive": """
+🚗 *Auto Service Center*
+
+*Services:*
+• 🔧 Regular Service
+• 🔩 Repair Work
+• ⚙️ Spare Parts
+• 🧼 Detailing
+• 📋 Insurance Claim
+• 🚐 Roadside Assistance
+
+*Free pickup & drop*
+"""
         }
         
-        return services_map.get(industry, "📋 *Our Services*\n\n• General Consultation\n• Information Services\n• Customer Support\n• Visit our website for complete details.")
+        return services_map.get(industry, """
+📋 *Our Services*
+
+• 💼 General Consultation
+• ℹ️ Information Services
+• 🤝 Customer Support
+• 🌐 Visit our website for complete details
+
+*We're here to help!*
+""")
     
     @staticmethod
     def _get_location(business) -> str:
-        """Get business location with hours"""
+        """Get enhanced location with map link"""
         addr = business.address or "📍 Main Location"
         hours = business.business_hours or "Monday - Friday: 9AM - 8PM\nSaturday: 10AM - 6PM\nSunday: Closed"
         
+        # Generate Google Maps link
+        maps_link = f"https://www.google.com/maps/search/?api=1&query={addr.replace(' ', '+')}"
+        
         return f"""
-📍 *Address*
+📍 *Location & Hours*
+
+*Address:*
 {addr}
 
-🕒 *Business Hours*
+🕒 *Business Hours:*
 {hours}
 
-Google Maps: https://maps.google.com/?q={addr.replace(' ', '+')}
+🗺️ *Get Directions:*
+{maps_link}
+
+*Need help finding us?* Just ask! 🚗
 """
     
     @staticmethod
     def _get_contact(business) -> str:
-        """Get contact information"""
+        """Get enhanced contact information"""
         return f"""
 📞 *Contact Us*
 
-📱 Phone: {business.whatsapp_number}
-📧 Email: {business.admin_email}
+📱 *Phone:* {business.whatsapp_number}
+📧 *Email:* {business.admin_email}
 
-⏰ Response Time: Within 2 hours
+⏰ *Response Time:* Within 2 hours
 
-For urgent inquiries, please call during business hours.
+*For urgent inquiries, please call during business hours.*
+
+*Connect with us on social media:* 🌐
+• Instagram: @bizflow.ai
+• Facebook: /bizflowai
+
+*We're here to help!* 💬
 """
     
     @staticmethod
     def _get_pricing(business) -> str:
-        """Get pricing information"""
+        """Get enhanced pricing information"""
         industry = business.business_type.lower()
         
         pricing_map = {
-            "restaurant": "💰 *Pricing*\n\n• Starters: ₹150 - ₹350\n• Main Course: ₹250 - ₹600\n• Desserts: ₹100 - ₹250\n• Beverages: ₹50 - ₹200\n\n*Special discounts on group bookings!*",
-            "salon": "💰 *Pricing*\n\n• Haircut: ₹199 - ₹499\n• Hair Color: ₹999 - ₹2999\n• Facial: ₹599 - ₹1499\n• Manicure: ₹399\n• Pedicure: ₹499\n• Massage: ₹999 - ₹1999",
-            "gym": "💰 *Pricing*\n\n• Monthly Membership: ₹1999\n• Quarterly: ₹5499\n• Yearly: ₹17999\n• Personal Training: ₹500/session\n\n*First session FREE!*",
-            "clinic": "💰 *Pricing*\n\n• Consultation: ₹500\n• Specialist Visit: ₹800 - ₹1500\n• Health Checkup: ₹999\n• Vaccination: ₹300 - ₹1000\n\n*Insurance accepted*",
-            "realestate": "💰 *Pricing*\n\n• Booking Amount: ₹50,000\n• Visit Charges: ₹1000 (refundable)\n• Documentation: ₹5000\n\n*Call for property pricing*",
-            "education": "💰 *Pricing*\n\n• Demo Class: FREE\n• Monthly Tuition: ₹2000 - ₹5000\n• Course Fee: ₹15000 - ₹50000\n• Study Material: Included\n\n*Scholarships available*",
-            "automotive": "💰 *Pricing*\n\n• Basic Service: ₹1999\n• Standard Service: ₹3499\n• Comprehensive: ₹5999\n• Repair: Quoted after inspection\n\n*Free pickup & drop*"
+            "restaurant": """
+💰 *Restaurant Pricing*
+
+*Starters:* ₹150 - ₹350
+*Main Course:* ₹250 - ₹600
+*Desserts:* ₹100 - ₹250
+*Beverages:* ₹50 - ₹200
+
+🎉 *Special Offers:*
+• 10% off on group bookings (4+ people)
+• Happy Hours: 4-7 PM (Mon-Fri)
+• Birthday special: Free dessert
+""",
+            "salon": """
+💰 *Salon Prices*
+
+*Haircut:* ₹199 - ₹499
+*Hair Color:* ₹999 - ₹2999
+*Facial:* ₹599 - ₹1499
+*Manicure:* ₹399
+*Pedicure:* ₹499
+*Massage:* ₹999 - ₹1999
+
+🎁 *First Visit:* 20% off on any service
+""",
+            "gym": """
+💰 *Gym Membership*
+
+*Monthly:* ₹1999
+*Quarterly:* ₹5499 (Save 8%)
+*Yearly:* ₹17999 (Save 25%)
+
+*Personal Training:* ₹500/session
+
+✨ *First session FREE!*
+""",
+            "clinic": """
+💰 *Clinic Fees*
+
+*Consultation:* ₹500
+*Specialist Visit:* ₹800 - ₹1500
+*Health Checkup:* ₹999
+*Vaccination:* ₹300 - ₹1000
+
+*Insurance accepted • EMI available*
+""",
+            "realestate": """
+💰 *Real Estate Services*
+
+*Booking Amount:* ₹50,000
+*Visit Charges:* ₹1000 (refundable)
+*Documentation:* ₹5000
+
+*Call for property pricing* 📞
+""",
+            "education": """
+💰 *Course Fees*
+
+*Demo Class:* FREE
+*Monthly Tuition:* ₹2000 - ₹5000
+*Course Fee:* ₹15000 - ₹50000
+*Study Material:* Included
+
+*Scholarships available* 🎓
+""",
+            "automotive": """
+💰 *Service Packages*
+
+*Basic Service:* ₹1999
+*Standard Service:* ₹3499
+*Comprehensive:* ₹5999
+*Repair:* Quoted after inspection
+
+*Free pickup & drop* 🚐
+"""
         }
         
-        return pricing_map.get(industry, "💰 *Pricing*\n\nBasic consultation: ₹500\nPremium services: Starting at ₹1000\n\nCheck our website for detailed pricing and packages.")
+        return pricing_map.get(industry, """
+💰 *Pricing Information*
 
+*Basic consultation:* ₹500
+*Premium services:* Starting at ₹1000
+
+*Check our website for detailed pricing and packages.*
+
+*Special discounts available!* 🎉
+""")
 # =====================================================
 # CONVERSATIONS PAGE
 # =====================================================
