@@ -1065,7 +1065,7 @@
                 <!-- Remember Me & Forgot Password -->
                 <div class="form-options">
                     <label class="remember-me">
-                        <input type="checkbox" name="remember" value="1" {% if request.form.get('remember') %}checked{% endif %}>
+                        <input type="checkbox" name="remember" value="1" {% if remember_checked %}checked{% endif %}>
                         <span>Remember me for 30 days</span>
                     </label>
                     <a href="/forgot-password" class="forgot-link">

@@ -584,7 +584,8 @@ async def login_page(request: Request):
         {
             "request": request, 
             "error": error,
-            "email_prefill": email_prefill  # ← Add this line
+            "email_prefill": email_prefil,
+            "remember_checked": remember_checked 
         }
     )
 
