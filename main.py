@@ -92,6 +92,9 @@ class OAuthConfig:
 starlette_config = Config(environ=os.environ)
 oauth = OAuth(starlette_config)
 
+settings = Settings()
+settings.validate()
+
 # Configure Google OAuth
 if OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET:
     oauth.register(
