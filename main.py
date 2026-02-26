@@ -1306,26 +1306,30 @@ class WhatsAppBot:
         if not phone:
             return ""
         
-        # Remove whatsapp prefix and non-digit characters
-        phone = re.sub(r'[^\d+]', '', phone.replace("whatsapp:", "").replace("whatsapp", ""))
-        
-        # Handle Indian numbers
-        if len(phone) == 10:
-            phone = "91" + phone
-        elif len(phone) == 11 and phone.startswith('0'):
-            phone = "91" + phone[1:]
-        elif len(phone) == 12 and phone.startswith('91'):
-            pass  # Already correct format
-        elif len(phone) == 13 and phone.startswith('+91'):
-            phone = phone[1:]  # Remove +
-        
-        return phone
+        try:
+            # Remove whatsapp prefix and non-digit characters
+            phone = re.sub(r'[^\d+]', '', phone.replace("whatsapp:", "").replace("whatsapp", ""))
+            
+            # Handle Indian numbers
+            if len(phone) == 10:
+                phone = "91" + phone
+            elif len(phone) == 11 and phone.startswith('0'):
+                phone = "91" + phone[1:]
+            elif len(phone) == 12 and phone.startswith('91'):
+                pass  # Already correct format
+            elif len(phone) == 13 and phone.startswith('+91'):
+                phone = phone[1:]  # Remove +
+            
+            return phone
+        except Exception:
+            return phone
     
     @staticmethod
     def get_industry_menu(business) -> str:
         """Get dynamic menu based on industry with emoji support"""
-        menus = {
-            "restaurant": """
+        try:
+            menus = {
+                "restaurant": """
 👋 Welcome to *{name}* 🍽️
 
 1️⃣ Book a Table
@@ -1337,7 +1341,7 @@ class WhatsAppBot:
 
 Reply with number 👇
 """,
-            "clinic": """
+                "clinic": """
 👋 Welcome to *{name}* 🏥
 
 1️⃣ Book Appointment
@@ -1349,7 +1353,7 @@ Reply with number 👇
 
 Reply with number 👇
 """,
-            "salon": """
+                "salon": """
 👋 Welcome to *{name}* 💇
 
 1️⃣ Book Appointment
@@ -1361,7 +1365,7 @@ Reply with number 👇
 
 Reply with number 👇
 """,
-            "gym": """
+                "gym": """
 👋 Welcome to *{name}* 💪
 
 1️⃣ Book Session
@@ -1373,7 +1377,7 @@ Reply with number 👇
 
 Reply with number 👇
 """,
-            "realestate": """
+                "realestate": """
 👋 Welcome to *{name}* 🏠
 
 1️⃣ Schedule Visit
@@ -1385,7 +1389,7 @@ Reply with number 👇
 
 Reply with number 👇
 """,
-            "education": """
+                "education": """
 👋 Welcome to *{name}* 📚
 
 1️⃣ Book Demo Class
@@ -1397,7 +1401,7 @@ Reply with number 👇
 
 Reply with number 👇
 """,
-            "automotive": """
+                "automotive": """
 👋 Welcome to *{name}* 🚗
 
 1️⃣ Book Service
@@ -1409,10 +1413,10 @@ Reply with number 👇
 
 Reply with number 👇
 """
-        }
-        
-        industry = business.business_type.lower()
-        menu = menus.get(industry, """
+            }
+            
+            industry = business.business_type.lower() if business.business_type else "general"
+            menu = menus.get(industry, """
 👋 Welcome to *{name}* 🚀
 
 1️⃣ Book Appointment
@@ -1424,53 +1428,79 @@ Reply with number 👇
 
 Reply with number 👇
 """)
-        
-        return menu.format(name=business.name)
+            
+            return menu.format(name=business.name or "Our Business")
+        except Exception:
+            return """
+👋 Welcome to BizFlow AI! 
+
+1️⃣ Book Appointment
+2️⃣ Services
+3️⃣ Location
+4️⃣ Contact
+5️⃣ Pricing
+6️⃣ Exit
+
+Reply with number 👇
+"""
     
     @staticmethod
     def correct_typos(text: str) -> str:
         """Correct common typos and variations in text"""
-        text = text.lower().strip()
-        
-        # Apply typo corrections
-        for pattern, replacement in WhatsAppBot.TYPOS.items():
-            text = re.sub(pattern, replacement, text)
-        
-        return text
+        try:
+            text = text.lower().strip()
+            
+            # Apply typo corrections
+            for pattern, replacement in WhatsAppBot.TYPOS.items():
+                text = re.sub(pattern, replacement, text)
+            
+            return text
+        except Exception:
+            return text.lower().strip()
     
     @staticmethod
     def extract_intent(message: str) -> Dict[str, any]:
         """Extract user intent using keyword matching and NLP"""
-        message_lower = message.lower()
-        
-        intents = {
-            'greeting': ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'hola', 'namaste'],
-            'booking': ['book', 'booking', 'appointment', 'reserve', 'schedule', 'fix', 'slot'],
-            'services': ['services', 'menu', 'price list', 'what do you offer', 'offerings', 'treatments'],
-            'location': ['location', 'address', 'where', 'directions', 'map', 'reach'],
-            'contact': ['contact', 'phone', 'email', 'reach us', 'support', 'call'],
-            'pricing': ['pricing', 'price', 'cost', 'rates', 'fees', 'charges', 'how much'],
-            'hours': ['hours', 'timings', 'open', 'close', 'working hours', 'business hours'],
-            'cancel': ['cancel', 'abort', 'stop', 'forget', 'never mind', 'ignore'],
-            'help': ['help', 'support', 'assist', 'guide', 'what can you do'],
-            'exit': ['exit', 'bye', 'goodbye', 'quit', 'end', 'close']
-        }
-        
-        detected_intents = []
-        for intent, keywords in intents.items():
-            for keyword in keywords:
-                if keyword in message_lower:
-                    detected_intents.append(intent)
-                    break
-        
-        return {
-            'primary_intent': detected_intents[0] if detected_intents else 'unknown',
-            'all_intents': detected_intents,
-            'message_length': len(message),
-            'has_numbers': bool(re.search(r'\d', message)),
-            'has_time': bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|hrs?)', message_lower)),
-            'has_date': bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message_lower for day in WhatsAppBot.DAY_MAP.keys())
-        }
+        try:
+            message_lower = message.lower()
+            
+            intents = {
+                'greeting': ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'hola', 'namaste'],
+                'booking': ['book', 'booking', 'appointment', 'reserve', 'schedule', 'fix', 'slot'],
+                'services': ['services', 'menu', 'price list', 'what do you offer', 'offerings', 'treatments'],
+                'location': ['location', 'address', 'where', 'directions', 'map', 'reach'],
+                'contact': ['contact', 'phone', 'email', 'reach us', 'support', 'call'],
+                'pricing': ['pricing', 'price', 'cost', 'rates', 'fees', 'charges', 'how much'],
+                'hours': ['hours', 'timings', 'open', 'close', 'working hours', 'business hours'],
+                'cancel': ['cancel', 'abort', 'stop', 'forget', 'never mind', 'ignore'],
+                'help': ['help', 'support', 'assist', 'guide', 'what can you do'],
+                'exit': ['exit', 'bye', 'goodbye', 'quit', 'end', 'close']
+            }
+            
+            detected_intents = []
+            for intent, keywords in intents.items():
+                for keyword in keywords:
+                    if keyword in message_lower:
+                        detected_intents.append(intent)
+                        break
+            
+            return {
+                'primary_intent': detected_intents[0] if detected_intents else 'unknown',
+                'all_intents': detected_intents,
+                'message_length': len(message),
+                'has_numbers': bool(re.search(r'\d', message)),
+                'has_time': bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|hrs?)', message_lower)),
+                'has_date': bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message_lower for day in WhatsAppBot.DAY_MAP.keys())
+            }
+        except Exception:
+            return {
+                'primary_intent': 'unknown',
+                'all_intents': [],
+                'message_length': len(message),
+                'has_numbers': False,
+                'has_time': False,
+                'has_date': False
+            }
     
     @staticmethod
     def parse_booking(text: str) -> Optional[Dict]:
@@ -1520,7 +1550,6 @@ Reply with number 👇
                 year = target_date.year
             
             # Pattern 2: Next/upcoming day (next monday, upcoming friday)
-            # Improved day name detection with word boundaries
             if not day:
                 for day_name, day_num in WhatsAppBot.DAY_MAP.items():
                     if re.search(r'\b' + day_name + r'\b', text):
@@ -1582,7 +1611,6 @@ Reply with number 👇
                         break
             
             if not day:
-                logger.warning(f"❌ No date detected in text: {text}")
                 return None
             
             # ========== TIME PARSING ==========
@@ -1608,16 +1636,13 @@ Reply with number 👇
                 if numbers:
                     hour = numbers[-1]  # Take the last number as time
                     ampm = None
-                    logger.info(f"⏰ Extracted hour from numbers: {hour}")
             
             if not time_match and not intent.get('has_time'):
                 # No time specified, use default
                 hour = "12"
                 ampm = "pm"
-                logger.info("⏰ No time specified, using default 12pm")
             
             if not hour:
-                logger.warning("❌ No time detected in text")
                 return None
             
             # ========== NAME EXTRACTION ==========
@@ -1626,13 +1651,11 @@ Reply with number 👇
             clean_text = text
             
             # Remove date parts
-            if 'day after tomorrow' in original_text.lower():
-                clean_text = clean_text.replace('day after tomorrow', '')
-            if 'tomorrow' in original_text.lower():
-                clean_text = clean_text.replace('tomorrow', '')
-            if 'today' in original_text.lower():
-                clean_text = clean_text.replace('today', '')
-
+            date_phrases = ['day after tomorrow', 'tomorrow', 'today']
+            for phrase in date_phrases:
+                if phrase in original_text.lower():
+                    clean_text = clean_text.replace(phrase, '')
+            
             # Remove relative time words
             relative_words = ['next', 'upcoming', 'this', 'coming']
             for word in relative_words:
@@ -1657,7 +1680,6 @@ Reply with number 👇
             # If we have a name, use it
             if clean_text and len(clean_text) > 1:
                 name = clean_text.title()
-                logger.info(f"👤 Extracted name: {name}")
             else:
                 # Try to extract name from original text by taking words after time
                 if time_match:
@@ -1669,7 +1691,7 @@ Reply with number 👇
                     potential_name = re.sub(r'\s+', ' ', potential_name).strip()
                     if potential_name and len(potential_name) > 1:
                         name = potential_name.title()
-                        logger.info(f"👤 Extracted name from after time: {name}")
+            
             # ========== TIME FORMATTING ==========
             
             hour = int(hour)
@@ -1690,7 +1712,6 @@ Reply with number 👇
             # ========== DATE VALIDATION ==========
             
             date_str = f"{day}-{month}-{year}"
-            logger.info(f"📅 Final date string: {date_str}")
             
             try:
                 booking_date = datetime.strptime(date_str, '%d-%m-%Y')
@@ -1698,19 +1719,15 @@ Reply with number 👇
                 
                 # If booking date is in the past, adjust year
                 if booking_date < today:
-                    logger.info(f"📅 Date {date_str} is in the past, adjusting year")
                     days_diff = (today - booking_date).days
-                    if days_diff < 30:
+                    if days_diff < 30 or days_diff < 365:
                         next_year = year + 1
                         date_str = f"{day}-{month}-{next_year}"
-                        logger.info(f"📅 Adjusted to: {date_str}")
-                    elif days_diff < 365:
-                        next_year = year + 1
-                        date_str = f"{day}-{month}-{next_year}"
-                        logger.info(f"📅 Adjusted to: {date_str}")
-            except Exception as e:
-                logger.error(f"❌ Date parsing error: {str(e)}")
-                return None
+            except Exception:
+                try:
+                    booking_date = datetime.strptime(f"{year}-{month}-{day}", '%Y-%m-%d')
+                except Exception:
+                    return None
             
             return {
                 "date": date_str,
@@ -1721,187 +1738,191 @@ Reply with number 👇
             }
             
         except Exception as e:
-            logger.error(f"Booking parse error: {str(e)}")
+            # Log error but don't expose to user
+            print(f"Booking parse error: {str(e)}")  # Replace with logger if available
             return None
     
     @staticmethod
     def process_message(phone: str, message: str, business, db) -> str:
         """Process incoming WhatsApp message with advanced AI"""
-        message = message.strip()
-        lower_msg = message.lower()
-        
-        # First, correct typos and understand intent
-        corrected_msg = WhatsAppBot.correct_typos(message)
-        intent = WhatsAppBot.extract_intent(corrected_msg)
-        
-        state = business.flow_state or "start"
-        
-        logger.info(f"🤖 Processing message - State: {state}, Intent: {intent['primary_intent']}")
-        
-        # Smart reset detection - understands various ways to restart
-        reset_phrases = [
-            "reset", "restart", "help", "menu", "main menu", "start over",
-            "hi", "hello", "hey", "start", "hii", "hy", "namaste",
-            "go back", "back to menu", "main", "options", "what can you do"
-        ]
-        
-        if any(phrase in lower_msg for phrase in reset_phrases) or intent['primary_intent'] in ['greeting', 'help']:
-            logger.info("🔄 Reset detected, showing main menu")
-            business.flow_state = "menu"
-            db.commit()
-            return WhatsAppBot.get_industry_menu(business)
-        
-        # Handle based on state and intent
-        if state == "start" or state == "menu":
-            return WhatsAppBot._handle_menu(message, business, db, intent)
-        elif state == "booking":
-            return WhatsAppBot._handle_booking(message, phone, business, db, intent)
-        elif state == "confirmation":
-            return WhatsAppBot._handle_confirmation(message, phone, business, db)
-        else:
-            business.flow_state = "menu"
-            db.commit()
-            return WhatsAppBot.get_industry_menu(business)
+        try:
+            message = message.strip()
+            lower_msg = message.lower()
+            
+            # First, correct typos and understand intent
+            corrected_msg = WhatsAppBot.correct_typos(message)
+            intent = WhatsAppBot.extract_intent(corrected_msg)
+            
+            state = business.flow_state or "start"
+            
+            # Smart reset detection - understands various ways to restart
+            reset_phrases = [
+                "reset", "restart", "help", "menu", "main menu", "start over",
+                "hi", "hello", "hey", "start", "hii", "hy", "namaste",
+                "go back", "back to menu", "main", "options", "what can you do"
+            ]
+            
+            if any(phrase in lower_msg for phrase in reset_phrases) or intent['primary_intent'] in ['greeting', 'help']:
+                business.flow_state = "menu"
+                db.commit()
+                return WhatsAppBot.get_industry_menu(business)
+            
+            # Handle based on state and intent
+            if state == "start" or state == "menu":
+                return WhatsAppBot._handle_menu(message, business, db, intent)
+            elif state == "booking":
+                return WhatsAppBot._handle_booking(message, phone, business, db, intent)
+            elif state == "confirmation":
+                return WhatsAppBot._handle_confirmation(message, phone, business, db)
+            else:
+                business.flow_state = "menu"
+                db.commit()
+                return WhatsAppBot.get_industry_menu(business)
+                
+        except Exception as e:
+            # If any error occurs, safely return to menu
+            try:
+                business.flow_state = "menu"
+                db.commit()
+            except:
+                pass
+            return "❌ An error occurred. Please try again or type 'menu'."
     
     @staticmethod
     def _handle_menu(message: str, business, db, intent: Dict = None) -> str:
         """Handle menu selection with AI-powered understanding"""
-        message = message.strip().lower()
-        
-        # Intelligent option mapping
-        option_mapping = {
-            '1': ['1', 'one', 'option 1'],
-            '2': ['2', 'two', 'option 2'],
-            '3': ['3', 'three', 'option 3'],
-            '4': ['4', 'four', 'option 4'],
-            '5': ['5', 'five', 'option 5'],
-            '6': ['6', 'six', 'option 6']
-        }
-        
-        # Natural language to option mapping
-        selected_option = None
-        if intent:
-            if intent['primary_intent'] == 'booking':
-                selected_option = '1'
-            elif intent['primary_intent'] == 'services':
-                selected_option = '2'
-            elif intent['primary_intent'] in ['location', 'hours']:
-                selected_option = '3'
-            elif intent['primary_intent'] == 'contact':
-                selected_option = '4'
-            elif intent['primary_intent'] == 'pricing':
-                selected_option = '5'
-            elif intent['primary_intent'] == 'exit':
-                selected_option = '6'
-        
-        # If no intent match, check direct option input
-        if not selected_option:
-            for option, keywords in option_mapping.items():
-                if any(keyword in message for keyword in keywords):
-                    selected_option = option
-                    break
-        
-        logger.info(f"📋 Menu selection: {selected_option}")
-        
-        if selected_option == '1':
-            business.flow_state = "booking"
-            db.commit()
-            return (
-                "📅 *Booking Details*\n\n"
-                "Please provide your booking information in any format:\n\n"
-                "✨ *Examples:*\n"
-                "• tomorrow 5pm Yashika\n"
-                "• upcoming Monday 7 pm Priya\n"
-                "• 16 Mar 3PM John Doe\n"
-                "• 27/02 6:30pm Rahul\n"
-                "• day after tomorrow 2pm\n\n"
-                "💡 *Tips:*\n"
-                "• Include date, time, and name\n"
-                "• Use natural language\n"
-                "• Type 'cancel' to go back"
-            )
-        elif selected_option == '2':
-            return WhatsAppBot._get_services(business)
-        elif selected_option == '3':
-            return WhatsAppBot._get_location(business)
-        elif selected_option == '4':
-            return WhatsAppBot._get_contact(business)
-        elif selected_option == '5':
-            return WhatsAppBot._get_pricing(business)
-        elif selected_option == '6':
-            business.flow_state = "start"
-            db.commit()
-            return "👋 Thank you for visiting! Type *'hi'* or *'menu'* to start again.\n\nHave a great day! 🌟"
-        else:
-            return (
-                "❌ I didn't understand that.\n\n"
-                "Please reply with a number (1-6) or use natural language like:\n"
-                "• 'book an appointment'\n"
-                "• 'show services'\n"
-                "• 'location'\n"
-                "• 'contact info'\n"
-                "• 'pricing'\n"
-                "• 'exit'"
-            )
+        try:
+            message = message.strip().lower()
+            
+            # Intelligent option mapping
+            option_mapping = {
+                '1': ['1', 'one', 'option 1'],
+                '2': ['2', 'two', 'option 2'],
+                '3': ['3', 'three', 'option 3'],
+                '4': ['4', 'four', 'option 4'],
+                '5': ['5', 'five', 'option 5'],
+                '6': ['6', 'six', 'option 6']
+            }
+            
+            # Natural language to option mapping
+            selected_option = None
+            if intent:
+                if intent['primary_intent'] == 'booking':
+                    selected_option = '1'
+                elif intent['primary_intent'] == 'services':
+                    selected_option = '2'
+                elif intent['primary_intent'] in ['location', 'hours']:
+                    selected_option = '3'
+                elif intent['primary_intent'] == 'contact':
+                    selected_option = '4'
+                elif intent['primary_intent'] == 'pricing':
+                    selected_option = '5'
+                elif intent['primary_intent'] == 'exit':
+                    selected_option = '6'
+            
+            # If no intent match, check direct option input
+            if not selected_option:
+                for option, keywords in option_mapping.items():
+                    if any(keyword in message for keyword in keywords):
+                        selected_option = option
+                        break
+            
+            if selected_option == '1':
+                business.flow_state = "booking"
+                db.commit()
+                return (
+                    "📅 *Booking Details*\n\n"
+                    "Please provide your booking information in any format:\n\n"
+                    "✨ *Examples:*\n"
+                    "• tomorrow 5pm Yashika\n"
+                    "• upcoming Monday 7 pm Priya\n"
+                    "• 16 Mar 3PM John Doe\n"
+                    "• 27/02 6:30pm Rahul\n"
+                    "• day after tomorrow 2pm\n\n"
+                    "💡 *Tips:*\n"
+                    "• Include date, time, and name\n"
+                    "• Use natural language\n"
+                    "• Type 'cancel' to go back"
+                )
+            elif selected_option == '2':
+                return WhatsAppBot._get_services(business)
+            elif selected_option == '3':
+                return WhatsAppBot._get_location(business)
+            elif selected_option == '4':
+                return WhatsAppBot._get_contact(business)
+            elif selected_option == '5':
+                return WhatsAppBot._get_pricing(business)
+            elif selected_option == '6':
+                business.flow_state = "start"
+                db.commit()
+                return "👋 Thank you for visiting! Type *'hi'* or *'menu'* to start again.\n\nHave a great day! 🌟"
+            else:
+                return (
+                    "❌ I didn't understand that.\n\n"
+                    "Please reply with a number (1-6) or use natural language like:\n"
+                    "• 'book an appointment'\n"
+                    "• 'show services'\n"
+                    "• 'location'\n"
+                    "• 'contact info'\n"
+                    "• 'pricing'\n"
+                    "• 'exit'"
+                )
+        except Exception:
+            return "❌ An error occurred. Please try again or type 'menu'."
     
     @staticmethod
     def _handle_booking(message: str, phone: str, business, db, intent: Dict = None) -> str:
-        """Handle booking process with advanced NLP"""
+        """Handle booking process with advanced NLP and robust error handling"""
         
-        logger.info(f"🔍 _handle_booking called - Phone: {phone}, Message: {message}")
-        
-        # Check for cancellation
-        cancel_phrases = ['cancel', 'back', 'exit', 'go back', 'never mind', 'forget it', 'stop']
-        if any(phrase in message.lower() for phrase in cancel_phrases):
-            logger.info("❌ Booking cancelled by user")
-            business.flow_state = "menu"
-            db.commit()
-            return "❌ Booking cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
-        
-        # Parse booking with advanced NLP
-        booking_data = WhatsAppBot.parse_booking(message)
-        logger.info(f"📊 Booking data parsed: {booking_data}")
-        
-        if not booking_data:
-            # Try to help user by identifying what's missing
-            has_numbers = bool(re.search(r'\d', message))
-            has_time = bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm)?', message.lower()))
-            has_date = bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message.lower() for day in WhatsAppBot.DAY_MAP.keys())
+        try:
+            # Check for cancellation
+            cancel_phrases = ['cancel', 'back', 'exit', 'go back', 'never mind', 'forget it', 'stop']
+            if any(phrase in message.lower() for phrase in cancel_phrases):
+                business.flow_state = "menu"
+                db.commit()
+                return "❌ Booking cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
             
-            helpful_message = "❌ *Could not understand your booking*\n\n"
+            # Parse booking with advanced NLP
+            booking_data = WhatsAppBot.parse_booking(message)
             
-            if not has_date and not has_time:
-                helpful_message += "📅 Please include both *date* and *time*.\n\n"
-            elif not has_date:
-                helpful_message += "📅 Please include the *date*.\n\n"
-            elif not has_time:
-                helpful_message += "⏰ Please include the *time*.\n\n"
+            if not booking_data:
+                # Try to help user by identifying what's missing
+                has_numbers = bool(re.search(r'\d', message))
+                has_time = bool(re.search(r'\d{1,2}(?::\d{2})?\s*(?:am|pm)?', message.lower()))
+                has_date = bool(re.search(r'\d{1,2}[/-]\d{1,2}', message)) or any(day in message.lower() for day in WhatsAppBot.DAY_MAP.keys())
+                
+                helpful_message = "❌ *Could not understand your booking*\n\n"
+                
+                if not has_date and not has_time:
+                    helpful_message += "📅 Please include both *date* and *time*.\n\n"
+                elif not has_date:
+                    helpful_message += "📅 Please include the *date*.\n\n"
+                elif not has_time:
+                    helpful_message += "⏰ Please include the *time*.\n\n"
+                
+                helpful_message += (
+                    "✨ *Try these formats:*\n"
+                    "• tomorrow 5pm Yashika\n"
+                    "• upcoming Monday 7 pm Priya\n"
+                    "• 16 Mar 3PM John Doe\n"
+                    "• 27/02 6:30pm Rahul\n\n"
+                    "Type 'cancel' to go back"
+                )
+                
+                return helpful_message
             
-            helpful_message += (
-                "✨ *Try these formats:*\n"
-                "• tomorrow 5pm Yashika\n"
-                "• upcoming Monday 7 pm Priya\n"
-                "• 16 Mar 3PM John Doe\n"
-                "• 27/02 6:30pm Rahul\n\n"
-                "Type 'cancel' to go back"
-            )
+            # Check for double booking
+            existing = db.query(Booking).filter(
+                Booking.business_id == business.id,
+                Booking.booking_date == booking_data['date'],
+                Booking.booking_time == booking_data['time'],
+                Booking.status.in_(['pending', 'confirmed'])
+            ).first()
             
-            return helpful_message
-        
-        # Check for double booking
-        logger.info(f"🔍 Checking for existing booking on {booking_data['date']} at {booking_data['time']}")
-        existing = db.query(Booking).filter(
-            Booking.business_id == business.id,
-            Booking.booking_date == booking_data['date'],
-            Booking.booking_time == booking_data['time'],
-            Booking.status.in_(['pending', 'confirmed'])
-        ).first()
-        
-        if existing:
-            logger.warning(f"⚠️ Time slot already booked: {booking_data['date']} {booking_data['time']}")
-            # Suggest alternative times
-            alternative_times = WhatsAppBot._suggest_alternative_times(business, booking_data['date'], db)
-            return f"""
+            if existing:
+                # Suggest alternative times
+                alternative_times = WhatsAppBot._suggest_alternative_times(business, booking_data['date'], db)
+                return f"""
 ❌ *Time Slot Unavailable*
 
 Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
@@ -1910,30 +1931,42 @@ Sorry, {booking_data['time']} on {booking_data['date']} is already booked.
 
 Please choose another time or type 'cancel' to go back.
 """
-        
-        # Create booking
-        logger.info(f"✅ Creating booking for {booking_data['name']} on {booking_data['date']} at {booking_data['time']}")
-        
-        booking = Booking(
-            business_id=business.id,
-            name=booking_data['name'],
-            phone=phone,
-            booking_date=booking_data['date'],
-            booking_time=booking_data['time'],
-            status='pending'
-        )
-        db.add(booking)
-        business.flow_state = "menu"
-        business.chat_used = (business.chat_used or 0) + 1
-        db.commit()
-        
-        logger.info(f"✅ Booking created successfully with ID: {booking.id}")
-        
-        # Format response nicely
-        booking_date_obj = datetime.strptime(booking_data['date'], '%d-%m-%Y')
-        formatted_date = booking_date_obj.strftime('%A, %d %B %Y')
-        
-        return f"""
+            
+            # Create booking with transaction safety
+            try:
+                booking = Booking(
+                    business_id=business.id,
+                    name=booking_data['name'],
+                    phone=phone,
+                    booking_date=booking_data['date'],
+                    booking_time=booking_data['time'],
+                    status='pending'
+                )
+                db.add(booking)
+                db.flush()  # Assign ID without committing
+                
+                # Update business stats
+                business.flow_state = "menu"
+                business.chat_used = (business.chat_used or 0) + 1
+                
+                # Commit all changes
+                db.commit()
+                
+            except Exception as e:
+                db.rollback()
+                # Ensure flow state is reset even if booking fails
+                business.flow_state = "menu"
+                db.commit()
+                return "⚠️ There was an issue creating your booking. Please try again.\n\n" + WhatsAppBot.get_industry_menu(business)
+            
+            # Format response nicely
+            try:
+                booking_date_obj = datetime.strptime(booking_data['date'], '%d-%m-%Y')
+                formatted_date = booking_date_obj.strftime('%A, %d %B %Y')
+            except:
+                formatted_date = booking_data['date']
+            
+            return f"""
 ✅ *Booking Confirmed!*
 
 👤 *Name:* {booking_data['name']}
@@ -1948,58 +1981,73 @@ Please choose another time or type 'cancel' to go back.
 
 Type *'menu'* for main menu 👋
 """
+            
+        except Exception as e:
+            # Ultimate error recovery
+            try:
+                business.flow_state = "menu"
+                db.commit()
+            except:
+                pass
+            return "❌ An error occurred. Please try again or type 'menu'."
     
     @staticmethod
     def _handle_confirmation(message: str, phone: str, business, db) -> str:
         """Handle confirmation flow for complex bookings"""
-        # Simple confirmation handler
-        confirm_phrases = ['yes', 'confirm', 'ok', 'sure', 'proceed', 'y']
-        cancel_phrases = ['no', 'cancel', 'never mind', 'stop', 'n']
-    
-        msg_lower = message.lower()
-    
-        if any(phrase in msg_lower for phrase in confirm_phrases):
-            business.flow_state = "menu"
-            db.commit()
-            return "✅ Confirmed! Thank you.\n\n" + WhatsAppBot.get_industry_menu(business)
-        elif any(phrase in msg_lower for phrase in cancel_phrases):
-            business.flow_state = "menu"
-            db.commit()
-            return "❌ Cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
-        else:
-            return "Please reply with 'yes' to confirm or 'no' to cancel."
+        try:
+            confirm_phrases = ['yes', 'confirm', 'ok', 'sure', 'proceed', 'y']
+            cancel_phrases = ['no', 'cancel', 'never mind', 'stop', 'n']
+        
+            msg_lower = message.lower()
+        
+            if any(phrase in msg_lower for phrase in confirm_phrases):
+                business.flow_state = "menu"
+                db.commit()
+                return "✅ Confirmed! Thank you.\n\n" + WhatsAppBot.get_industry_menu(business)
+            elif any(phrase in msg_lower for phrase in cancel_phrases):
+                business.flow_state = "menu"
+                db.commit()
+                return "❌ Cancelled.\n\n" + WhatsAppBot.get_industry_menu(business)
+            else:
+                return "Please reply with 'yes' to confirm or 'no' to cancel."
+        except Exception:
+            return "❌ An error occurred. Please try again."
     
     @staticmethod
     def _suggest_alternative_times(business, date: str, db) -> str:
         """Suggest alternative available time slots"""
-        # Get all bookings for this date
-        booked_times = db.query(Booking.booking_time).filter(
-            Booking.business_id == business.id,
-            Booking.booking_date == date,
-            Booking.status.in_(['pending', 'confirmed'])
-        ).all()
-        
-        booked_times = [bt[0] for bt in booked_times]
-        
-        # Common time slots
-        all_times = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00']
-        available_times = [t for t in all_times if t not in booked_times]
-        
-        if available_times:
-            suggestion = "💡 *Available times on this date:*\n"
-            for time in available_times[:3]:  # Show only first 3 available
-                suggestion += f"• {time}\n"
-            return suggestion
-        else:
-            return "💡 No other times available on this date. Please try another day."
+        try:
+            # Get all bookings for this date
+            booked_times = db.query(Booking.booking_time).filter(
+                Booking.business_id == business.id,
+                Booking.booking_date == date,
+                Booking.status.in_(['pending', 'confirmed'])
+            ).all()
+            
+            booked_times = [bt[0] for bt in booked_times]
+            
+            # Common time slots
+            all_times = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00']
+            available_times = [t for t in all_times if t not in booked_times]
+            
+            if available_times:
+                suggestion = "💡 *Available times on this date:*\n"
+                for time in available_times[:3]:  # Show only first 3 available
+                    suggestion += f"• {time}\n"
+                return suggestion
+            else:
+                return "💡 No other times available on this date. Please try another day."
+        except Exception:
+            return "💡 Please try another time or day."
     
     @staticmethod
     def _get_services(business) -> str:
         """Get enhanced services with rich formatting"""
-        industry = business.business_type.lower()
-        
-        services_map = {
-            "restaurant": """
+        try:
+            industry = business.business_type.lower() if business.business_type else "general"
+            
+            services_map = {
+                "restaurant": """
 🍽️ *Our Culinary Experience*
 
 *Main Offerings:*
@@ -2013,7 +2061,7 @@ Type *'menu'* for main menu 👋
 *Timings:* Open 7 days a week
 *Special:* Weekend brunch available
 """,
-            "salon": """
+                "salon": """
 💇 *Premium Salon Services*
 
 *Treatments:*
@@ -2026,7 +2074,7 @@ Type *'menu'* for main menu 👋
 
 *Featured:* Get 20% off on first visit
 """,
-            "gym": """
+                "gym": """
 💪 *Fitness Center*
 
 *Membership Includes:*
@@ -2039,7 +2087,7 @@ Type *'menu'* for main menu 👋
 
 *First session FREE!*
 """,
-            "clinic": """
+                "clinic": """
 🏥 *Medical Services*
 
 *Healthcare:*
@@ -2052,7 +2100,7 @@ Type *'menu'* for main menu 👋
 
 *Insurance accepted*
 """,
-            "realestate": """
+                "realestate": """
 🏠 *Real Estate Services*
 
 *Solutions:*
@@ -2065,7 +2113,7 @@ Type *'menu'* for main menu 👋
 
 *Free consultation*
 """,
-            "education": """
+                "education": """
 📚 *Educational Services*
 
 *Programs:*
@@ -2078,7 +2126,7 @@ Type *'menu'* for main menu 👋
 
 *Quality education for all*
 """,
-            "automotive": """
+                "automotive": """
 🚗 *Auto Service Center*
 
 *Services:*
@@ -2091,9 +2139,9 @@ Type *'menu'* for main menu 👋
 
 *Free pickup & drop*
 """
-        }
-        
-        return services_map.get(industry, """
+            }
+            
+            return services_map.get(industry, """
 📋 *Our Services*
 
 • 💼 General Consultation
@@ -2103,17 +2151,20 @@ Type *'menu'* for main menu 👋
 
 *We're here to help!*
 """)
+        except Exception:
+            return "📋 Please check our website for services."
     
     @staticmethod
     def _get_location(business) -> str:
         """Get enhanced location with map link"""
-        addr = business.address or "📍 Main Location"
-        hours = business.business_hours or "Monday - Friday: 9AM - 8PM\nSaturday: 10AM - 6PM\nSunday: Closed"
-        
-        # Generate Google Maps link
-        maps_link = f"https://www.google.com/maps/search/?api=1&query={addr.replace(' ', '+')}"
-        
-        return f"""
+        try:
+            addr = business.address or "📍 Main Location"
+            hours = business.business_hours or "Monday - Friday: 9AM - 8PM\nSaturday: 10AM - 6PM\nSunday: Closed"
+            
+            # Generate Google Maps link
+            maps_link = f"https://www.google.com/maps/search/?api=1&query={addr.replace(' ', '+')}"
+            
+            return f"""
 📍 *Location & Hours*
 
 *Address:*
@@ -2127,34 +2178,34 @@ Type *'menu'* for main menu 👋
 
 *Need help finding us?* Just ask! 🚗
 """
+        except Exception:
+            return "📍 Please contact us for location details."
     
     @staticmethod
     def _get_contact(business) -> str:
         """Get enhanced contact information"""
-        return f"""
+        try:
+            return f"""
 📞 *Contact Us*
 
-📱 *Phone:* {business.whatsapp_number}
-📧 *Email:* {business.admin_email}
+📱 *Phone:* {business.whatsapp_number or 'Not available'}
+📧 *Email:* {business.admin_email or 'Not available'}
 
 ⏰ *Response Time:* Within 2 hours
 
-*For urgent inquiries, please call during business hours.*
-
-*Connect with us on social media:* 🌐
-• Instagram: @bizflow.ai
-• Facebook: /bizflowai
-
 *We're here to help!* 💬
 """
+        except Exception:
+            return "📞 Please check our website for contact information."
     
     @staticmethod
     def _get_pricing(business) -> str:
         """Get enhanced pricing information"""
-        industry = business.business_type.lower()
-        
-        pricing_map = {
-            "restaurant": """
+        try:
+            industry = business.business_type.lower() if business.business_type else "general"
+            
+            pricing_map = {
+                "restaurant": """
 💰 *Restaurant Pricing*
 
 *Starters:* ₹150 - ₹350
@@ -2167,7 +2218,7 @@ Type *'menu'* for main menu 👋
 • Happy Hours: 4-7 PM (Mon-Fri)
 • Birthday special: Free dessert
 """,
-            "salon": """
+                "salon": """
 💰 *Salon Prices*
 
 *Haircut:* ₹199 - ₹499
@@ -2179,7 +2230,7 @@ Type *'menu'* for main menu 👋
 
 🎁 *First Visit:* 20% off on any service
 """,
-            "gym": """
+                "gym": """
 💰 *Gym Membership*
 
 *Monthly:* ₹1999
@@ -2190,7 +2241,7 @@ Type *'menu'* for main menu 👋
 
 ✨ *First session FREE!*
 """,
-            "clinic": """
+                "clinic": """
 💰 *Clinic Fees*
 
 *Consultation:* ₹500
@@ -2200,7 +2251,7 @@ Type *'menu'* for main menu 👋
 
 *Insurance accepted • EMI available*
 """,
-            "realestate": """
+                "realestate": """
 💰 *Real Estate Services*
 
 *Booking Amount:* ₹50,000
@@ -2209,7 +2260,7 @@ Type *'menu'* for main menu 👋
 
 *Call for property pricing* 📞
 """,
-            "education": """
+                "education": """
 💰 *Course Fees*
 
 *Demo Class:* FREE
@@ -2219,7 +2270,7 @@ Type *'menu'* for main menu 👋
 
 *Scholarships available* 🎓
 """,
-            "automotive": """
+                "automotive": """
 💰 *Service Packages*
 
 *Basic Service:* ₹1999
@@ -2229,9 +2280,9 @@ Type *'menu'* for main menu 👋
 
 *Free pickup & drop* 🚐
 """
-        }
-        
-        return pricing_map.get(industry, """
+            }
+            
+            return pricing_map.get(industry, """
 💰 *Pricing Information*
 
 *Basic consultation:* ₹500
@@ -2241,6 +2292,8 @@ Type *'menu'* for main menu 👋
 
 *Special discounts available!* 🎉
 """)
+        except Exception:
+            return "💰 Please contact us for pricing information."
 
 # =====================================================
 # CONVERSATIONS PAGE
@@ -2457,6 +2510,23 @@ async def debug_check_business(phone: str, db: Session = Depends(get_db)):
         }
     else:
         return {"found": False, "phone": clean_phone}
+
+@app.get("/debug/flow-state/{phone}")
+async def debug_flow_state(phone: str, db: Session = Depends(get_db)):
+    """Check current flow state for a business"""
+    clean_phone = WhatsAppBot.clean_phone(phone)
+    business = db.query(Business).filter(Business.whatsapp_number == clean_phone).first()
+    
+    if not business:
+        return {"error": "Business not found"}
+    
+    return {
+        "business": business.name,
+        "flow_state": business.flow_state,
+        "chat_used": business.chat_used,
+        "chat_limit": business.chat_limit,
+        "is_active": business.is_active
+    }
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
