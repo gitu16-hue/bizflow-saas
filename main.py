@@ -66,6 +66,61 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+
+# OAuth imports
+from authlib.integrations.starlette_client import OAuth
+from starlette.config import Config
+from starlette.middleware.sessions import SessionMiddleware
+import secrets
+import string
+
+# OAuth Configuration
+class OAuthConfig:
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+    GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+    GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+    
+    @classmethod
+    def is_configured(cls):
+        return all([
+            cls.GOOGLE_CLIENT_ID and cls.GOOGLE_CLIENT_SECRET,
+            cls.GITHUB_CLIENT_ID and cls.GITHUB_CLIENT_SECRET
+        ])
+
+# Initialize OAuth
+starlette_config = Config(environ=os.environ)
+oauth = OAuth(starlette_config)
+
+# Configure Google OAuth
+if OAuthConfig.GOOGLE_CLIENT_ID and OAuthConfig.GOOGLE_CLIENT_SECRET:
+    oauth.register(
+        name='google',
+        client_id=OAuthConfig.GOOGLE_CLIENT_ID,
+        client_secret=OAuthConfig.GOOGLE_CLIENT_SECRET,
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'openid email profile',
+            'redirect_uri': f"{settings.BASE_URL}/auth/google"
+        }
+    )
+    logger.info("✅ Google OAuth configured")
+
+# Configure GitHub OAuth
+if OAuthConfig.GITHUB_CLIENT_ID and OAuthConfig.GITHUB_CLIENT_SECRET:
+    oauth.register(
+        name='github',
+        client_id=OAuthConfig.GITHUB_CLIENT_ID,
+        client_secret=OAuthConfig.GITHUB_CLIENT_SECRET,
+        access_token_url='https://github.com/login/oauth/access_token',
+        authorize_url='https://github.com/login/oauth/authorize',
+        client_kwargs={
+            'scope': 'user:email',
+            'redirect_uri': f"{settings.BASE_URL}/auth/github"
+        }
+    )
+    logger.info("✅ GitHub OAuth configured")
+
 # =====================================================
 # ENVIRONMENT & CONFIGURATION
 # =====================================================
@@ -650,6 +705,184 @@ async def logout(request: Request, db: Session = Depends(get_db)):
     request.session.clear()
     logger.info(f"User logged out: {user_id}")
     return RedirectResponse("/", 302)
+
+# =====================================================
+# OAUTH ROUTES
+# =====================================================
+
+@app.get('/login/google')
+async def login_google(request: Request):
+    """Redirect to Google OAuth"""
+    try:
+        if not OAuthConfig.GOOGLE_CLIENT_ID:
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "error": "Google login is not configured. Please use email login."
+                }
+            )
+        
+        redirect_uri = f"{settings.BASE_URL}/auth/google"
+        return await oauth.google.authorize_redirect(request, redirect_uri)
+    except Exception as e:
+        logger.error(f"Google OAuth redirect error: {str(e)}")
+        return RedirectResponse("/login?error=oauth_failed", 302)
+
+@app.get('/auth/google')
+async def auth_google(request: Request, db: Session = Depends(get_db)):
+    """Handle Google OAuth callback"""
+    try:
+        token = await oauth.google.authorize_access_token(request)
+        user_info = token.get('userinfo')
+        
+        if not user_info:
+            logger.error("No user info from Google")
+            return RedirectResponse("/login?error=oauth_failed", 302)
+        
+        email = user_info.get('email')
+        name = user_info.get('name', email.split('@')[0])
+        
+        if not email:
+            logger.error("No email from Google")
+            return RedirectResponse("/login?error=oauth_failed", 302)
+        
+        # Check if user exists
+        user = db.query(Business).filter(Business.admin_email == email).first()
+        
+        if not user:
+            # Create new user
+            random_password = secrets.token_urlsafe(16)
+            phone = f"oauth_{secrets.token_hex(4)}"
+            
+            user = Business(
+                name=name,
+                whatsapp_number=phone,
+                admin_email=email,
+                admin_password=hash_password(random_password),
+                business_type="general",
+                plan="trial",
+                is_active=True,
+                chat_used=0,
+                chat_limit=1000,
+                onboarding_done=False,
+                created_at=datetime.utcnow(),
+                trial_ends_at=datetime.utcnow() + timedelta(days=7)
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            
+            logger.info(f"✅ New user created via Google OAuth: {email}")
+        
+        # Set session
+        request.session["business_id"] = user.id
+        
+        # Log audit
+        log_audit(user.id, "oauth_login", {"provider": "google"}, db)
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        db.commit()
+        
+        return RedirectResponse("/dashboard", 302)
+        
+    except Exception as e:
+        logger.error(f"Google OAuth callback error: {str(e)}")
+        return RedirectResponse("/login?error=oauth_failed", 302)
+
+@app.get('/login/github')
+async def login_github(request: Request):
+    """Redirect to GitHub OAuth"""
+    try:
+        if not OAuthConfig.GITHUB_CLIENT_ID:
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "error": "GitHub login is not configured. Please use email login."
+                }
+            )
+        
+        redirect_uri = f"{settings.BASE_URL}/auth/github"
+        return await oauth.github.authorize_redirect(request, redirect_uri)
+    except Exception as e:
+        logger.error(f"GitHub OAuth redirect error: {str(e)}")
+        return RedirectResponse("/login?error=oauth_failed", 302)
+
+@app.get('/auth/github')
+async def auth_github(request: Request, db: Session = Depends(get_db)):
+    """Handle GitHub OAuth callback"""
+    try:
+        token = await oauth.github.authorize_access_token(request)
+        
+        # Get user info from GitHub
+        resp = await oauth.github.get('user', token=token)
+        user_info = resp.json()
+        
+        # Get user emails
+        emails_resp = await oauth.github.get('user/emails', token=token)
+        emails = emails_resp.json()
+        
+        primary_email = None
+        for email_info in emails:
+            if email_info.get('primary'):
+                primary_email = email_info.get('email')
+                break
+        
+        if not primary_email:
+            primary_email = emails[0].get('email') if emails else None
+        
+        if not primary_email:
+            logger.error("No email from GitHub")
+            return RedirectResponse("/login?error=oauth_failed", 302)
+        
+        name = user_info.get('name') or user_info.get('login') or primary_email.split('@')[0]
+        
+        # Check if user exists
+        user = db.query(Business).filter(Business.admin_email == primary_email).first()
+        
+        if not user:
+            # Create new user
+            random_password = secrets.token_urlsafe(16)
+            phone = f"oauth_{secrets.token_hex(4)}"
+            
+            user = Business(
+                name=name,
+                whatsapp_number=phone,
+                admin_email=primary_email,
+                admin_password=hash_password(random_password),
+                business_type="general",
+                plan="trial",
+                is_active=True,
+                chat_used=0,
+                chat_limit=1000,
+                onboarding_done=False,
+                created_at=datetime.utcnow(),
+                trial_ends_at=datetime.utcnow() + timedelta(days=7)
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            
+            logger.info(f"✅ New user created via GitHub OAuth: {primary_email}")
+        
+        # Set session
+        request.session["business_id"] = user.id
+        
+        # Log audit
+        log_audit(user.id, "oauth_login", {"provider": "github"}, db)
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        db.commit()
+        
+        return RedirectResponse("/dashboard", 302)
+        
+    except Exception as e:
+        logger.error(f"GitHub OAuth callback error: {str(e)}")
+        return RedirectResponse("/login?error=oauth_failed", 302)
+
 
 # =====================================================
 # SIGNUP ROUTES

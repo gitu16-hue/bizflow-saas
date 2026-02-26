@@ -1200,14 +1200,16 @@
             `;
         });
 
-        // Social login simulation
+        // Social login function - redirects to OAuth providers
         function socialLogin(provider) {
             const btn = event.currentTarget;
             btn.style.transform = 'scale(0.95)';
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Redirecting...`;
+    
             setTimeout(() => {
-                btn.style.transform = '';
-                showToast(`${provider} login integration coming soon!`, 'info');
-            }, 200);
+                window.location.href = `/login/${provider}`;
+            }, 300);
         }
 
         // Toast notification system
