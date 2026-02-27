@@ -2717,6 +2717,13 @@ async def debug_create_booking(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         return {"error": str(e), "traceback": traceback.format_exc()}
 
+@app.post("/webhook/test-simple")
+async def test_simple_webhook(request: Request):
+    """Ultra-simple test webhook"""
+    form = await request.form()
+    print(f"📱 RECEIVED: {dict(form)}")  # This will show in Render logs
+    return "✅ Webhook received"
+
 # =====================================================
 # WHATSAPP WEBHOOK
 # =====================================================
@@ -3283,6 +3290,145 @@ async def handle_razorpay_webhook_event(data: dict):
     if event == "payment.failed":
         payment_id = payload.get("payment", {}).get("entity", {}).get("id")
         logger.warning(f"Payment failed: {payment_id}")
+
+# =====================================================
+# DELETE ACCOUNT ROUTE
+# =====================================================
+
+@app.post("/delete-account")
+@login_required
+async def delete_account(request: Request, db: Session = Depends(get_db)):
+    """Delete user account and all associated data"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Log the deletion attempt
+        logger.warning(f"Account deletion requested for user: {user.id} ({user.admin_email})")
+        
+        # Store email for confirmation message
+        user_email = user.admin_email
+        
+        # Delete all associated data (cascade should handle this if relationships are set)
+        db.delete(user)
+        db.commit()
+        
+        # Clear session
+        request.session.clear()
+        
+        logger.info(f"✅ Account deleted successfully: {user_email}")
+        
+        # Redirect to home with success message
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "success": "Your account has been successfully deleted.",
+                "logged": False
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error deleting account: {str(e)}")
+        logger.error(traceback.format_exc())
+        return templates.TemplateResponse(
+            "settings.html",
+            {
+                "request": request,
+                "business": user if 'user' in locals() else None,
+                "error": "An error occurred while deleting your account. Please contact support."
+            }
+        )
+
+
+@app.get("/export/user-data")
+@login_required
+async def export_user_data(request: Request, db: Session = Depends(get_db)):
+    """Export all user data as JSON"""
+    try:
+        user = get_user(request, db)
+        if not user:
+            return RedirectResponse("/login", 302)
+        
+        # Gather all user data
+        user_data = {
+            "business": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.admin_email,
+                "phone": user.whatsapp_number,
+                "business_type": user.business_type,
+                "plan": user.plan,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "trial_ends_at": user.trial_ends_at.isoformat() if user.trial_ends_at else None,
+                "paid_until": user.paid_until.isoformat() if user.paid_until else None,
+                "chat_used": user.chat_used,
+                "chat_limit": user.chat_limit,
+                "goal": user.goal,
+                "address": user.address,
+                "business_hours": user.business_hours
+            },
+            "bookings": [],
+            "payments": [],
+            "conversations": []
+        }
+        
+        # Get bookings
+        bookings = db.query(Booking).filter(Booking.business_id == user.id).all()
+        for booking in bookings:
+            user_data["bookings"].append({
+                "id": booking.id,
+                "name": booking.name,
+                "phone": booking.phone,
+                "email": booking.email,
+                "date": booking.booking_date,
+                "time": booking.booking_time,
+                "status": booking.status,
+                "notes": booking.notes,
+                "created_at": booking.created_at.isoformat() if booking.created_at else None
+            })
+        
+        # Get payments
+        payments = db.query(Payment).filter(Payment.business_id == user.id).all()
+        for payment in payments:
+            user_data["payments"].append({
+                "id": payment.id,
+                "payment_id": payment.payment_id,
+                "order_id": payment.order_id,
+                "amount": payment.amount,
+                "currency": payment.currency,
+                "status": payment.status,
+                "plan": payment.plan,
+                "created_at": payment.created_at.isoformat() if payment.created_at else None
+            })
+        
+        # Get conversations
+        conversations = db.query(Conversation).filter(Conversation.business_id == user.id).all()
+        for conv in conversations:
+            user_data["conversations"].append({
+                "id": conv.id,
+                "phone": conv.phone,
+                "customer_name": conv.customer_name,
+                "last_message": conv.last_message,
+                "stage": conv.stage,
+                "created_at": conv.created_at.isoformat() if conv.created_at else None,
+                "updated_at": conv.updated_at.isoformat() if conv.updated_at else None
+            })
+        
+        # Create filename with timestamp
+        filename = f"bizflow_export_{user.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        
+        # Return as JSON file download
+        return Response(
+            content=json.dumps(user_data, indent=2, default=str),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting user data: {str(e)}")
+        return RedirectResponse("/settings?error=export_failed", 302)
 
 # =====================================================
 # ADMIN ROUTES

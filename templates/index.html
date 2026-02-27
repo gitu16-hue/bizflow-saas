@@ -1393,6 +1393,13 @@
         {% endif %}
     </div>
 
+    {% if success %}
+    <div class="alert alert-success" style="margin-bottom: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto; margin-top: 100px;">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+
     <!-- HERO SECTION -->
     <section class="hero">
         <div class="hero-content">
