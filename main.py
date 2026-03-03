@@ -3754,6 +3754,34 @@ async def ping():
     return {"ping": "pong", "time": datetime.utcnow().isoformat()}
 
 # =====================================================
+# CONTACT PAGE
+# =====================================================
+
+@app.get("/contact", response_class=HTMLResponse)
+async def contact_page(request: Request):
+    """Contact and support page"""
+    try:
+        return templates.TemplateResponse(
+            "contact.html",
+            {
+                "request": request,
+                "now": datetime.utcnow(),
+                "year": datetime.utcnow().year,
+                "logged": is_logged(request),
+                "support_email": settings.SUPPORT_EMAIL,
+                "company_phone": "+91 98765 43210",
+                "company_address": "Mumbai, India"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Contact page error: {str(e)}")
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": request, "error": "An error occurred loading the contact page"},
+            status_code=500
+        )
+
+# =====================================================
 # MAIN ENTRY POINT
 # =====================================================
 
