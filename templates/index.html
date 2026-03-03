@@ -212,6 +212,59 @@
             50% { opacity: 0.5; }
         }
 
+        /* ================= LOGO STYLES ================= */
+        .logo {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(5deg) scale(1.05);
+        }
+
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .ai-highlight {
+            background: linear-gradient(135deg, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #2563eb;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
         /* ================= NAVBAR ================= */
         .navbar {
             position: fixed;
@@ -239,29 +292,6 @@
                 transform: translateY(0);
                 opacity: 1;
             }
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--gray-900);
-        }
-
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.25rem;
-            animation: pulse 2s infinite;
         }
 
         .nav-links {
@@ -552,17 +582,17 @@
             }
         }
 
-        //* ================= PROFESSIONAL CHAT PREVIEW ================= */
+        /* ================= PROFESSIONAL CHAT PREVIEW ================= */
         .chat-preview {
             background: white;
             border-radius: 32px;
             padding: 2rem;
             box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 480px; /* Increased from 400px */
+            max-width: 480px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
-            max-height: 600px; /* Increased from 520px */
+            max-height: 600px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--primary-light) var(--gray-100);
@@ -616,7 +646,7 @@
             display: flex;
             align-items: flex-start;
             gap: 0.75rem;
-            margin-bottom: 1.5rem; /* Increased from 1.25rem */
+            margin-bottom: 1.5rem;
             position: relative;
             z-index: 1;
             animation: slideInMessage 0.5s ease forwards;
@@ -638,11 +668,11 @@
                 opacity: 1;
                 transform: translateX(0);
             }
-        } 
+        }
 
         .chat-avatar {
-            width: 40px; /* Increased from 36px */
-            height: 40px; /* Increased from 36px */
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             border-radius: 50%;
             display: flex;
@@ -650,19 +680,19 @@
             justify-content: center;
             color: white;
             font-weight: 600;
-            font-size: 1.1rem; /* Increased from 1rem */
+            font-size: 1.1rem;
             flex-shrink: 0;
             box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
         }
 
         .chat-bubble {
             background: var(--gray-100);
-            padding: 1rem 1.25rem; /* Increased padding */
-            border-radius: 20px; /* Slightly larger radius */
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
             border-top-left-radius: 4px;
             flex: 1;
             position: relative;
-            font-size: 0.95rem; /* Slightly larger font */
+            font-size: 0.95rem;
             max-width: calc(100% - 55px);
         }
 
@@ -698,14 +728,14 @@
 
         .chat-bubble p {
             margin: 0;
-            line-height: 1.5; /* Increased line height */
+            line-height: 1.5;
             font-size: 0.95rem;
         }
 
         .chat-bubble .sender {
             font-weight: 700;
-            font-size: 0.8rem; /* Slightly larger */
-            margin-bottom: 0.35rem; /* Increased margin */
+            font-size: 0.8rem;
+            margin-bottom: 0.35rem;
             color: var(--gray-500);
         }
 
@@ -714,9 +744,9 @@
         }
 
         .chat-time {
-            font-size: 0.65rem; /* Slightly larger */
+            font-size: 0.65rem;
             color: var(--gray-400);
-            margin-top: 0.35rem; /* Increased margin */
+            margin-top: 0.35rem;
             text-align: right;
         }
 
@@ -728,14 +758,15 @@
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.65rem; /* Slightly larger */
+            font-size: 0.65rem;
             color: var(--success);
-            margin-top: 0.35rem; /* Increased margin */
+            margin-top: 0.35rem;
         }
 
         .chat-status i {
-            font-size: 0.55rem; /* Slightly larger */
+            font-size: 0.55rem;
         }
+
         /* ================= TRUST BANNER ================= */
         .trust-banner {
             background: white;
