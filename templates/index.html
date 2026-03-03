@@ -552,49 +552,87 @@
             }
         }
 
+        /* ================= PROFESSIONAL CHAT PREVIEW ================= */
         .chat-preview {
             background: white;
-            border-radius: var(--radius-2xl);
-            padding: 2rem;
-            box-shadow: var(--shadow-2xl);
+            border-radius: 32px;
+            padding: 1.5rem;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
-            overflow: hidden;
-            animation: float 6s infinite;
+            max-height: 520px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-light) var(--gray-100);
         }
 
-        .chat-preview::before {
+        .chat-preview::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-preview::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: 10px;
+        }
+
+        .chat-preview::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 10px;
+        }
+
+        .chat-preview::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        .chat-date {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .chat-date::before,
+        .chat-date::after {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        .chat-date::before {
+            left: 0;
+        }
+
+        .chat-date::after {
+            right: 0;
         }
 
         .chat-message {
             display: flex;
             align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
             position: relative;
             z-index: 1;
             animation: slideInMessage 0.5s ease forwards;
             opacity: 0;
         }
 
-        .chat-message:nth-child(1) { animation-delay: 0.8s; }
-        .chat-message:nth-child(2) { animation-delay: 1.2s; }
-        .chat-message:nth-child(3) { animation-delay: 1.6s; }
+        .chat-message:nth-child(2) { animation-delay: 0.2s; }
+        .chat-message:nth-child(3) { animation-delay: 0.4s; }
+        .chat-message:nth-child(4) { animation-delay: 0.6s; }
+        .chat-message:nth-child(5) { animation-delay: 0.8s; }
+        .chat-message:nth-child(6) { animation-delay: 1.0s; }
 
         @keyframes slideInMessage {
             from {
                 opacity: 0;
-                transform: translateX(-20px);
+                transform: translateX(-10px);
             }
             to {
                 opacity: 1;
@@ -603,8 +641,8 @@
         }
 
         .chat-avatar {
-            width: 45px;
-            height: 45px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             border-radius: 50%;
             display: flex;
@@ -612,37 +650,91 @@
             justify-content: center;
             color: white;
             font-weight: 600;
-            font-size: 1.25rem;
+            font-size: 1rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
         }
 
         .chat-bubble {
             background: var(--gray-100);
-            padding: 1rem 1.25rem;
-            border-radius: var(--radius-lg);
-            border-top-left-radius: 0;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
             flex: 1;
             position: relative;
+            font-size: 0.9rem;
+            max-width: calc(100% - 50px);
+        }
+
+        .chat-bubble::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 12px;
+            height: 12px;
+            background: var(--gray-100);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
         }
 
         .chat-bubble.user {
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
-            border-top-left-radius: var(--radius-lg);
-            border-top-right-radius: 0;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 4px;
+            margin-left: auto;
+        }
+
+        .chat-bubble.user::before {
+            left: auto;
+            right: -8px;
+            background: var(--primary);
+            clip-path: polygon(0 0, 100% 0, 0 100%);
         }
 
         .chat-bubble.user p {
             color: white !important;
         }
 
+        .chat-bubble p {
+            margin: 0;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+
+        .chat-bubble .sender {
+            font-weight: 700;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+            color: var(--gray-500);
+        }
+
+        .chat-bubble.user .sender {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         .chat-time {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: var(--gray-400);
             margin-top: 0.25rem;
+            text-align: right;
         }
 
         .chat-bubble.user .chat-time {
             color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chat-status {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.6rem;
+            color: var(--success);
+            margin-top: 0.25rem;
+        }
+
+        .chat-status i {
+            font-size: 0.5rem;
         }
 
         /* ================= TRUST BANNER ================= */
@@ -1586,29 +1678,60 @@
         </div>
         <div class="hero-visual">
             <div class="chat-preview">
+                <div class="chat-date">TODAY</div>
+                
                 <div class="chat-message">
                     <div class="chat-avatar">
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="chat-bubble">
-                        <strong>BizFlow AI</strong>
-                        <p>Hi! How can I help you today?</p>
-                        <div class="chat-time">Just now</div>
+                        <div class="sender">BizFlow AI</div>
+                        <p>Hi! Welcome to Glam Salon. How can I help you today?</p>
+                        <div class="chat-time">10:30 AM</div>
                     </div>
                 </div>
+                
                 <div class="chat-message">
                     <div class="chat-bubble user">
-                        <p>I'd like to book an appointment</p>
-                        <div class="chat-time">1 min ago</div>
+                        <div class="sender">Yashika</div>
+                        <p>I'd like to book a haircut for tomorrow</p>
+                        <div class="chat-time">10:31 AM</div>
+                        <div class="chat-status">
+                            <i class="fas fa-check-circle"></i> Read
+                        </div>
                     </div>
                 </div>
+                
                 <div class="chat-message">
                     <div class="chat-avatar">
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="chat-bubble">
-                        <p>Sure! When would you like to come in?</p>
-                        <div class="chat-time">Now</div>
+                        <div class="sender">BizFlow AI</div>
+                        <p>Of course! We have slots available tomorrow at 11 AM, 2 PM, or 4 PM. Which works for you?</p>
+                        <div class="chat-time">10:31 AM</div>
+                    </div>
+                </div>
+                
+                <div class="chat-message">
+                    <div class="chat-bubble user">
+                        <div class="sender">Yashika</div>
+                        <p>11 AM works perfectly. Thank you!</p>
+                        <div class="chat-time">10:32 AM</div>
+                    </div>
+                </div>
+                
+                <div class="chat-message">
+                    <div class="chat-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="chat-bubble">
+                        <div class="sender">BizFlow AI</div>
+                        <p>✅ Perfect! Your appointment is confirmed for tomorrow at 11 AM with our senior stylist. You'll receive a reminder 1 hour before.</p>
+                        <div class="chat-time">10:32 AM</div>
+                        <div class="chat-status">
+                            <i class="fas fa-check-double"></i> Delivered
+                        </div>
                     </div>
                 </div>
             </div>
