@@ -3,6 +3,74 @@
 <head>
     <title>Error - BizFlow AI</title>
     <style>
+<style>
+/* ================= LOGO STYLES ================= */
+.logo {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+}
+
+.logo:hover .logo-icon {
+    transform: rotate(5deg) scale(1.05);
+}
+
+.brand-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.ai-highlight {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tagline {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #2563eb;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+    .logo-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1.2rem;
+    }
+    .brand-name {
+        font-size: 1.25rem;
+    }
+    .tagline {
+        font-size: 0.6rem;
+    }
+}
+</style>
         body { font-family: Arial; text-align: center; padding: 50px; }
         .error { color: red; }
     </style>
