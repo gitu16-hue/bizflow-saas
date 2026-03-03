@@ -3782,6 +3782,44 @@ async def contact_page(request: Request):
         )
 
 # =====================================================
+# HELP & DOCUMENTATION PAGES
+# =====================================================
+
+@app.get("/help", response_class=HTMLResponse)
+async def help_page(request: Request):
+    """Help center page"""
+    try:
+        return templates.TemplateResponse(
+            "help.html",
+            {
+                "request": request,
+                "now": datetime.utcnow(),
+                "year": datetime.utcnow().year,
+                "logged": is_logged(request)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Help page error: {str(e)}")
+        return RedirectResponse("/", 302)
+
+@app.get("/docs", response_class=HTMLResponse)
+async def docs_page(request: Request):
+    """Documentation page"""
+    try:
+        return templates.TemplateResponse(
+            "docs.html",
+            {
+                "request": request,
+                "now": datetime.utcnow(),
+                "year": datetime.utcnow().year,
+                "logged": is_logged(request)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Documentation page error: {str(e)}")
+        return RedirectResponse("/", 302)
+
+# =====================================================
 # MAIN ENTRY POINT
 # =====================================================
 

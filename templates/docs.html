@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Documentation | BizFlow AI - Enterprise WhatsApp Automation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-900);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
+        }
+
+        /* Main Container */
+        .docs-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+
+        /* Navigation */
+        .navbar {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+            padding: 1rem 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        /* Sidebar */
+        .docs-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--gray-900);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+        }
+
+        /* Main Content */
+        .docs-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+        }
+
+        .content-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .content-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-header p {
+            color: var(--gray-500);
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section p {
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+
+        .code-block {
+            background: var(--gray-900);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-family: monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .note {
+            background: #fef3c7;
+            border-left: 4px solid var(--warning);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .tip {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            margin-top: 3rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 968px) {
+            .docs-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .docs-sidebar {
+                position: static;
+            }
+
+            body {
+                padding: 1rem;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg">
+        <div class="bg-gradient"></div>
+    </div>
+
+    <div class="docs-wrapper">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                BizFlow AI
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about" class="nav-link">About</a>
+                <a href="/contact" class="nav-link">Contact</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="docs-sidebar">
+            <h3 class="sidebar-title">Documentation</h3>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="#getting-started" class="sidebar-link active">
+                        <i class="fas fa-rocket"></i>
+                        Getting Started
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#whatsapp-setup" class="sidebar-link">
+                        <i class="fab fa-whatsapp"></i>
+                        WhatsApp Setup
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#booking-system" class="sidebar-link">
+                        <i class="fas fa-calendar-check"></i>
+                        Booking System
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#dashboard" class="sidebar-link">
+                        <i class="fas fa-chart-line"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#billing" class="sidebar-link">
+                        <i class="fas fa-credit-card"></i>
+                        Billing
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#api" class="sidebar-link">
+                        <i class="fas fa-code"></i>
+                        API Reference
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="docs-content">
+            <div class="content-header">
+                <h1>Documentation</h1>
+                <p>Everything you need to know about using BizFlow AI</p>
+            </div>
+
+            <section id="getting-started" class="section">
+                <h2>Getting Started</h2>
+                <p>Welcome to BizFlow AI! Follow this guide to set up your account and start automating your WhatsApp communications.</p>
+                
+                <h3>1. Create Your Account</h3>
+                <p>Sign up for a free trial account. No credit card required.</p>
+                
+                <h3>2. Complete Onboarding</h3>
+                <p>Fill in your business details, including business type, goals, and working hours.</p>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Tip:</strong> Set your business hours accurately to manage customer expectations.
+                </div>
+
+                <h3>3. Configure WhatsApp</h3>
+                <p>Connect your WhatsApp Business number through Twilio integration.</p>
+                
+                <div class="code-block">
+                    # Example Twilio webhook URL<br>
+                    https://bizflow-saas.onrender.com/webhook/whatsapp
+                </div>
+            </section>
+
+            <section id="whatsapp-setup" class="section">
+                <h2>WhatsApp Setup</h2>
+                <p>Configure your WhatsApp integration to start receiving messages.</p>
+                
+                <h3>Twilio Setup</h3>
+                <p>1. Create a Twilio account</p>
+                <p>2. Get your WhatsApp sandbox number</p>
+                <p>3. Configure webhook URL</p>
+                
+                <div class="note">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Note:</strong> You need a Twilio account to use WhatsApp Business API.
+                </div>
+
+                <h3>Webhook Configuration</h3>
+                <p>Set your webhook URL in Twilio console to:</p>
+                <div class="code-block">
+                    https://bizflow-saas.onrender.com/webhook/whatsapp
+                </div>
+            </section>
+
+            <section id="booking-system" class="section">
+                <h2>Booking System</h2>
+                <p>Learn how to manage appointments and bookings through WhatsApp.</p>
+                
+                <h3>Natural Language Processing</h3>
+                <p>Our AI understands various booking formats:</p>
+                <ul style="margin-left: 2rem; color: var(--gray-600);">
+                    <li>"tomorrow 5pm Yashika"</li>
+                    <li>"upcoming Monday 7 pm Priya"</li>
+                    <li>"16 Mar 3PM John Doe"</li>
+                    <li>"27/02 6:30pm Rahul"</li>
+                </ul>
+                
+                <h3>Managing Bookings</h3>
+                <p>View and manage all bookings from your dashboard. You can confirm, cancel, or reschedule appointments.</p>
+            </section>
+
+            <section id="dashboard" class="section">
+                <h2>Dashboard</h2>
+                <p>Monitor your business performance with real-time analytics.</p>
+                
+                <h3>Key Metrics</h3>
+                <ul style="margin-left: 2rem; color: var(--gray-600);">
+                    <li>Total conversations and bookings</li>
+                    <li>Conversion rates</li>
+                    <li>Chat usage statistics</li>
+                    <li>Revenue tracking</li>
+                </ul>
+            </section>
+
+            <section id="billing" class="section">
+                <h2>Billing</h2>
+                <p>Manage your subscription and payment methods.</p>
+                
+                <h3>Plans</h3>
+                <ul style="margin-left: 2rem; color: var(--gray-600);">
+                    <li><strong>Starter:</strong> ₹999/month - 300 chats</li>
+                    <li><strong>Pro:</strong> ₹2499/month - Unlimited chats</li>
+                    <li><strong>Enterprise:</strong> Custom pricing</li>
+                </ul>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Tip:</strong> Annual plans save 20% on subscription costs.
+                </div>
+            </section>
+
+            <section id="api" class="section">
+                <h2>API Reference</h2>
+                <p>Integrate BizFlow AI with your existing systems.</p>
+                
+                <h3>Authentication</h3>
+                <p>All API requests require an API key. Get your key from Settings → API.</p>
+                
+                <h3>Endpoints</h3>
+                <div class="code-block">
+                    GET /api/bookings - List all bookings<br>
+                    POST /api/bookings - Create booking<br>
+                    PUT /api/bookings/{id} - Update booking<br>
+                    DELETE /api/bookings/{id} - Delete booking
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2026 BizFlow AI. All rights reserved. | <a href="/terms">Terms</a> | <a href="/privacy">Privacy</a> | <a href="/refund">Refund</a></p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Smooth scroll for sidebar links
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+
+                // Update active state
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

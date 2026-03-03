@@ -1135,6 +1135,19 @@
             margin-bottom: 1.5rem;
             font-weight: 600;
             color: white;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-links h4::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 2px;
         }
 
         .footer-links a {
@@ -1143,11 +1156,24 @@
             text-decoration: none;
             margin-bottom: 0.75rem;
             transition: all 0.3s ease;
+            position: relative;
+            padding-left: 0;
         }
 
         .footer-links a:hover {
             color: white;
-            transform: translateX(5px);
+            transform: translateX(8px);
+        }
+
+        .footer-links a i {
+            margin-right: 0.5rem;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-links a:hover i {
+            opacity: 1;
         }
 
         .footer-bottom {
@@ -1157,6 +1183,70 @@
             color: var(--gray-500);
             position: relative;
             z-index: 1;
+        }
+
+        /* ================= NEWSLETTER SECTION ================= */
+        .newsletter-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 60px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .newsletter-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .newsletter-content p {
+            color: var(--gray-400);
+            font-size: 0.9rem;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .newsletter-input {
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            min-width: 300px;
+        }
+
+        .newsletter-input::placeholder {
+            color: var(--gray-500);
+        }
+
+        .newsletter-input:focus {
+            outline: 2px solid var(--primary);
+        }
+
+        .newsletter-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
         }
 
         /* ================= MOBILE MENU ================= */
@@ -1211,6 +1301,33 @@
             }
         }
 
+        /* ================= SUCCESS ALERT ================= */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideDown 0.5s ease;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 100px;
+            position: relative;
+            z-index: 100;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .alert i {
+            font-size: 1.25rem;
+        }
+
         /* ================= RESPONSIVE ================= */
         @media (max-width: 1024px) {
             .hero h1 {
@@ -1260,6 +1377,15 @@
             .section-header h2 {
                 font-size: 2.5rem;
             }
+
+            .newsletter-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .newsletter-form {
+                justify-content: center;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1290,6 +1416,14 @@
 
             .btn-cta {
                 padding: 1rem 2rem;
+            }
+
+            .newsletter-input {
+                min-width: 100%;
+            }
+
+            .newsletter-btn {
+                width: 100%;
             }
         }
 
@@ -1357,6 +1491,8 @@
             <a href="#industries" class="nav-link">Industries</a>
             <a href="#pricing" class="nav-link">Pricing</a>
             <a href="#testimonials" class="nav-link">Testimonials</a>
+            <a href="/help" class="nav-link">Help</a>
+            <a href="/docs" class="nav-link">Docs</a>
             {% if logged %}
                 <a href="/dashboard" class="btn-nav">
                     <i class="fas fa-chart-line"></i> Dashboard
@@ -1384,6 +1520,8 @@
         <a href="#industries" onclick="toggleMobileMenu()">Industries</a>
         <a href="#pricing" onclick="toggleMobileMenu()">Pricing</a>
         <a href="#testimonials" onclick="toggleMobileMenu()">Testimonials</a>
+        <a href="/help" onclick="toggleMobileMenu()">Help Center</a>
+        <a href="/docs" onclick="toggleMobileMenu()">Documentation</a>
         {% if logged %}
             <a href="/dashboard" onclick="toggleMobileMenu()">Dashboard</a>
             <a href="/logout" onclick="toggleMobileMenu()">Logout</a>
@@ -1393,8 +1531,9 @@
         {% endif %}
     </div>
 
+    <!-- Success Alert -->
     {% if success %}
-    <div class="alert alert-success" style="margin-bottom: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto; margin-top: 100px;">
+    <div class="alert alert-success">
         <i class="fas fa-check-circle"></i>
         <span>{{ success }}</span>
     </div>
@@ -1412,7 +1551,7 @@
                 Grow Your <span class="hero-gradient">Business</span><br>
                 With WhatsApp AI
             </h1>
-            <p>Automate replies, bookings, payments and customer follow-ups with one powerful AI platform. Join 500+ businesses already growing with BizFlow AI.</p>
+            <p>Automate replies, bookings, payments and customer follow-ups with one powerful AI platform. Join 10,000+ businesses already growing with BizFlow AI.</p>
             <div class="hero-buttons">
                 {% if logged %}
                     <a href="/dashboard" class="btn-primary">
@@ -1432,7 +1571,7 @@
             </div>
             <div class="hero-stats">
                 <div class="stat-item">
-                    <span class="stat-number">500+</span>
+                    <span class="stat-number">10K+</span>
                     <span class="stat-label">Businesses</span>
                 </div>
                 <div class="stat-item">
@@ -1480,7 +1619,7 @@
     <div class="trust-banner">
         <div class="trust-item">
             <i class="fas fa-trophy"></i>
-            <span>500+ Businesses Trust Us</span>
+            <span>10K+ Businesses Trust Us</span>
         </div>
         <div class="trust-item">
             <i class="fas fa-chart-line"></i>
@@ -1650,7 +1789,7 @@
     <section id="testimonials" class="testimonials-section" data-aos="fade-up">
         <div class="section-header">
             <h2>What Our Clients Say</h2>
-            <p>Trusted by 500+ businesses across India</p>
+            <p>Trusted by 10,000+ businesses across India</p>
         </div>
         <div class="testimonials-grid">
             <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
@@ -1735,30 +1874,49 @@
                     </div>
                     BizFlow AI
                 </div>
-                <p style="color: var(--gray-400); margin-top: 1rem;">Intelligent WhatsApp automation for modern businesses.</p>
+                <p style="color: var(--gray-400); margin-top: 1rem; max-width: 250px;">Intelligent WhatsApp automation for modern businesses.</p>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <a href="#" style="color: var(--gray-400); font-size: 1.25rem; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray-400)'"><i class="fab fa-twitter"></i></a>
+                    <a href="#" style="color: var(--gray-400); font-size: 1.25rem; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray-400)'"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" style="color: var(--gray-400); font-size: 1.25rem; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray-400)'"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" style="color: var(--gray-400); font-size: 1.25rem; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray-400)'"><i class="fab fa-instagram"></i></a>
+                </div>
             </div>
             <div class="footer-links">
                 <h4>Product</h4>
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#industries">Industries</a>
-                <a href="#testimonials">Testimonials</a>
+                <a href="#features"><i class="fas fa-chevron-right"></i> Features</a>
+                <a href="#pricing"><i class="fas fa-chevron-right"></i> Pricing</a>
+                <a href="#industries"><i class="fas fa-chevron-right"></i> Industries</a>
+                <a href="#testimonials"><i class="fas fa-chevron-right"></i> Testimonials</a>
             </div>
             <div class="footer-links">
                 <h4>Company</h4>
-                <a href="/about">About Us</a>
-                <a href="/privacy">Privacy Policy</a>
-                <a href="/terms">Terms of Service</a>
-                <a href="/refund">Refund Policy</a>
+                <a href="/about"><i class="fas fa-chevron-right"></i> About Us</a>
+                <a href="/privacy"><i class="fas fa-chevron-right"></i> Privacy Policy</a>
+                <a href="/terms"><i class="fas fa-chevron-right"></i> Terms of Service</a>
+                <a href="/refund"><i class="fas fa-chevron-right"></i> Refund Policy</a>
             </div>
             <div class="footer-links">
                 <h4>Support</h4>
-                <a href="mailto:support@bizflow.ai">support@bizflow.ai</a>
-                <a href="#">Help Center</a>
-                <a href="#">Documentation</a>
-                <a href="/contact">Contact Us</a>
+                <a href="mailto:support@bizflow.ai"><i class="fas fa-chevron-right"></i> support@bizflow.ai</a>
+                <a href="/help"><i class="fas fa-chevron-right"></i> Help Center</a>
+                <a href="/docs"><i class="fas fa-chevron-right"></i> Documentation</a>
+                <a href="/contact"><i class="fas fa-chevron-right"></i> Contact Us</a>
             </div>
         </div>
+        
+        <!-- Newsletter Section -->
+        <div class="newsletter-section">
+            <div class="newsletter-content">
+                <h3>Stay Updated</h3>
+                <p>Get the latest news and updates delivered to your inbox</p>
+            </div>
+            <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Newsletter feature coming soon!');">
+                <input type="email" placeholder="Enter your email" class="newsletter-input" required>
+                <button type="submit" class="newsletter-btn">Subscribe</button>
+            </form>
+        </div>
+        
         <div class="footer-bottom">
             <p>© 2026 BizFlow AI. All rights reserved. Made with ❤️ in India.</p>
         </div>
@@ -1897,23 +2055,14 @@
             });
         });
 
-        // Testimonial carousel (optional - uncomment if you want a carousel)
-        // const swiper = new Swiper('.testimonials-carousel', {
-        //     slidesPerView: 1,
-        //     spaceBetween: 30,
-        //     loop: true,
-        //     autoplay: {
-        //         delay: 5000,
-        //     },
-        //     breakpoints: {
-        //         768: {
-        //             slidesPerView: 2,
-        //         },
-        //         1024: {
-        //             slidesPerView: 3,
-        //         },
-        //     },
-        // });
+        // Auto-dismiss alerts
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            }, 5000);
+        });
     </script>
 </body>
 </html>
