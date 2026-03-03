@@ -552,17 +552,17 @@
             }
         }
 
-        /* ================= PROFESSIONAL CHAT PREVIEW ================= */
+        //* ================= PROFESSIONAL CHAT PREVIEW ================= */
         .chat-preview {
             background: white;
             border-radius: 32px;
-            padding: 1.5rem;
+            padding: 2rem;
             box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 400px;
+            max-width: 480px; /* Increased from 400px */
             border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
-            max-height: 520px;
+            max-height: 600px; /* Increased from 520px */
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--primary-light) var(--gray-100);
@@ -599,7 +599,7 @@
             content: '';
             position: absolute;
             top: 50%;
-            width: 30%;
+            width: 35%;
             height: 1px;
             background: var(--gray-200);
         }
@@ -616,7 +616,7 @@
             display: flex;
             align-items: flex-start;
             gap: 0.75rem;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem; /* Increased from 1.25rem */
             position: relative;
             z-index: 1;
             animation: slideInMessage 0.5s ease forwards;
@@ -638,11 +638,11 @@
                 opacity: 1;
                 transform: translateX(0);
             }
-        }
+        } 
 
         .chat-avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px; /* Increased from 36px */
+            height: 40px; /* Increased from 36px */
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             border-radius: 50%;
             display: flex;
@@ -650,20 +650,20 @@
             justify-content: center;
             color: white;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.1rem; /* Increased from 1rem */
             flex-shrink: 0;
             box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
         }
 
         .chat-bubble {
             background: var(--gray-100);
-            padding: 0.75rem 1rem;
-            border-radius: 18px;
+            padding: 1rem 1.25rem; /* Increased padding */
+            border-radius: 20px; /* Slightly larger radius */
             border-top-left-radius: 4px;
             flex: 1;
             position: relative;
-            font-size: 0.9rem;
-            max-width: calc(100% - 50px);
+            font-size: 0.95rem; /* Slightly larger font */
+            max-width: calc(100% - 55px);
         }
 
         .chat-bubble::before {
@@ -671,8 +671,8 @@
             position: absolute;
             top: 0;
             left: -8px;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: var(--gray-100);
             clip-path: polygon(0 0, 100% 0, 100% 100%);
         }
@@ -680,7 +680,7 @@
         .chat-bubble.user {
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
-            border-top-left-radius: 18px;
+            border-top-left-radius: 20px;
             border-top-right-radius: 4px;
             margin-left: auto;
         }
@@ -698,25 +698,25 @@
 
         .chat-bubble p {
             margin: 0;
-            line-height: 1.4;
-            font-size: 0.9rem;
+            line-height: 1.5; /* Increased line height */
+            font-size: 0.95rem;
         }
 
         .chat-bubble .sender {
             font-weight: 700;
-            font-size: 0.75rem;
-            margin-bottom: 0.25rem;
+            font-size: 0.8rem; /* Slightly larger */
+            margin-bottom: 0.35rem; /* Increased margin */
             color: var(--gray-500);
         }
 
         .chat-bubble.user .sender {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .chat-time {
-            font-size: 0.6rem;
+            font-size: 0.65rem; /* Slightly larger */
             color: var(--gray-400);
-            margin-top: 0.25rem;
+            margin-top: 0.35rem; /* Increased margin */
             text-align: right;
         }
 
@@ -728,15 +728,14 @@
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.6rem;
+            font-size: 0.65rem; /* Slightly larger */
             color: var(--success);
-            margin-top: 0.25rem;
+            margin-top: 0.35rem; /* Increased margin */
         }
 
         .chat-status i {
-            font-size: 0.5rem;
+            font-size: 0.55rem; /* Slightly larger */
         }
-
         /* ================= TRUST BANNER ================= */
         .trust-banner {
             background: white;
