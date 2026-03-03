@@ -253,48 +253,103 @@
             font-weight: 800;
             margin-bottom: 50px;
             color: #2d3748;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
         }
         
         .team-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
         
         .team-card {
             background: white;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid rgba(102, 126, 234, 0.1);
         }
         
         .team-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 30px 40px -15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 20px 40px -15px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
         }
         
-        .team-image {
+        .team-image-wrapper {
             width: 100%;
-            height: 300px;
-            object-fit: cover;
-            transition: all 0.5s ease;
+            height: 280px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
         }
         
-        .team-card:hover .team-image {
-            transform: scale(1.1);
+        .team-image-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        .team-image-initials {
+            font-size: 6rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+            letter-spacing: 4px;
+        }
+        
+        .team-card:hover .team-image-initials {
+            animation: pulse 1s ease infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
         
         .team-info {
             padding: 25px;
             text-align: center;
+            background: white;
         }
         
         .team-name {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             margin-bottom: 5px;
             color: #2d3748;
+            letter-spacing: -0.5px;
         }
         
         .team-role {
@@ -304,17 +359,30 @@
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 50px;
+        }
+        
+        .team-bio {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 0 10px;
         }
         
         .team-social {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
+            margin-top: 15px;
         }
         
         .team-social a {
-            width: 35px;
-            height: 35px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: #f7fafc;
             display: flex;
@@ -323,12 +391,15 @@
             color: #4a5568;
             text-decoration: none;
             transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
         }
         
         .team-social a:hover {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             transform: translateY(-3px);
+            border-color: transparent;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         
         /* Timeline */
@@ -530,15 +601,6 @@
             box-shadow: 0 20px 30px -10px rgba(102, 126, 234, 0.6);
         }
         
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-        }
-        
         /* Loading Animation */
         .loader {
             position: fixed;
@@ -578,6 +640,14 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Team Note */
+        .team-note {
+            text-align: center;
+            margin-top: 30px;
+            color: #718096;
+            font-size: 16px;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
@@ -592,6 +662,10 @@
             .team-grid,
             .contact-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .team-grid {
+                max-width: 100%;
             }
             
             .timeline::before {
@@ -609,6 +683,14 @@
             
             .timeline-item:nth-child(even) {
                 flex-direction: column;
+            }
+            
+            .team-image-wrapper {
+                height: 240px;
+            }
+            
+            .team-image-initials {
+                font-size: 5rem;
             }
         }
     </style>
@@ -644,10 +726,10 @@
                     Revolutionizing Indian businesses with AI-powered WhatsApp automation and smart CRM solutions
                 </p>
                 <div style="display: flex; gap: 15px; justify-content: center; animation: fadeInUp 1s ease 0.4s both;">
-                    <a href="/" class="btn-modern btn-primary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+                    <a href="/" class="btn-modern btn-primary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50px; font-weight: 600;">
                         <i class="fas fa-home"></i> Home
                     </a>
-                    <a href="/contact" class="btn-modern btn-secondary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+                    <a href="/contact" class="btn-modern btn-secondary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: white; color: #667eea; border-radius: 50px; font-weight: 600; border: 2px solid #667eea;">
                         <i class="fas fa-envelope"></i> Contact
                     </a>
                 </div>
@@ -726,46 +808,46 @@
         </div>
         
         <!-- Team Section -->
-        <h2 class="section-title" data-aos="fade-up">Meet Our Team</h2>
+        <h2 class="section-title" data-aos="fade-up">Meet Our Leadership</h2>
         <div class="team-grid">
+            <!-- Gitanshu Damade - Founder & CEO -->
             <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-                <img src="https://ui-avatars.com/api/?name=Rahul+Sharma&size=300&length=2&background=667eea&color=fff&bold=true" alt="Rahul Sharma" class="team-image">
+                <div class="team-image-wrapper">
+                    <div class="team-image-initials">GD</div>
+                </div>
                 <div class="team-info">
-                    <h3 class="team-name">Rahul Sharma</h3>
+                    <h3 class="team-name">Gitanshu Damade</h3>
                     <div class="team-role">Founder & CEO</div>
+                    <p class="team-bio">Visionary entrepreneur building the future of WhatsApp business automation in India. Passionate about leveraging AI to empower small businesses.</p>
                     <div class="team-social">
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Yashika Pawar - Co-Founder -->
             <div class="team-card" data-aos="fade-up" data-aos-delay="200">
-                <img src="https://ui-avatars.com/api/?name=Priya+Patel&size=300&length=2&background=764ba2&color=fff&bold=true" alt="Priya Patel" class="team-image">
+                <div class="team-image-wrapper">
+                    <div class="team-image-initials">YP</div>
+                </div>
                 <div class="team-info">
-                    <h3 class="team-name">Priya Patel</h3>
-                    <div class="team-role">CTO</div>
+                    <h3 class="team-name">Yashika Pawar</h3>
+                    <div class="team-role">Co-Founder & COO</div>
+                    <p class="team-bio">Leading operations and customer success with a passion for innovation and excellence. Dedicated to creating exceptional user experiences.</p>
                     <div class="team-social">
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
                     </div>
                 </div>
             </div>
-            
-            <div class="team-card" data-aos="fade-up" data-aos-delay="300">
-                <img src="https://ui-avatars.com/api/?name=Amit+Kumar&size=300&length=2&background=10b981&color=fff&bold=true" alt="Amit Kumar" class="team-image">
-                <div class="team-info">
-                    <h3 class="team-name">Amit Kumar</h3>
-                    <div class="team-role">Head of Product</div>
-                    <div class="team-social">
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-github"></i></a>
-                    </div>
-                </div>
-            </div>
+        </div>
+        
+        <!-- Team Note -->
+        <div class="team-note" data-aos="fade-up">
+            <p>Together, we're building India's most trusted WhatsApp automation platform.</p>
         </div>
         
         <!-- Contact Section -->
@@ -944,4 +1026,4 @@
         });
     </script>
 </body>
-</html>
+</html
