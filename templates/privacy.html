@@ -1,51 +1,1130 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Privacy Policy | BizFlow AI</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{font-family:Arial,sans-serif;background:#f8fafc;padding:40px;color:#222}
-.container{max-width:800px;margin:auto;background:white;padding:30px;border-radius:10px}
-h1{color:#2563eb}
-</style>
+    <title>Privacy Policy | BizFlow AI - Enterprise WhatsApp Automation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --shadow-2xl: 0 30px 60px -15px rgb(0 0 0 / 0.3);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-900);
+            line-height: 1.7;
+            position: relative;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        .shape1 {
+            width: 400px;
+            height: 400px;
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .shape2 {
+            width: 300px;
+            height: 300px;
+            bottom: -150px;
+            left: -50px;
+            animation-delay: 5s;
+        }
+
+        .shape3 {
+            width: 200px;
+            height: 200px;
+            top: 30%;
+            left: 10%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: particleFloat 10s infinite linear;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .privacy-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+            padding: 1rem 2rem;
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+            animation: slideDown 0.6s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Main Card */
+        .privacy-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-2xl);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Header */
+        .privacy-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .privacy-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .privacy-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .privacy-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .last-updated {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            color: white;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Content */
+        .privacy-content {
+            padding: 3rem;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--gray-50);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 3rem;
+            border: 1px solid var(--gray-200);
+            animation: fadeIn 0.8s ease;
+        }
+
+        .toc h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toc h2 i {
+            color: var(--primary);
+        }
+
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--gray-700);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .toc-item:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .toc-item i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        /* Sections */
+        .policy-section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--gray-100);
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .policy-section:nth-child(1) { animation-delay: 0.1s; }
+        .policy-section:nth-child(2) { animation-delay: 0.2s; }
+        .policy-section:nth-child(3) { animation-delay: 0.3s; }
+        .policy-section:nth-child(4) { animation-delay: 0.4s; }
+        .policy-section:nth-child(5) { animation-delay: 0.5s; }
+        .policy-section:nth-child(6) { animation-delay: 0.6s; }
+        .policy-section:nth-child(7) { animation-delay: 0.7s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section-header h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .section-content {
+            padding-left: 4rem;
+        }
+
+        .section-content p {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        /* Lists */
+        .policy-list {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .policy-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: var(--gray-600);
+        }
+
+        .policy-list li i {
+            color: var(--success);
+            font-size: 1.1rem;
+            margin-top: 0.2rem;
+        }
+
+        .policy-list li strong {
+            color: var(--gray-900);
+        }
+
+        /* Nested Lists */
+        .policy-sublist {
+            list-style: none;
+            margin-left: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        .policy-sublist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--gray-500);
+            font-size: 0.95rem;
+        }
+
+        .policy-sublist li i {
+            color: var(--primary-light);
+            font-size: 0.75rem;
+            margin-top: 0.4rem;
+        }
+
+        /* Cards */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .info-card {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .info-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .info-card h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .info-card p {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Trust Badges */
+        .trust-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .trust-badge {
+            flex: 1;
+            min-width: 150px;
+            background: linear-gradient(135deg, var(--gray-50), white);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid var(--gray-200);
+        }
+
+        .trust-badge i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .trust-badge span {
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* Contact Card */
+        .contact-card {
+            background: linear-gradient(135deg, var(--gray-900), #1a1f35);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            color: white;
+            margin-top: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        .contact-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .contact-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .contact-content p {
+            opacity: 0.9;
+            margin: 0.5rem 0 0;
+        }
+
+        .contact-btn {
+            background: white;
+            color: var(--gray-900);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .privacy-header h1 {
+                font-size: 2rem;
+            }
+
+            .privacy-content {
+                padding: 2rem;
+            }
+
+            .section-content {
+                padding-left: 0;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .toc-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-gradient"></div>
+        <div class="floating-shapes">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+        </div>
+    </div>
 
-<div class="container">
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
 
-<h1>Privacy Policy</h1>
+    <!-- Main Wrapper -->
+    <div class="privacy-wrapper">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                BizFlow AI
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about" class="nav-link">About</a>
+                <a href="/contact" class="nav-link">Contact</a>
+                <a href="/terms" class="nav-link">Terms</a>
+                <a href="/privacy" class="nav-link">Privacy</a>
+            </div>
+        </nav>
 
-<p>Last updated: {{ now.strftime('%d %B %Y') }}</p>
+        <!-- Privacy Policy Card -->
+        <div class="privacy-card">
+            <!-- Header -->
+            <div class="privacy-header">
+                <h1><i class="fas fa-shield-alt"></i> Privacy Policy</h1>
+                <p>Your privacy is important to us. Learn how we protect your data.</p>
+                <div class="last-updated">
+                    <i class="far fa-calendar-alt"></i> Last updated: {{ now.strftime('%d %B %Y') }}
+                </div>
+            </div>
 
-<p>BizFlow AI ("we", "our", "us") respects your privacy and is committed to protecting your personal data.</p>
+            <!-- Content -->
+            <div class="privacy-content">
+                <!-- Table of Contents -->
+                <div class="toc" data-aos="fade-up">
+                    <h2><i class="fas fa-list"></i> Table of Contents</h2>
+                    <div class="toc-grid">
+                        <a href="#information" class="toc-item"><i class="fas fa-database"></i> Information We Collect</a>
+                        <a href="#usage" class="toc-item"><i class="fas fa-chart-line"></i> How We Use Data</a>
+                        <a href="#sharing" class="toc-item"><i class="fas fa-share-alt"></i> Data Sharing</a>
+                        <a href="#security" class="toc-item"><i class="fas fa-lock"></i> Security Measures</a>
+                        <a href="#rights" class="toc-item"><i class="fas fa-user-check"></i> Your Rights</a>
+                        <a href="#cookies" class="toc-item"><i class="fas fa-cookie-bite"></i> Cookies</a>
+                        <a href="#changes" class="toc-item"><i class="fas fa-history"></i> Policy Changes</a>
+                        <a href="#contact" class="toc-item"><i class="fas fa-envelope"></i> Contact Us</a>
+                    </div>
+                </div>
 
-<h3>Information We Collect</h3>
-<ul>
-<li>Name, email, phone number</li>
-<li>Business information</li>
-<li>Payment details (processed securely via Razorpay)</li>
-<li>Usage and analytics data</li>
-</ul>
+                <!-- Section 1: Information We Collect -->
+                <section id="information" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h2>1. Information We Collect</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>We collect various types of information to provide and improve our services to you:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Personal Information</strong> - Name, email address, phone number, and business details you provide during registration.
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Business Information</strong> - Your business name, type, address, and WhatsApp business number.
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Payment Information</strong> - Payment details are processed securely by Razorpay. We do not store credit card information.
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Usage Data</strong> - Information about how you use our platform, including conversations, bookings, and analytics.
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Technical Data</strong> - IP address, browser type, device information, and cookies.
+                                </div>
+                            </li>
+                        </ul>
 
-<h3>How We Use Your Data</h3>
-<ul>
-<li>Provide and improve our services</li>
-<li>Process payments</li>
-<li>Customer support</li>
-<li>Legal compliance</li>
-</ul>
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <i class="fas fa-user"></i>
+                                <h4>Account Data</h4>
+                                <p>Information you provide when creating an account or using our services.</p>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-chart-bar"></i>
+                                <h4>Analytics</h4>
+                                <p>Anonymous usage statistics to improve our platform.</p>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-credit-card"></i>
+                                <h4>Payments</h4>
+                                <p>Securely processed by Razorpay. We never see your full card details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-<h3>Data Security</h3>
-<p>We use industry-standard security practices to protect your information.</p>
+                <!-- Section 2: How We Use Your Data -->
+                <section id="usage" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h2>2. How We Use Your Data</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>We use your information for the following purposes:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Provide Services</strong> - To operate and maintain your account, process bookings, and deliver WhatsApp automation.</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Improve Platform</strong> - To analyze usage patterns and enhance our features.</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Customer Support</strong> - To respond to your inquiries and provide assistance.</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Communications</strong> - To send service updates, newsletters, and marketing materials (with consent).</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Legal Compliance</strong> - To comply with applicable laws and regulations.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
 
-<h3>Third Party Services</h3>
-<p>We use Razorpay for payment processing. We do not store your card information.</p>
+                <!-- Section 3: Data Sharing -->
+                <section id="sharing" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <h2>3. Data Sharing & Third Parties</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>We do not sell your personal information. We may share data with:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Razorpay</strong> - Payment processing (PCI-DSS compliant)</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>SendGrid</strong> - Email communications</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Twilio</strong> - WhatsApp messaging services</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Analytics Partners</strong> - Anonymous usage data (Google Analytics, etc.)</div>
+                            </li>
+                        </ul>
 
-<h3>Contact Us</h3>
-<p>Email: support@bizflow.ai</p>
+                        <div class="trust-badges">
+                            <div class="trust-badge">
+                                <i class="fas fa-lock"></i>
+                                <span>256-bit SSL</span>
+                            </div>
+                            <div class="trust-badge">
+                                <i class="fab fa-razorpay"></i>
+                                <span>Razorpay Secure</span>
+                            </div>
+                            <div class="trust-badge">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>GDPR Compliant</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-</div>
+                <!-- Section 4: Data Security -->
+                <section id="security" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h2>4. Data Security</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>We implement industry-standard security measures to protect your data:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Encryption</strong> - All data transmitted via 256-bit SSL/TLS encryption</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Secure Storage</strong> - Data stored in encrypted databases with access controls</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Regular Audits</strong> - Periodic security assessments and penetration testing</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Access Control</strong> - Strict employee access policies and multi-factor authentication</div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
 
+                <!-- Section 5: Your Rights -->
+                <section id="rights" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h2>5. Your Rights</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>You have the following rights regarding your personal data:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Access</strong> - Request a copy of your data</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Correction</strong> - Update inaccurate information</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Deletion</strong> - Request account deletion (subject to legal obligations)</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Export</strong> - Receive your data in portable format</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Opt-out</strong> - Withdraw consent for marketing communications</div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Section 6: Cookies -->
+                <section id="cookies" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-cookie-bite"></i>
+                        </div>
+                        <h2>6. Cookies & Tracking</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>We use cookies and similar technologies to enhance your experience:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Essential Cookies</strong> - Required for platform functionality</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Analytics Cookies</strong> - Help us understand usage patterns</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div><strong>Preference Cookies</strong> - Remember your settings</div>
+                            </li>
+                        </ul>
+                        
+                        <p style="margin-top: 1rem;">You can control cookies through your browser settings.</p>
+                    </div>
+                </section>
+
+                <!-- Section 7: Policy Changes -->
+                <section id="changes" class="policy-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h2>7. Changes to This Policy</h2>
+                    </div>
+                    <div class="section-content">
+                        <p>We may update this privacy policy from time to time. We will notify you of any changes by:</p>
+                        
+                        <ul class="policy-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>Posting the new policy on this page</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>Updating the "Last updated" date</div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>Sending an email notification for significant changes</div>
+                            </li>
+                        </ul>
+                        
+                        <p style="margin-top: 1rem;">We encourage you to review this policy periodically.</p>
+                    </div>
+                </section>
+
+                <!-- Contact Card -->
+                <section id="contact">
+                    <div class="contact-card">
+                        <div class="contact-content">
+                            <div>
+                                <h3><i class="fas fa-question-circle"></i> Questions About Privacy?</h3>
+                                <p>Our Data Protection Officer is ready to assist you.</p>
+                            </div>
+                            <a href="mailto:privacy@bizflow.ai" class="contact-btn">
+                                <i class="fas fa-envelope"></i>
+                                privacy@bizflow.ai
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© {{ now.year }} BizFlow AI. All rights reserved. | <a href="/terms">Terms of Service</a> | <a href="/privacy">Privacy Policy</a> | <a href="/refund">Refund Policy</a></p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // Create particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Smooth scroll for TOC links
+        document.querySelectorAll('.toc-item').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add active state to TOC items on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.policy-section');
+            const tocItems = document.querySelectorAll('.toc-item');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+                    current = '#' + section.getAttribute('id');
+                }
+            });
+
+            tocItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === current) {
+                    item.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                    item.style.color = 'white';
+                } else {
+                    item.style.background = 'white';
+                    item.style.color = 'var(--gray-700)';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
