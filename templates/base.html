@@ -264,6 +264,59 @@
             }
         }
         
+        /* ================= LOGO STYLES ================= */
+        .logo {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+        
+        .logo:hover .logo-icon {
+            transform: rotate(5deg) scale(1.05);
+        }
+        
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+        
+        .ai-highlight {
+            background: linear-gradient(135deg, #f97316, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tagline {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #2563eb;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -289,12 +342,48 @@
             margin-bottom: 40px;
         }
         
-        .sidebar-header h2 {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 24px;
-            font-weight: 800;
+        .sidebar-logo-link {
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .sidebar-logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-logo-icon:hover {
+            transform: scale(1.05) rotate(5deg);
+        }
+        
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .sidebar-tagline {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2563eb;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         
         .sidebar-menu {
@@ -473,6 +562,20 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .logo-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1.2rem;
+            }
+            
+            .brand-name {
+                font-size: 1.25rem;
+            }
+            
+            .tagline {
+                font-size: 0.6rem;
+            }
         }
     </style>
     
@@ -495,9 +598,15 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <i class="fas fa-robot floating" style="font-size: 48px; color: #667eea; margin-bottom: 15px;"></i>
-            <h2>BizFlow AI</h2>
-            <p class="gradient-text" style="font-size: 12px;">Enterprise Edition</p>
+            <a href="/" class="sidebar-logo-link">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="sidebar-brand">BizFlow<span class="ai-highlight">AI</span></div>
+                    <div class="sidebar-tagline">Chat.Convert.Scale</div>
+                </div>
+            </a>
         </div>
         
         <ul class="sidebar-menu">
