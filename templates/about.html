@@ -13,470 +13,514 @@
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
-    <!-- AOS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
     <style>
-<style>
-/* ================= LOGO STYLES ================= */
-.logo {
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-icon {
-    width: 45px;
-    height: 45px;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-    transition: transform 0.3s ease;
-    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
-}
-
-.logo:hover .logo-icon {
-    transform: rotate(5deg) scale(1.05);
-}
-
-.brand-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1.2;
-}
-
-.ai-highlight {
-    background: linear-gradient(135deg, #f97316, #fbbf24);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.tagline {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: #2563eb;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-top: 2px;
-}
-
-@media (max-width: 768px) {
-    .logo-icon {
-        width: 35px;
-        height: 35px;
-        font-size: 1.2rem;
-    }
-    .brand-name {
-        font-size: 1.25rem;
-    }
-    .tagline {
-        font-size: 0.6rem;
-    }
-}
-</style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #f97316;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --shadow-2xl: 0 30px 60px -15px rgb(0 0 0 / 0.3);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            color: var(--gray-900);
             line-height: 1.6;
+            overflow-x: hidden;
         }
-        
-        /* Custom Cursor */
-        .cursor {
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
-            border-radius: 50%;
+
+        /* Animated Background */
+        .animated-bg {
             position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: all 0.1s ease;
-            transform: translate(-50%, -50%);
-            mix-blend-mode: difference;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
         }
-        
-        .cursor-grow {
-            transform: translate(-50%, -50%) scale(1.5);
+
+        .gradient-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        .shape1 {
+            width: 500px;
+            height: 500px;
+            top: -250px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .shape2 {
+            width: 400px;
+            height: 400px;
+            bottom: -200px;
+            left: -50px;
+            animation-delay: 5s;
+        }
+
+        .shape3 {
+            width: 300px;
+            height: 300px;
+            top: 30%;
+            left: 10%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: particleFloat 10s infinite linear;
         }
-        
-        /* Modern Container */
-        .modern-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 20px;
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
         }
-        
-        /* Glassmorphism Card */
-        .glass-card {
+
+        /* ================= NAVBAR ================= */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-            position: relative;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideDown 0.8s ease;
         }
-        
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-            z-index: 0;
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
         }
-        
-        /* Hero Section */
-        .hero-section {
-            text-align: center;
-            padding: 80px 40px;
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-symbol {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .logo-symbol svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .logo:hover .logo-symbol {
+            transform: scale(1.05);
+        }
+
+        .logo-text-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .logo-tagline {
+            font-size: 11px;
+            font-weight: 600;
+            color: #2563eb;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--gray-600);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .btn-nav {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white !important;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-outline-nav {
+            border: 2px solid var(--primary);
+            color: var(--primary) !important;
+            padding: 0.7rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-nav:hover {
+            background: var(--primary);
+            color: white !important;
+            transform: translateY(-3px);
+        }
+
+        /* ================= MAIN CONTAINER ================= */
+        .about-wrapper {
+            max-width: 1200px;
+            margin: 100px auto 60px;
+            padding: 0 20px;
             position: relative;
             z-index: 1;
         }
-        
+
+        /* Hero Section */
+        .hero-section {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 80px 40px;
+            text-align: center;
+            margin-bottom: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-2xl);
+            animation: fadeInUp 1s ease;
+        }
+
         .hero-title {
-            font-size: 64px;
+            font-size: 4rem;
             font-weight: 800;
             line-height: 1.2;
             margin-bottom: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInDown 1s ease;
         }
-        
+
         .hero-subtitle {
-            font-size: 20px;
-            color: #4a5568;
+            font-size: 1.25rem;
+            color: var(--gray-600);
             max-width: 700px;
             margin: 0 auto 30px;
-            animation: fadeInUp 1s ease 0.2s both;
         }
-        
-        /* Floating Elements */
-        .floating-elements {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        
-        .floating-icon {
-            position: absolute;
-            font-size: 24px;
-            color: rgba(255, 255, 255, 0.2);
-            animation: float 6s ease-in-out infinite;
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
         }
-        
-        .icon-1 { top: 10%; left: 10%; animation-delay: 0s; }
-        .icon-2 { top: 20%; right: 15%; animation-delay: 1s; }
-        .icon-3 { bottom: 15%; left: 20%; animation-delay: 2s; }
-        .icon-4 { bottom: 25%; right: 10%; animation-delay: 1.5s; }
-        
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 40px;
+            background: white;
+            color: #667eea;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+
         /* Stats Section */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 30px;
-            padding: 40px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 20px;
-            margin: 40px 0;
-        }
-        
-        .stat-item {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
             color: white;
+            font-size: 1.75rem;
         }
-        
+
         .stat-number {
-            font-size: 48px;
+            font-size: 3rem;
             font-weight: 800;
-            margin-bottom: 10px;
-            animation: countUp 2s ease-out;
+            color: var(--gray-900);
+            margin-bottom: 5px;
         }
-        
+
         .stat-label {
-            font-size: 16px;
-            opacity: 0.9;
+            color: var(--gray-500);
+            font-size: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         /* Mission/Vision Cards */
         .mission-vision-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 30px;
-            margin: 60px 0;
+            margin-bottom: 60px;
         }
-        
+
         .mv-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-        
+
         .mv-card::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            opacity: 0.1;
-            transition: all 0.5s ease;
-        }
-        
-        .mv-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 30px 40px -15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .mv-card:hover::before {
-            transform: scale(3);
-            opacity: 0.05;
-        }
-        
-        .mv-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            color: white;
-            margin-bottom: 25px;
-        }
-        
-        .mv-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #2d3748;
-        }
-        
-        .mv-text {
-            color: #718096;
-            line-height: 1.8;
-            font-size: 16px;
-        }
-        
-        /* Team Section */
-        .team-section {
-            margin: 80px 0;
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 42px;
-            font-weight: 800;
-            margin-bottom: 50px;
-            color: #2d3748;
-            position: relative;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
-        }
-        
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .team-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            position: relative;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-        
-        .team-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px -15px rgba(102, 126, 234, 0.3);
-            border-color: #667eea;
-        }
-        
-        .team-image-wrapper {
-            width: 100%;
-            height: 280px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .team-image-wrapper::before {
             content: '';
             position: absolute;
             top: -50%;
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
             animation: rotate 20s linear infinite;
         }
-        
-        .team-image-initials {
-            font-size: 6rem;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 1;
-            letter-spacing: 4px;
+
+        .mv-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-2xl);
         }
-        
-        .team-card:hover .team-image-initials {
-            animation: pulse 1s ease infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-        
-        .team-info {
-            padding: 25px;
-            text-align: center;
-            background: white;
-        }
-        
-        .team-name {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: #2d3748;
-            letter-spacing: -0.5px;
-        }
-        
-        .team-role {
-            color: #667eea;
-            font-weight: 600;
-            margin-bottom: 15px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-            padding: 4px 12px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 50px;
-        }
-        
-        .team-bio {
-            color: #718096;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            padding: 0 10px;
-        }
-        
-        .team-social {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 15px;
-        }
-        
-        .team-social a {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #f7fafc;
+
+        .mv-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #4a5568;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .team-social a:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-bottom: 25px;
             color: white;
-            transform: translateY(-3px);
-            border-color: transparent;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            font-size: 2rem;
         }
-        
-        /* Timeline */
+
+        .mv-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--gray-900);
+        }
+
+        .mv-text {
+            color: var(--gray-600);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 60px;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
         .timeline {
             position: relative;
-            padding: 50px 0;
-            margin: 60px 0;
+            max-width: 800px;
+            margin: 0 auto;
         }
-        
+
         .timeline::before {
             content: '';
             position: absolute;
@@ -486,27 +530,29 @@
             height: 100%;
             background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
         }
-        
+
         .timeline-item {
             display: flex;
             justify-content: space-between;
             margin-bottom: 50px;
             position: relative;
         }
-        
+
         .timeline-item:nth-child(even) {
             flex-direction: row-reverse;
         }
-        
+
         .timeline-content {
             width: 45%;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
             padding: 30px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-lg);
             position: relative;
         }
-        
+
         .timeline-year {
             position: absolute;
             top: -15px;
@@ -518,319 +564,466 @@
             font-weight: 600;
             font-size: 14px;
         }
-        
-        /* Contact Section */
-        .contact-section {
-            background: white;
-            border-radius: 30px;
-            padding: 60px;
-            margin-top: 80px;
+
+        .timeline-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--gray-900);
+        }
+
+        .timeline-content p {
+            color: var(--gray-600);
+        }
+
+        /* Team Section */
+        .team-section {
+            margin-bottom: 80px;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .team-image-wrapper {
+            height: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
             overflow: hidden;
         }
-        
+
+        .team-image-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        .team-image-initials {
+            font-size: 6rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+            letter-spacing: 4px;
+        }
+
+        .team-info {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--gray-900);
+        }
+
+        .team-role {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 50px;
+        }
+
+        .team-bio {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .team-social {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .team-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .team-social a:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .team-note {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-2xl);
+        }
+
         .contact-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 50px;
-            position: relative;
-            z-index: 1;
         }
-        
-        .contact-info {
-            padding-right: 40px;
-        }
-        
+
         .contact-info h3 {
-            font-size: 28px;
+            font-size: 2rem;
             font-weight: 700;
             margin-bottom: 20px;
-            color: #2d3748;
+            color: var(--gray-900);
         }
-        
+
+        .contact-info p {
+            color: var(--gray-600);
+            margin-bottom: 30px;
+        }
+
         .contact-detail {
             display: flex;
             align-items: center;
             gap: 15px;
             margin-bottom: 20px;
             padding: 15px;
-            background: #f7fafc;
-            border-radius: 10px;
+            background: var(--gray-100);
+            border-radius: 12px;
             transition: all 0.3s ease;
         }
-        
+
         .contact-detail:hover {
-            transform: translateX(10px);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            transform: translateX(10px);
         }
-        
-        .contact-detail:hover i,
-        .contact-detail:hover span {
-            color: white;
-        }
-        
+
         .contact-detail i {
             width: 40px;
             height: 40px;
-            border-radius: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 18px;
         }
-        
+
         .contact-form {
-            background: #f7fafc;
+            background: var(--gray-100);
             padding: 40px;
             border-radius: 20px;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group input,
         .form-group textarea {
             width: 100%;
             padding: 15px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 1rem;
             transition: all 0.3s ease;
             font-family: 'Inter', sans-serif;
         }
-        
+
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .submit-btn {
+            width: 100%;
+            padding: 15px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            border-radius: 10px;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
-            font-size: 16px;
-            position: relative;
-            overflow: hidden;
         }
-        
-        .submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
         }
-        
-        .submit-btn:hover::before {
-            width: 300px;
-            height: 300px;
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: rgba(255,255,255,0.8);
         }
-        
-        /* Back to Home Button */
-        .back-home {
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Back to Top Button */
+        .back-top {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             text-decoration: none;
-            font-size: 24px;
-            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+            box-shadow: var(--shadow-xl);
             transition: all 0.3s ease;
             z-index: 100;
-            animation: pulse 2s infinite;
         }
-        
-        .back-home:hover {
-            transform: scale(1.1);
-            box-shadow: 0 20px 30px -10px rgba(102, 126, 234, 0.6);
+
+        .back-top:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-2xl);
         }
-        
-        /* Loading Animation */
-        .loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-        
-        .loader.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .loader-content {
-            text-align: center;
-            color: white;
-        }
-        
-        .loader-spinner {
-            width: 80px;
-            height: 80px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Team Note */
-        .team-note {
-            text-align: center;
-            margin-top: 30px;
-            color: #718096;
-            font-size: 16px;
-        }
-        
+
         /* Responsive */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 40px;
-            }
-            
+        @media (max-width: 968px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .mission-vision-grid,
-            .team-grid,
             .contact-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .team-grid {
-                max-width: 100%;
+                grid-template-columns: 1fr;
+                max-width: 500px;
             }
-            
+
             .timeline::before {
                 left: 20px;
             }
-            
+
             .timeline-item {
                 flex-direction: column;
             }
-            
+
+            .timeline-item:nth-child(even) {
+                flex-direction: column;
+            }
+
             .timeline-content {
                 width: calc(100% - 50px);
                 margin-left: 50px;
             }
-            
-            .timeline-item:nth-child(even) {
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
                 flex-direction: column;
+                gap: 1rem;
             }
-            
-            .team-image-wrapper {
-                height: 240px;
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
             }
-            
-            .team-image-initials {
-                font-size: 5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Animation -->
-    <div class="loader" id="loader">
-        <div class="loader-content">
-            <div class="loader-spinner"></div>
-            <h2 style="font-size: 24px; margin-bottom: 10px;">Welcome to BizFlow AI</h2>
-            <p style="opacity: 0.9;">Loading amazing experience...</p>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-bg"></div>
+        <div class="floating-shapes">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
         </div>
     </div>
-    
-    <!-- Custom Cursor -->
-    <div class="cursor" id="cursor"></div>
-    
-    <!-- Floating Background Elements -->
-    <div class="floating-elements">
-        <i class="fas fa-robot floating-icon icon-1"></i>
-        <i class="fas fa-comments floating-icon icon-2"></i>
-        <i class="fas fa-chart-line floating-icon icon-3"></i>
-        <i class="fas fa-cloud floating-icon icon-4"></i>
-    </div>
-    
-    <!-- Main Container -->
-    <div class="modern-container">
-        <!-- Hero Section -->
-        <div class="glass-card" data-aos="fade-up">
-            <div class="hero-section">
-                <h1 class="hero-title">About BizFlow AI</h1>
-                <p class="hero-subtitle">
-                    Revolutionizing Indian businesses with AI-powered WhatsApp automation and smart CRM solutions
-                </p>
-                <div style="display: flex; gap: 15px; justify-content: center; animation: fadeInUp 1s ease 0.4s both;">
-                    <a href="/" class="btn-modern btn-primary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50px; font-weight: 600;">
-                        <i class="fas fa-home"></i> Home
-                    </a>
-                    <a href="/contact" class="btn-modern btn-secondary" style="padding: 15px 40px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: white; color: #667eea; border-radius: 50px; font-weight: 600; border: 2px solid #667eea;">
-                        <i class="fas fa-envelope"></i> Contact
-                    </a>
+
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <div class="logo-container">
+                <div class="logo-symbol">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="4" width="20" height="20" rx="6" fill="white" fill-opacity="0.2"/>
+                        <path d="M8 10H20M8 14H16M8 18H12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="20" cy="10" r="1.5" fill="white"/>
+                    </svg>
+                </div>
+                <div class="logo-text-wrapper">
+                    <div class="logo-text">BizFlow AI</div>
+                    <div class="logo-tagline">Chat.Convert.Scale</div>
                 </div>
             </div>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="#about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <a href="/help" class="nav-link">Help</a>
+            <a href="/docs" class="nav-link">Docs</a>
+            {% if logged %}
+                <a href="/dashboard" class="btn-nav">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="/logout" class="btn-outline-nav">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            {% else %}
+                <a href="/login" class="btn-outline-nav">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a href="/signup" class="btn-nav">
+                    <i class="fas fa-rocket"></i> Start Free
+                </a>
+            {% endif %}
         </div>
-        
+    </nav>
+
+    <!-- Main Content -->
+    <div class="about-wrapper">
+        <!-- Hero Section -->
+        <div class="hero-section" data-aos="fade-up">
+            <h1 class="hero-title">About BizFlow AI</h1>
+            <p class="hero-subtitle">
+                Revolutionizing Indian businesses with AI-powered WhatsApp automation and smart CRM solutions
+            </p>
+            <div class="hero-buttons">
+                <a href="/" class="btn-primary">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="/contact" class="btn-secondary">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
+            </div>
+        </div>
+
         <!-- Stats Section -->
-        <div class="stats-grid" data-aos="fade-up" data-aos-delay="200">
-            <div class="stat-item" data-aos="zoom-in" data-aos-delay="300">
-                <div class="stat-number" id="stat1">10K+</div>
+        <div class="stats-grid">
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-number">10K+</div>
                 <div class="stat-label">Businesses</div>
             </div>
-            <div class="stat-item" data-aos="zoom-in" data-aos-delay="400">
-                <div class="stat-number" id="stat2">50K+</div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-number">50K+</div>
                 <div class="stat-label">Conversations</div>
             </div>
-            <div class="stat-item" data-aos="zoom-in" data-aos-delay="500">
-                <div class="stat-number" id="stat3">98%</div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-number">98%</div>
                 <div class="stat-label">Satisfaction</div>
             </div>
-            <div class="stat-item" data-aos="zoom-in" data-aos-delay="600">
-                <div class="stat-number" id="stat4">24/7</div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="stat-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div class="stat-number">24/7</div>
                 <div class="stat-label">Support</div>
             </div>
         </div>
-        
+
         <!-- Mission & Vision -->
         <div class="mission-vision-grid">
             <div class="mv-card" data-aos="fade-right">
                 <div class="mv-icon">
                     <i class="fas fa-bullseye"></i>
                 </div>
-                <h3 class="mv-title">Our Mission</h3>
+                <h2 class="mv-title">Our Mission</h2>
                 <p class="mv-text">
                     To empower small and medium Indian businesses with cutting-edge AI automation tools that simplify customer communication, streamline operations, and drive growth. We believe technology should be accessible to every entrepreneur.
                 </p>
@@ -840,92 +1033,92 @@
                 <div class="mv-icon">
                     <i class="fas fa-eye"></i>
                 </div>
-                <h3 class="mv-title">Our Vision</h3>
+                <h2 class="mv-title">Our Vision</h2>
                 <p class="mv-text">
                     To become India's most trusted business automation platform, making digital transformation accessible to every entrepreneur. We envision a future where every business, regardless of size, can leverage AI to compete globally.
                 </p>
             </div>
         </div>
-        
-        <!-- Timeline -->
-        <h2 class="section-title" data-aos="fade-up">Our Journey</h2>
-        <div class="timeline">
-            <div class="timeline-item" data-aos="fade-right">
-                <div class="timeline-content">
-                    <span class="timeline-year">2024</span>
-                    <h3 style="font-size: 20px; margin-bottom: 10px;">The Beginning</h3>
-                    <p style="color: #718096;">BizFlow AI was founded with a vision to revolutionize WhatsApp business communication in India.</p>
-                </div>
-            </div>
-            
-            <div class="timeline-item" data-aos="fade-left">
-                <div class="timeline-content">
-                    <span class="timeline-year">2025</span>
-                    <h3 style="font-size: 20px; margin-bottom: 10px;">Rapid Growth</h3>
-                    <p style="color: #718096;">Onboarded 1000+ businesses, launched AI-powered booking system and analytics dashboard.</p>
-                </div>
-            </div>
-            
-            <div class="timeline-item" data-aos="fade-right">
-                <div class="timeline-content">
-                    <span class="timeline-year">2026</span>
-                    <h3 style="font-size: 20px; margin-bottom: 10px;">Enterprise Ready</h3>
-                    <p style="color: #718096;">Launched enterprise features, CRM integration, and achieved 99.9% uptime with advanced security.</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Team Section -->
-        <h2 class="section-title" data-aos="fade-up">Meet Our Leadership</h2>
-        <div class="team-grid">
-            <!-- Gitanshu Damade - Founder & CEO -->
-            <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-                <div class="team-image-wrapper">
-                    <div class="team-image-initials">GD</div>
-                </div>
-                <div class="team-info">
-                    <h3 class="team-name">Gitanshu Damade</h3>
-                    <div class="team-role">Founder & CEO</div>
-                    <p class="team-bio">Visionary entrepreneur building the future of WhatsApp business automation in India. Passionate about leveraging AI to empower small businesses.</p>
-                    <div class="team-social">
-                        <a href="#" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Yashika Pawar - Co-Founder -->
-            <div class="team-card" data-aos="fade-up" data-aos-delay="200">
-                <div class="team-image-wrapper">
-                    <div class="team-image-initials">YP</div>
+        <!-- Timeline Section -->
+        <div class="timeline-section">
+            <h2 class="section-title" data-aos="fade-up">Our Journey</h2>
+            <div class="timeline">
+                <div class="timeline-item" data-aos="fade-right">
+                    <div class="timeline-content">
+                        <span class="timeline-year">2024</span>
+                        <h3>The Beginning</h3>
+                        <p>BizFlow AI was founded with a vision to revolutionize WhatsApp business communication in India.</p>
+                    </div>
                 </div>
-                <div class="team-info">
-                    <h3 class="team-name">Yashika Pawar</h3>
-                    <div class="team-role">Co-Founder & COO</div>
-                    <p class="team-bio">Leading operations and customer success with a passion for innovation and excellence. Dedicated to creating exceptional user experiences.</p>
-                    <div class="team-social">
-                        <a href="#" target="_blank" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                
+                <div class="timeline-item" data-aos="fade-left">
+                    <div class="timeline-content">
+                        <span class="timeline-year">2025</span>
+                        <h3>Rapid Growth</h3>
+                        <p>Onboarded 1000+ businesses, launched AI-powered booking system and analytics dashboard.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item" data-aos="fade-right">
+                    <div class="timeline-content">
+                        <span class="timeline-year">2026</span>
+                        <h3>Enterprise Ready</h3>
+                        <p>Launched enterprise features, CRM integration, and achieved 99.9% uptime with advanced security.</p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Team Note -->
-        <div class="team-note" data-aos="fade-up">
-            <p>Together, we're building India's most trusted WhatsApp automation platform.</p>
+
+        <!-- Team Section -->
+        <div class="team-section">
+            <h2 class="section-title" data-aos="fade-up">Meet Our Leadership</h2>
+            <div class="team-grid">
+                <!-- Gitanshu Damade -->
+                <div class="team-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="team-image-wrapper">
+                        <div class="team-image-initials">GD</div>
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Gitanshu Damade</h3>
+                        <div class="team-role">Founder & CEO</div>
+                        <p class="team-bio">Visionary entrepreneur building the future of WhatsApp business automation in India. Passionate about leveraging AI to empower small businesses.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yashika Pawar -->
+                <div class="team-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="team-image-wrapper">
+                        <div class="team-image-initials">YP</div>
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Yashika Pawar</h3>
+                        <div class="team-role">Co-Founder & COO</div>
+                        <p class="team-bio">Leading operations and customer success with a passion for innovation and excellence. Dedicated to creating exceptional user experiences.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="team-note" data-aos="fade-up">
+                Together, we're building India's most trusted WhatsApp automation platform.
+            </div>
         </div>
-        
+
         <!-- Contact Section -->
         <div class="contact-section" data-aos="fade-up">
             <div class="contact-grid">
                 <div class="contact-info">
                     <h3>Get in Touch</h3>
-                    <p style="color: #718096; margin-bottom: 30px;">
-                        Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-                    </p>
+                    <p>Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
                     
                     <div class="contact-detail">
                         <i class="fas fa-envelope"></i>
@@ -962,15 +1155,19 @@
                 </div>
             </div>
         </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2026 BizFlow AI. All rights reserved. | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
+        </div>
     </div>
-    
-    <!-- Back to Home Button -->
-    <a href="/" class="back-home" title="Back to Home">
-        <i class="fas fa-home"></i>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-top" title="Back to Top">
+        <i class="fas fa-arrow-up"></i>
     </a>
-    
+
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/party-js@latest"></script>
     
@@ -979,89 +1176,52 @@
         AOS.init({
             duration: 1000,
             once: true,
-            mirror: false
+            offset: 100
         });
-        
-        // Hide loader after page load
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('loader').classList.add('hidden');
-            }, 500);
-        });
-        
-        // Custom cursor
-        const cursor = document.getElementById('cursor');
-        
-        document.addEventListener('mousemove', function(e) {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-        });
-        
-        document.addEventListener('mousedown', function() {
-            cursor.classList.add('cursor-grow');
-        });
-        
-        document.addEventListener('mouseup', function() {
-            cursor.classList.remove('cursor-grow');
-        });
-        
-        // Animate stats counting
-        function animateValue(element, start, end, duration) {
-            const range = end - start;
-            const increment = range / (duration / 16);
-            let current = start;
-            
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= end) {
-                    element.innerText = end;
-                    clearInterval(timer);
-                } else {
-                    element.innerText = Math.floor(current) + (element.id.includes('3') ? '%' : element.id.includes('4') ? '/7' : '+');
-                }
-            }, 16);
+
+        // Create particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
         }
-        
-        // Check if stats are in viewport
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateValue(document.getElementById('stat1'), 0, 10000, 2000);
-                    animateValue(document.getElementById('stat2'), 0, 50000, 2000);
-                    animateValue(document.getElementById('stat3'), 0, 98, 2000);
-                    animateValue(document.getElementById('stat4'), 0, 24, 2000);
-                    observer.disconnect();
-                }
+        createParticles();
+
+        // Smooth scroll for back to top
+        document.querySelector('.back-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
         });
-        
-        observer.observe(document.querySelector('.stats-grid'));
-        
+
         // Form submission handler
         function handleSubmit(event) {
             event.preventDefault();
             
-            // Show loading state
             const btn = event.target.querySelector('button');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             btn.disabled = true;
             
-            // Simulate API call
             setTimeout(() => {
                 btn.innerHTML = '<i class="fas fa-check"></i> Sent!';
                 btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
                 
-                // Party effect
                 party.confetti(btn, {
                     count: 30,
                     size: 1
                 });
                 
-                // Reset form
                 event.target.reset();
                 
-                // Reset button after 3 seconds
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
@@ -1071,9 +1231,9 @@
             
             return false;
         }
-        
-        // Add hover effect to cards
-        document.querySelectorAll('.team-card, .mv-card').forEach(card => {
+
+        // Add hover effects
+        document.querySelectorAll('.team-card, .mv-card, .stat-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-10px)';
             });
@@ -1082,16 +1242,6 @@
                 this.style.transform = 'translateY(0)';
             });
         });
-        
-        // Smooth scroll for timeline
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
     </script>
 </body>
-</html
+</html>
