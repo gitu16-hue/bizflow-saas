@@ -212,7 +212,7 @@
             50% { opacity: 0.5; }
         }
 
-        /* ================= LOGO STYLES ================= */
+        /* ================= EXACT LOGO REPLICA ================= */
         .logo {
             text-decoration: none;
             display: flex;
@@ -225,44 +225,47 @@
             gap: 12px;
         }
 
-        .logo-icon {
+        .logo-symbol {
             width: 45px;
             height: 45px;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.5rem;
-            transition: transform 0.3s ease;
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
             box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s ease;
         }
 
-        .logo:hover .logo-icon {
-            transform: rotate(5deg) scale(1.05);
+        .logo:hover .logo-symbol {
+            transform: scale(1.05);
         }
 
-        .brand-name {
-            font-size: 1.5rem;
+        .logo-text-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text {
+            font-size: 24px;
             font-weight: 700;
             color: #1e293b;
+            letter-spacing: -0.5px;
             line-height: 1.2;
+            font-family: 'Inter', sans-serif;
         }
 
-        .ai-highlight {
-            background: linear-gradient(135deg, #f97316, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .tagline {
-            font-size: 0.65rem;
+        .logo-tagline {
+            font-size: 11px;
             font-weight: 600;
             color: #2563eb;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             text-transform: uppercase;
-            margin-top: 2px;
+            font-family: 'Inter', sans-serif;
         }
 
         /* ================= NAVBAR ================= */
@@ -1547,6 +1550,18 @@
             .newsletter-btn {
                 width: 100%;
             }
+            
+            .logo-symbol {
+                width: 35px;
+                height: 35px;
+                font-size: 22px;
+            }
+            .logo-text {
+                font-size: 20px;
+            }
+            .logo-tagline {
+                font-size: 9px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1604,16 +1619,13 @@
     <nav class="navbar">
         <a href="/" class="logo">
             <div class="logo-container">
-                <div class="logo-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="logo-text">
-                    <div class="brand-name">BizFlow<span class="ai-highlight">AI</span></div>
-                    <div class="tagline">Chat.Convert.Scale</div>
+                <div class="logo-symbol">B</div>
+                <div class="logo-text-wrapper">
+                    <div class="logo-text">BizFlow AI</div>
+                    <div class="logo-tagline">Chat.Convert.Scale</div>
                 </div>
             </div>
         </a>
-        <!-- Rest of navbar items remain the same -->
         <div class="nav-links">
             <a href="#features" class="nav-link">Features</a>
             <a href="#industries" class="nav-link">Industries</a>
@@ -2028,10 +2040,8 @@
         <div class="footer-content">
             <div>
                 <div class="footer-logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    BizFlow AI
+                    <div class="footer-logo-symbol">B</div>
+                    <div class="footer-logo-text">BizFlow AI</div>
                 </div>
                 <p style="color: var(--gray-400); margin-top: 1rem; max-width: 250px;">Intelligent WhatsApp automation for modern businesses.</p>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
