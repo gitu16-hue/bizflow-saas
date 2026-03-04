@@ -212,7 +212,7 @@
             50% { opacity: 0.5; }
         }
 
-        /* ================= EXACT LOGO REPLICA ================= */
+        /* ================= PROFESSIONAL LOGO ================= */
         .logo {
             text-decoration: none;
             display: flex;
@@ -233,12 +233,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
             box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
             transition: transform 0.2s ease;
+        }
+
+        .logo-symbol svg {
+            width: 28px;
+            height: 28px;
         }
 
         .logo:hover .logo-symbol {
@@ -1250,10 +1251,28 @@
         .footer-logo {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
+            gap: 12px;
+        }
+
+        .footer-logo-symbol {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-logo-symbol svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .footer-logo-text {
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 1rem;
+            color: white;
         }
 
         .footer-links h4 {
@@ -1552,15 +1571,30 @@
             }
             
             .logo-symbol {
-                width: 35px;
-                height: 35px;
-                font-size: 22px;
+                width: 40px;
+                height: 40px;
+            }
+            .logo-symbol svg {
+                width: 24px;
+                height: 24px;
             }
             .logo-text {
                 font-size: 20px;
             }
             .logo-tagline {
                 font-size: 9px;
+            }
+            
+            .footer-logo-symbol {
+                width: 40px;
+                height: 40px;
+            }
+            .footer-logo-symbol svg {
+                width: 24px;
+                height: 24px;
+            }
+            .footer-logo-text {
+                font-size: 20px;
             }
         }
 
@@ -1619,7 +1653,13 @@
     <nav class="navbar">
         <a href="/" class="logo">
             <div class="logo-container">
-                <div class="logo-symbol">B</div>
+                <div class="logo-symbol">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="4" width="20" height="20" rx="6" fill="white" fill-opacity="0.2"/>
+                        <path d="M8 10H20M8 14H16M8 18H12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="20" cy="10" r="1.5" fill="white"/>
+                    </svg>
+                </div>
                 <div class="logo-text-wrapper">
                     <div class="logo-text">BizFlow AI</div>
                     <div class="logo-tagline">Chat.Convert.Scale</div>
@@ -2040,7 +2080,13 @@
         <div class="footer-content">
             <div>
                 <div class="footer-logo">
-                    <div class="footer-logo-symbol">B</div>
+                    <div class="footer-logo-symbol">
+                        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="5" width="20" height="20" rx="6" fill="white" fill-opacity="0.2"/>
+                            <path d="M9 11H21M9 15H17M9 19H13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="21" cy="11" r="1.5" fill="white"/>
+                        </svg>
+                    </div>
                     <div class="footer-logo-text">BizFlow AI</div>
                 </div>
                 <p style="color: var(--gray-400); margin-top: 1rem; max-width: 250px;">Intelligent WhatsApp automation for modern businesses.</p>
